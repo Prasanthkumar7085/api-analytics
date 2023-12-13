@@ -42,4 +42,20 @@ export class StatsService {
   async countStats(query: any = {}) {
     return await this.prisma.marketer_stats.count({ where: query });
   }
+
+  async marketers(query, sort) {
+    return this.prisma.marketer_stats.groupBy({
+      by: ['marketer_id'],
+      where: query,
+      _sum: {
+        total_cases: true,
+        pending_cases: true,
+        completed_cases: true,
+        hospitals_count: true,
+      },
+      orderBy: {
+        _sum: sort
+      }
+    });
+  }
 }

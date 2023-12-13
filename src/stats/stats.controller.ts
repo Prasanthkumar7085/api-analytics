@@ -8,6 +8,7 @@ import * as path from 'path';
 import seedStats from 'src/seeder/statsSeeder';
 import { PaginationHelper } from 'src/helpers/paginationHelper';
 import { FilterHelper } from 'src/helpers/filterHelper';
+import { SortHelper } from 'src/helpers/sortHelper';
 
 @Controller({
   version: '1.0',
@@ -17,52 +18,33 @@ export class StatsController {
   constructor(
     private readonly statsService: StatsService,
     private readonly paginationHelper: PaginationHelper,
-    private readonly filterHelper: FilterHelper
+    private readonly filterHelper: FilterHelper,
+    private readonly sortHelper: SortHelper
   ) { }
 
   @Get("marketers")
   async findAll(@Req() req: any, @Res() res: any) {
     try {
 
-      let page = req.query.page || 1;
-      let limit = req.query.limit || 100;
-      let orderBy = req.query.order_by || "date";
-      let orderType = req.query.order_type || "desc";
-
-      let skip = (page - 1) * limit;
-
-      const sort = {
-        [orderBy]: orderType
-      }
+      const orderBy = req.query.order_by;
+      const orderType = req.query.order_type;
 
       let query: any = this.filterHelper.stats(req.query)
 
-      const select = {
-        marketer_id: true,
-        total_cases: true,
-        pending_cases: true,
-        completed_cases: true,
-        hospitals_count: true,
-        date: true
+      let sort = {}
+      if (orderBy && orderType) {
+        sort = this.sortHelper.stats(orderBy, orderType)
       }
 
-      const [statsData, count] = await Promise.all([
-        await this.statsService.findAll({ query, select, skip, limit, sort }),
-        await this.statsService.countStats(query),
-      ]);
+      let statsData = await this.statsService.marketers(query, sort);
 
-      const response = this.paginationHelper.getPaginationResponse({
-        page: +req.query.page || 1,
-        count,
-        limit,
-        skip,
-        data: statsData,
+
+      return res.status(200).json({
+        success: true,
         message: SUCCESS_MARKETERS,
-        searchString: req.query.search_string,
+        data: statsData
+
       });
-
-
-      return res.status(200).json(response);
 
     } catch (error) {
       console.log({ error });
@@ -124,7 +106,7 @@ export class StatsController {
   }
 
   @Get(":marketer_id")
-  async singleMarketer(@Param('marketer_id') marketer_id:any, @Req() req: any, @Res() res: any) {
+  async singleMarketer(@Param('marketer_id') marketer_id: any, @Req() req: any, @Res() res: any) {
     try {
       let page = req.query.page || 1;
       let limit = req.query.limit || 100;

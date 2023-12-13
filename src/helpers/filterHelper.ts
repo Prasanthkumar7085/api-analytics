@@ -6,7 +6,8 @@ export class FilterHelper {
         const completedCases = query.completed_cases;
         const marketer = query.marketer_id;
         const totalCases = query.total_cases;
-        const date = query.date;
+        const fromDate = query.from_date;
+        const toDate = query.to_date;
         const hospitalsCount = query.hospitals_count;
 
         let filter: any = {}
@@ -34,9 +35,10 @@ export class FilterHelper {
             }
         }
 
-        if (date) {
+        if (fromDate && toDate) {
             filter.date = {
-                equals: date
+                gte: fromDate,
+                lte: toDate
             }
         }
 
