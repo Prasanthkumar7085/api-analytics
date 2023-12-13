@@ -1,15 +1,22 @@
 import { Injectable } from '@nestjs/common';
-import { CreateStatDto } from './dto/create-stat.dto';
 import { UpdateStatDto } from './dto/update-stat.dto';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class StatsService {
-  create(createStatDto: CreateStatDto) {
-    return 'This action adds a new stat';
+  constructor(private prisma: PrismaService) { }
+  create(body) {
+    return this.prisma.marketer_stats.create({ data: body })
   }
 
-  findAll() {
-    return `This action returns all stats`;
+  findAll({ query, select, skip, limit, sort }) {
+    return this.prisma.marketer_stats.findMany({
+      select,
+      skip,
+      take: limit,
+      orderBy: sort,
+      where: query
+    });
   }
 
   findOne(id: number) {
@@ -21,6 +28,18 @@ export class StatsService {
   }
 
   remove(id: number) {
-    return `This action removes a #${id} stat`;
+    return this.prisma.marketer_stats.delete({
+      where: {
+        id: id,
+      },
+    })
+  }
+
+  insertMany(body) {
+    return this.prisma.marketer_stats.createMany(body);
+  }
+
+  async countStats(query: any = {}) {
+    return await this.prisma.marketer_stats.count({ where: query });
   }
 }
