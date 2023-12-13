@@ -9,7 +9,7 @@ export class StatsService {
     return this.prisma.marketer_stats.create({ data: body })
   }
 
-  findAll({ query, select, skip, limit, sort }) {
+  caseWiseCounts({ query, select, skip, limit, sort }) {
     return this.prisma.marketer_stats.findMany({
       select,
       skip,
@@ -57,5 +57,11 @@ export class StatsService {
         _sum: sort
       }
     });
+  }
+
+  async findAll(query) {
+    return this.prisma.marketer_stats.findMany({
+      where: query
+    })
   }
 }

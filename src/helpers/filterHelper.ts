@@ -1,13 +1,11 @@
 
 
 export class FilterHelper {
-    stats(query) {
+    stats(query, fromDate, toDate) {
         const pendingCases = query.pending_cases;
         const completedCases = query.completed_cases;
         const marketer = query.marketer_id;
         const totalCases = query.total_cases;
-        const fromDate = query.from_date;
-        const toDate = query.to_date;
         const hospitalsCount = query.hospitals_count;
 
         let filter: any = {}
@@ -83,16 +81,13 @@ export class FilterHelper {
         return filter;
     }
 
-    hospitalWiseMarketers(query) {
+    hospitalWiseMarketers(fromDate, toDate, marketer) {
         let filter: any = {}
 
-        const date = query.date;
-        const marketer = query.marketer_id;
-
-
-        if (date) {
+        if (fromDate && toDate) {
             filter.date = {
-                equals: date
+                gte: fromDate,
+                lte: toDate
             }
         }
 

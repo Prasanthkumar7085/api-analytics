@@ -22,14 +22,20 @@ export class StatsController {
     private readonly sortHelper: SortHelper
   ) { }
 
-  @Get("marketers")
-  async findAll(@Req() req: any, @Res() res: any) {
+  @Get("marketers/:from_date/:to_date")
+  async findAll(@Param('from_date') from_date: any, @Param('to_date') to_date: any, @Req() req: any, @Res() res: any) {
     try {
-
       const orderBy = req.query.order_by;
       const orderType = req.query.order_type;
 
-      let query: any = this.filterHelper.stats(req.query)
+      if (to_date < from_date) {
+        return res.status(400).json({
+          success: false,
+          message: "To-Date is not be lesser than From-Date"
+        })
+      }
+
+      let query: any = this.filterHelper.stats(req.query, from_date, to_date)
 
       let sort = {}
       if (orderBy && orderType) {
@@ -79,7 +85,7 @@ export class StatsController {
       }
 
       const [statsData, count]: any = await Promise.all([
-        await this.statsService.findAll({ query, select, skip, limit, sort }),
+        await this.statsService.caseWiseCounts({ query, select, skip, limit, sort }),
         await this.statsService.countStats(query),
       ]);
 
@@ -105,48 +111,59 @@ export class StatsController {
     }
   }
 
-  @Get(":marketer_id")
-  async singleMarketer(@Param('marketer_id') marketer_id: any, @Req() req: any, @Res() res: any) {
+  @Get(":marketer_id/:from_date/:to_date")
+  async singleMarketer(
+    @Param('marketer_id') marketer_id: any,
+    @Param('from_date') fromDate: any,
+    @Param('to_date') toDate: any,
+    @Req() req: any,
+    @Res() res: any) {
+
     try {
-      let page = req.query.page || 1;
-      let limit = req.query.limit || 100;
-      let orderBy = req.query.order_by || "date";
-      let orderType = req.query.order_type || "desc";
+      let orderBy = req.query.order_by;
+      let orderType = req.query.order_type;
 
-      req.query.marketer_id = marketer_id;
-
-      let skip = (page - 1) * limit;
-
-      const sort = {
-        [orderBy]: orderType
+      if (toDate < fromDate) {
+        return res.status(400).json({
+          success: false,
+          message: "To-Date is not be lesser than From-Date"
+        })
       }
 
-      let query: any = this.filterHelper.hospitalWiseMarketers(req.query)
+      const query = this.filterHelper.hospitalWiseMarketers(fromDate, toDate, marketer_id)
 
-      const select = {
-        marketer_id: true,
-        date: true,
-        hospital_case_type_wise_counts: true
-      }
+      let statsData: any = await this.statsService.findAll(query);
 
-      const [statsData, count]: any = await Promise.all([
-        await this.statsService.findAll({ query, select, skip, limit, sort }),
-        await this.statsService.countStats(query),
-      ]);
+      const result = {};
 
-      const response = this.paginationHelper.getPaginationResponse({
-        page: +req.query.page || 1,
-        count,
-        limit,
-        skip,
-        data: statsData,
-        message: SUCCESS_MARKETERS,
-        searchString: req.query.search_string,
+      statsData.forEach((entry) => {
+        entry.hospital_case_type_wise_counts.forEach((hospitalData) => {
+          const hospitalId = hospitalData.hospital;
+
+          if (!result[hospitalId]) {
+            // Initialize if not exists
+            result[hospitalId] = { hospital: hospitalId, ...hospitalData };
+          } else {
+            // Sum values
+            Object.keys(hospitalData).forEach((key) => {
+              if (key !== 'hospital') {
+                result[hospitalId][key] += hospitalData[key];
+              }
+            });
+          }
+        });
       });
 
+      let dataArray = Object.values(result);
 
-      return res.status(200).json(response);
+      dataArray = this.sortHelper.hospitalWise(orderBy, orderType, dataArray)
 
+
+      return res.status(200).json({
+        success: true,
+        message: SUCCESS_MARKETERS,
+        data: dataArray
+      });
     } catch (error) {
       return res.status(500).json({
         success: false,
