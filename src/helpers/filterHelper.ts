@@ -22,7 +22,7 @@ export class FilterHelper {
             }
         }
 
-        if(marketer){
+        if (marketer) {
             filter.marketer_id = {
                 equals: marketer
             }
@@ -34,7 +34,7 @@ export class FilterHelper {
             }
         }
 
-        if(date){
+        if (date) {
             filter.date = {
                 equals: date
             }
@@ -46,6 +46,59 @@ export class FilterHelper {
             }
         }
 
+
+        return filter;
+    }
+
+    caseWiseMarketers(query) {
+        let filter: any = {}
+
+        const date = query.date;
+        const marketer = query.marketer_id;
+        const caseType = query.case_type;
+
+
+        if (date) {
+            filter.date = {
+                equals: date
+            }
+        }
+
+        if (marketer) {
+            filter.marketer_id = {
+                equals: marketer
+            }
+        }
+
+        if (caseType) {
+            console.log(123);
+            filter.case_type_wise_counts = {
+                path: ['case_type'],
+                equals: 'Claudine',
+            }
+        }
+
+        return filter;
+    }
+
+    hospitalWiseMarketers(query) {
+        let filter: any = {}
+
+        const date = query.date;
+        const marketer = query.marketer_id;
+
+
+        if (date) {
+            filter.date = {
+                equals: date
+            }
+        }
+
+        if (marketer) {
+            filter.marketer_id = {
+                equals: marketer
+            }
+        }
 
         return filter;
     }
