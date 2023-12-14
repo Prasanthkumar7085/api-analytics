@@ -182,6 +182,8 @@ export class StatsController {
       const marketerIds = reqBody.marketer_ids;
       const date = reqBody.date;
 
+      console.log(marketerIds);
+
       let insertedData;
 
       let query = {
@@ -200,13 +202,13 @@ export class StatsController {
 
       const notExistedMarketers = marketerIds.filter(item => !existedDataMarketerIds.includes(item));
 
-      await this.prepareDateForPending(notExistedMarketers, existedDataMarketerIds, existedData, reqBody);
+      const modifiedDataArray = await this.prepareDateForPending(notExistedMarketers, existedDataMarketerIds, existedData, reqBody);
 
 
       return res.status(200).json({
         success: true,
         message: SUCCESS_PENDING,
-        data: insertedData
+        data: modifiedDataArray
       })
     } catch (err) {
       console.log({ err });
@@ -376,6 +378,8 @@ export class StatsController {
     const date = reqBody.date;
     const caseType = reqBody.case_type;
 
+    console.log({notExistedMarketers});
+
     let modifiedDataArray = [];
     if (notExistedMarketers.length > 0) {
       for (let i = 0; i < notExistedMarketers.length; i++) {
@@ -420,12 +424,14 @@ export class StatsController {
       }
 
     }
+
+    return modifiedDataArray
   }
-  prepareToInsertData(reqBody) {
+  prepareToInsertData(toInsertData) {
     let prepareNewData: any = {};
     prepareNewData = {
-      marketer_id: reqBody.marketer_ids,
-      date: reqBody.date,
+      marketer_id: toInsertData.marketer_id,
+      date: toInsertData.date,
       pending_cases: 0,
       completed_cases: 0,
       total_cases: 0,
@@ -485,7 +491,7 @@ export class StatsController {
     }
 
     const indexToUpdate = prepareNewData.case_type_wise_counts.findIndex(
-      (item) => item.case_type === reqBody.case_type.toUpperCase()
+      (item) => item.case_type === toInsertData.case_type.toUpperCase()
     );
 
 
@@ -495,10 +501,10 @@ export class StatsController {
     }
 
 
-    const caseTypeObject = prepareNewData.hospital_case_type_wise_counts.find(obj => obj.hasOwnProperty(reqBody.case_type.toLowerCase()));
+    const caseTypeObject = prepareNewData.hospital_case_type_wise_counts.find(obj => obj.hasOwnProperty(toInsertData.case_type.toLowerCase()));
     if (caseTypeObject) {
-      caseTypeObject[reqBody.case_type.toLowerCase()]++;
-      caseTypeObject["hospital"] = reqBody.hospital_id
+      caseTypeObject[toInsertData.case_type.toLowerCase()]++;
+      caseTypeObject["hospital"] = toInsertData.hospital_id
     }
 
     prepareNewData.pending_cases++;
