@@ -219,7 +219,7 @@ export class StatsController {
   }
 
 
-  @Post("case/complete")
+  @Post("case/complete/conform")
   async addCompleted(@Body() createStatDto: CreateStatDto, @Res() res: any) {
     try {
       let reqBody = createStatDto;
@@ -244,6 +244,49 @@ export class StatsController {
       }
 
       const modifiedData = this.prepareToUpdateComplete(existedData, reqBody);
+
+      const insertedData = await this.statsService.update(existedData?.id, modifiedData)
+
+
+      return res.status(200).json({
+        success: true,
+        message: "Successfully Inserted Stat",
+        data: insertedData
+      })
+    } catch (err) {
+      console.log({ err });
+      return res.status(500).json({
+        success: false,
+        message: err.message || "Something Went Wrong"
+      })
+    }
+  }
+
+  @Post("case/complete/retrieve")
+  async addRetrieve(@Body() createStatDto: CreateStatDto, @Res() res: any) {
+    try {
+      let reqBody = createStatDto;
+
+      let query = {
+        date: {
+          equals: reqBody.date
+        },
+        marketer_id: {
+          equals: reqBody.marketer_id
+        }
+      }
+
+      let existedData = await this.statsService.findOne(query);
+
+      if (!existedData) {
+        return res.status(404).json({
+          success: false,
+          message: "Stat is not existed to update retrive stats"
+        })
+
+      }
+
+      const modifiedData = this.prepareToUpdateRetrive(existedData, reqBody);
 
       const insertedData = await this.statsService.update(existedData?.id, modifiedData)
 
@@ -387,6 +430,26 @@ export class StatsController {
 
     existedData.pending_cases--;
     existedData.completed_cases++;
+
+    existedData.total_cases = existedData.pending_cases + existedData.completed_cases;
+
+    return existedData;
+
+  }
+
+  prepareToUpdateRetrive(existedData, reqBody) {
+    const indexToUpdate = existedData.case_type_wise_counts.findIndex(
+      (item) => item.case_type === reqBody.case_type.toUpperCase()
+    );
+
+    // If the case type is found, increment the counts
+    if (indexToUpdate !== -1) {
+      existedData.case_type_wise_counts[indexToUpdate].completed--; // You can adjust the increment as needed
+      existedData.case_type_wise_counts[indexToUpdate].pending++;
+    }
+
+    existedData.pending_cases++;
+    existedData.completed_cases--;
 
     existedData.total_cases = existedData.pending_cases + existedData.completed_cases;
 
