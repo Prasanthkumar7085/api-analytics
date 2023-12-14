@@ -2,15 +2,15 @@ import {IsString,IsEmail, IsMongoId, IsDate, IsDateString} from 'class-validator
 export class CreateStatDto {
 
     @IsMongoId()
-    marketerId:string;
+    marketer_id:string;
 
     @IsMongoId()
-    hospitalId : string;
+    hospital_id : string;
 
     @IsString()
     date : string;
 
     @IsString()
-    caseType : string;
+    case_type : string;
 }
 

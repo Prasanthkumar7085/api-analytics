@@ -21,6 +21,6 @@ model marketer_stats {
   date                              DateTime?  @default(now())
   case_type_wise_counts             Json[]
   hospital_case_type_wise_counts    Json[]
-  created_at                        DateTime   @default(now())
-  updated_at                        DateTime   @default(now())
+  created_at                        DateTime?   @default(now())
+  updated_at                        DateTime?   @default(now())
 }

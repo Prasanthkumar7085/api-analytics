@@ -9,11 +9,12 @@ import seedStats from 'src/seeder/statsSeeder';
 import { PaginationHelper } from 'src/helpers/paginationHelper';
 import { FilterHelper } from 'src/helpers/filterHelper';
 import { SortHelper } from 'src/helpers/sortHelper';
+import { prepareCaseTypeCounts, prepareHospitalWiseCounts } from 'src/constants/statsConstants';
 
 
 @Controller({
   version: '1.0',
-  path: 'stats',
+  path: 'marketers-stats',
 })
 export class StatsController {
   constructor(
@@ -23,7 +24,7 @@ export class StatsController {
     private readonly sortHelper: SortHelper
   ) { }
 
-  @Get("marketers/:from_date/:to_date")
+  @Get(":from_date/:to_date")
   async findAll(@Param('from_date') from_date: any, @Param('to_date') to_date: any, @Req() req: any, @Res() res: any) {
     try {
       const orderBy = req.query.order_by;
@@ -62,7 +63,7 @@ export class StatsController {
     }
   }
 
-  @Get("marketers-case-type")
+  @Get("case-type")
   async getMarketersByCaseTypes(@Req() req: any, @Res() res: any) {
     try {
 
@@ -82,7 +83,8 @@ export class StatsController {
       const select = {
         marketer_id: true,
         date: true,
-        case_type_wise_counts: true
+        case_type_wise_counts: true,
+        hospital_case_type_wise_counts: true,
       }
 
       const [statsData, count]: any = await Promise.all([
@@ -173,14 +175,78 @@ export class StatsController {
     }
   }
 
-  @Post("")
-  async add(@Body() createStatDto: CreateStatDto, @Res() res: any) {
+  @Post("case/pending")
+  async addPending(@Body() createStatDto: CreateStatDto, @Res() res: any) {
     try {
       let reqBody = createStatDto;
 
-      console.log(reqBody);
+      let query = {
+        date: {
+          equals: reqBody.date
+        },
+        marketer_id: {
+          equals: reqBody.marketer_id
+        }
+      }
 
-      let insertedData = await this.statsService.create(reqBody)
+      let existedData = await this.statsService.findOne(query);
+
+      let insertedData;
+      if (!existedData) {
+        const modifiedData = this.prepareToInsertData(reqBody)
+
+        insertedData = await this.statsService.create(modifiedData)
+
+      } else {
+        const modifiedData = this.prepareDataToUpdate(existedData, reqBody);
+
+        insertedData = await this.statsService.update(existedData?.id, modifiedData)
+
+      }
+
+      return res.status(200).json({
+        success: true,
+        message: "Successfully Inserted Stat",
+        data: insertedData
+      })
+    } catch (err) {
+      console.log({ err });
+      return res.status(500).json({
+        success: false,
+        message: err.message || "Something Went Wrong"
+      })
+    }
+  }
+
+
+  @Post("case/complete")
+  async addCompleted(@Body() createStatDto: CreateStatDto, @Res() res: any) {
+    try {
+      let reqBody = createStatDto;
+
+      let query = {
+        date: {
+          equals: reqBody.date
+        },
+        marketer_id: {
+          equals: reqBody.marketer_id
+        }
+      }
+
+      let existedData = await this.statsService.findOne(query);
+
+      if (!existedData) {
+        return res.status(404).json({
+          success: false,
+          message: "Stat is not existed to update complete stats"
+        })
+
+      }
+
+      const modifiedData = this.prepareToUpdateComplete(existedData, reqBody);
+
+      const insertedData = await this.statsService.update(existedData?.id, modifiedData)
+
 
       return res.status(200).json({
         success: true,
@@ -241,5 +307,90 @@ export class StatsController {
         message: err.message || "Something Went Wrong"
       })
     }
+  }
+
+  prepareToInsertData(reqBody) {
+    let prepareNewData: any = {};
+    prepareNewData = {
+      marketer_id: reqBody.marketer_id,
+      date: reqBody.date,
+      case_type_wise_counts: prepareCaseTypeCounts,
+      hospital_case_type_wise_counts: [prepareHospitalWiseCounts]
+    }
+
+    const indexToUpdate = prepareNewData.case_type_wise_counts.findIndex(
+      (item) => item.case_type === reqBody.case_type.toUpperCase()
+    );
+
+    // If the case type is found, increment the counts
+    if (indexToUpdate !== -1) {
+      prepareNewData.case_type_wise_counts[indexToUpdate].pending++; // You can adjust the increment as needed
+    }
+
+
+    const caseTypeObject = prepareNewData.hospital_case_type_wise_counts.find(obj => obj.hasOwnProperty(reqBody.case_type.toLowerCase()));
+    if (caseTypeObject) {
+      caseTypeObject[reqBody.case_type.toLowerCase()]++;
+      caseTypeObject["hospital"] = reqBody.hospital_id
+    }
+
+    prepareNewData.total_cases = 1;
+    prepareNewData.pending_cases = 1;
+    prepareNewData.completed_cases = 0;
+
+    prepareNewData.hospitals_count = prepareNewData.hospital_case_type_wise_counts.length
+
+    return prepareNewData;
+  }
+
+  prepareDataToUpdate(existedData, reqBody) {
+
+    const indexToUpdate = existedData.case_type_wise_counts.findIndex(
+      (item) => item.case_type === reqBody.case_type.toUpperCase()
+    );
+
+    // If the case type is found, increment the counts
+    if (indexToUpdate !== -1) {
+      existedData.case_type_wise_counts[indexToUpdate].pending++; // You can adjust the increment as needed
+    }
+
+    const hospitalObject = existedData.hospital_case_type_wise_counts.find(obj => obj.hospital === reqBody.hospital_id);
+
+    if (hospitalObject) {
+      hospitalObject[reqBody.case_type.toLowerCase()]++; // Increment the "covid" count by 1
+    } else {
+      let hospitalData = prepareHospitalWiseCounts
+      hospitalData[reqBody.case_type.toLowerCase()]++;
+      hospitalData["hospital"] = reqBody.hospital_id;
+      existedData.hospital_case_type_wise_counts.push(hospitalData)
+    }
+
+    existedData.total_cases++;
+    existedData.pending_cases++;
+
+    existedData.hospitals_count = existedData.hospital_case_type_wise_counts.length
+
+    return existedData;
+
+  }
+
+  prepareToUpdateComplete(existedData, reqBody) {
+    const indexToUpdate = existedData.case_type_wise_counts.findIndex(
+      (item) => item.case_type === reqBody.case_type.toUpperCase()
+    );
+
+    // If the case type is found, increment the counts
+    if (indexToUpdate !== -1) {
+      existedData.case_type_wise_counts[indexToUpdate].completed++; // You can adjust the increment as needed
+      existedData.case_type_wise_counts[indexToUpdate].pending--;
+    }
+
+    existedData.pending_cases--;
+    existedData.completed_cases++;
+
+    existedData.total_cases = existedData.pending_cases + existedData.completed_cases;
+
+    return existedData;
+
   }
 }

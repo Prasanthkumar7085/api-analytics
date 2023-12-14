@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { UpdateStatDto } from './dto/update-stat.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { query } from 'express';
 
 @Injectable()
 export class StatsService {
@@ -19,12 +20,20 @@ export class StatsService {
     });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} stat`;
+  findOne(query) {
+    return this.prisma.marketer_stats.findFirst({
+      where: query
+    });
   }
 
-  update(id: number, updateStatDto: UpdateStatDto) {
-    return `This action updates a #${id} stat`;
+  update(id: number, data) {
+    return this.prisma.marketer_stats.upsert({
+      where: {
+        id: id
+      },
+      update: data,
+      create: data,
+    });
   }
 
   remove(id: number) {
