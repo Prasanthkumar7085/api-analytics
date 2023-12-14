@@ -202,13 +202,12 @@ export class StatsController {
 
       const notExistedMarketers = marketerIds.filter(item => !existedDataMarketerIds.includes(item));
 
-      const modifiedDataArray = await this.prepareDateForPending(notExistedMarketers, existedDataMarketerIds, existedData, reqBody);
+      await this.prepareDateForPending(notExistedMarketers, existedDataMarketerIds, existedData, reqBody);
 
 
       return res.status(200).json({
         success: true,
-        message: SUCCESS_PENDING,
-        data: modifiedDataArray
+        message: SUCCESS_PENDING
       })
     } catch (err) {
       console.log({ err });
@@ -424,8 +423,6 @@ export class StatsController {
       }
 
     }
-
-    return modifiedDataArray
   }
   prepareToInsertData(toInsertData) {
     let prepareNewData: any = {};
