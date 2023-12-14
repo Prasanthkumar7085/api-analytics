@@ -4,7 +4,7 @@ export class CreateStatDto {
     @IsMongoId({each: true, message: "Invalid Marketer Id"})
     @IsArray({message: "Marketer Id must be an array"})
     @IsNotEmpty({message: "Marketer Id is required"})
-    marketer_id:string[];
+    marketer_ids:string[];
 
     @IsMongoId({message: "Invalid Hospital Id"})
     @IsNotEmpty({message: "Hospital Id is required"})

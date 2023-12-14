@@ -179,7 +179,7 @@ export class StatsController {
     try {
       let reqBody = createStatDto;
 
-      const marketerIds = reqBody.marketer_id;
+      const marketerIds = reqBody.marketer_ids;
       const date = reqBody.date;
 
       let insertedData;
@@ -223,7 +223,7 @@ export class StatsController {
     try {
       let reqBody = createStatDto;
 
-      const marketerIds = reqBody.marketer_id;
+      const marketerIds = reqBody.marketer_ids;
       const date = reqBody.date;
 
       let query = {
@@ -274,7 +274,7 @@ export class StatsController {
     try {
       let reqBody = createStatDto;
 
-      const marketerIds = reqBody.marketer_id;
+      const marketerIds = reqBody.marketer_ids;
       const date = reqBody.date;
 
       let query = {
@@ -424,7 +424,7 @@ export class StatsController {
   prepareToInsertData(reqBody) {
     let prepareNewData: any = {};
     prepareNewData = {
-      marketer_id: reqBody.marketer_id,
+      marketer_id: reqBody.marketer_ids,
       date: reqBody.date,
       pending_cases: 0,
       completed_cases: 0,
