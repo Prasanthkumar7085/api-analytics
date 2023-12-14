@@ -2,14 +2,14 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, Res, UseGuards, Req 
 import { StatsService } from './stats.service';
 import { CreateStatDto } from './dto/create-stat.dto';
 import { UpdateStatDto } from './dto/update-stat.dto';
-import { SOMETHING_WENT_WRONG, SUCCESS_MARKETERS } from 'constants/messageConstants';
 import * as fs from 'fs';
 import * as path from 'path';
 import seedStats from 'src/seeder/statsSeeder';
 import { PaginationHelper } from 'src/helpers/paginationHelper';
 import { FilterHelper } from 'src/helpers/filterHelper';
 import { SortHelper } from 'src/helpers/sortHelper';
-import { prepareCaseTypeCounts, prepareHospitalWiseCounts } from 'src/constants/statsConstants';
+import { CARDIAC, CGX, CLINICAL_CHEMISTRY, COVID, COVID_FLU, DIABETES, GASTRO, NAIL, PAD, PGX, PULMONARY, RESPIRATORY_PATHOGEN_PANEL, TOXICOLOGY, URINALYSIS, UTI, WOUND, prepareCaseTypeCounts, prepareHospitalWiseCounts } from 'src/constants/statsConstants';
+import { NOT_LESSER, SOMETHING_WENT_WRONG, SUCCESS_COMPLETE, SUCCESS_DELETE, SUCCESS_MARKETERS, SUCCESS_PENDING, SUCCESS_RETREIVE } from 'src/constants/messageConstants';
 
 
 @Controller({
@@ -27,13 +27,13 @@ export class StatsController {
   @Get(":from_date/:to_date")
   async findAll(@Param('from_date') from_date: any, @Param('to_date') to_date: any, @Req() req: any, @Res() res: any) {
     try {
-      const orderBy = req.query.order_by;
-      const orderType = req.query.order_type;
+      const orderBy = req.query.order_by || "total_cases";
+      const orderType = req.query.order_type || "desc";
 
       if (to_date < from_date) {
         return res.status(400).json({
           success: false,
-          message: "To-Date is not be lesser than From-Date"
+          message: NOT_LESSER
         })
       }
 
@@ -128,7 +128,7 @@ export class StatsController {
       if (toDate < fromDate) {
         return res.status(400).json({
           success: false,
-          message: "To-Date is not be lesser than From-Date"
+          message: NOT_LESSER
         })
       }
 
@@ -179,40 +179,40 @@ export class StatsController {
     try {
       let reqBody = createStatDto;
 
+      const marketerIds = reqBody.marketer_id;
+      const date = reqBody.date;
+
+      let insertedData;
+
       let query = {
         date: {
-          equals: reqBody.date
+          equals: date
         },
         marketer_id: {
-          equals: reqBody.marketer_id
+          in: marketerIds
         }
       }
 
-      let existedData = await this.statsService.findOne(query);
 
-      let insertedData;
-      if (!existedData) {
-        const modifiedData = this.prepareToInsertData(reqBody)
+      let existedData = await this.statsService.findMany(query);
 
-        insertedData = await this.statsService.create(modifiedData)
+      let existedDataMarketerIds = existedData.map((e) => e.marketer_id);
 
-      } else {
-        const modifiedData = this.prepareDataToUpdate(existedData, reqBody);
+      const notExistedMarketers = marketerIds.filter(item => !existedDataMarketerIds.includes(item));
 
-        insertedData = await this.statsService.update(existedData?.id, modifiedData)
+      await this.prepareDateForPending(notExistedMarketers, existedDataMarketerIds, existedData, reqBody);
 
-      }
 
       return res.status(200).json({
         success: true,
-        message: "Successfully Inserted Stat",
+        message: SUCCESS_PENDING,
         data: insertedData
       })
     } catch (err) {
       console.log({ err });
       return res.status(500).json({
         success: false,
-        message: err.message || "Something Went Wrong"
+        message: err.message || SOMETHING_WENT_WRONG
       })
     }
   }
@@ -223,40 +223,48 @@ export class StatsController {
     try {
       let reqBody = createStatDto;
 
+      const marketerIds = reqBody.marketer_id;
+      const date = reqBody.date;
+
       let query = {
         date: {
-          equals: reqBody.date
+          equals: date
         },
         marketer_id: {
-          equals: reqBody.marketer_id
+          in: marketerIds
         }
       }
 
-      let existedData = await this.statsService.findOne(query);
+      let existedData = await this.statsService.findMany(query);
 
-      if (!existedData) {
-        return res.status(404).json({
-          success: false,
-          message: "Stat is not existed to update complete stats"
-        })
+      let modifiedDataArray = []
+      for (let i = 0; i < marketerIds.length; i++) {
+        const marketerObject = existedData.find((item) => item.marketer_id === marketerIds[i]);
+        const modifiedData = this.prepareToUpdateComplete(marketerObject, reqBody);
+
+        modifiedDataArray.push(modifiedData);
 
       }
 
-      const modifiedData = this.prepareToUpdateComplete(existedData, reqBody);
+      if (modifiedDataArray.length > 0) {
+        const convertedData = modifiedDataArray.map(entry => {
+          return `(${entry.id}, '${entry.marketer_id}', ${entry.total_cases}, ${entry.pending_cases}, ${entry.completed_cases}, ${entry.hospitals_count}, ARRAY[${entry.case_type_wise_counts.map(item => `'{"pending":${item.pending},"case_type":"${item.case_type}","completed":${item.completed}}'`)}]::jsonb[], ARRAY[${entry.hospital_case_type_wise_counts.map(item => `'{"cgx":${item.cgx},"pad":${item.pad},"pgx":${item.pgx},"uti":${item.uti},"nail":${item.nail},"covid":${item.covid},"wound":${item.wound},"gastro":${item.gastro},"cardiac":${item.cardiac},"diabetes":${item.diabetes},"hospital":"${item.hospital}","covid_flu":${item.covid_flu},"pulmonary":${item.pulmonary},"toxicology":${item.toxicology},"urinalysis":${item.urinalysis},"clinical_chemistry":${item.clinical_chemistry},"respiratory_pathogen_panel":${item.respiratory_pathogen_panel}}'`)}]::jsonb[])`
+        });
 
-      const insertedData = await this.statsService.update(existedData?.id, modifiedData)
+        const finalString = convertedData.join(',');
 
+        await this.statsService.updateMany(finalString)
+      }
 
       return res.status(200).json({
         success: true,
-        message: "Successfully Inserted Stat",
-        data: insertedData
+        message: SUCCESS_COMPLETE
       })
     } catch (err) {
       console.log({ err });
       return res.status(500).json({
         success: false,
-        message: err.message || "Something Went Wrong"
+        message: err.message || SOMETHING_WENT_WRONG
       })
     }
   }
@@ -266,40 +274,51 @@ export class StatsController {
     try {
       let reqBody = createStatDto;
 
+      const marketerIds = reqBody.marketer_id;
+      const date = reqBody.date;
+
       let query = {
         date: {
-          equals: reqBody.date
+          equals: date
         },
         marketer_id: {
-          equals: reqBody.marketer_id
+          in: marketerIds
         }
       }
 
-      let existedData = await this.statsService.findOne(query);
+      let existedData = await this.statsService.findMany(query);
 
-      if (!existedData) {
-        return res.status(404).json({
-          success: false,
-          message: "Stat is not existed to update retrive stats"
-        })
 
+
+      let modifiedDataArray = []
+      for (let i = 0; i < marketerIds.length; i++) {
+        const marketerObject = existedData.find((item) => item.marketer_id === marketerIds[i]);
+
+        const modifiedData = this.prepareToUpdateRetrive(marketerObject, reqBody);
+        modifiedDataArray.push(modifiedData);
       }
 
-      const modifiedData = this.prepareToUpdateRetrive(existedData, reqBody);
+      if (modifiedDataArray.length > 0) {
+        const convertedData = modifiedDataArray.map(entry => {
+          return `(${entry.id}, '${entry.marketer_id}', ${entry.total_cases}, ${entry.pending_cases}, ${entry.completed_cases}, ${entry.hospitals_count}, ARRAY[${entry.case_type_wise_counts.map(item => `'{"pending":${item.pending},"case_type":"${item.case_type}","completed":${item.completed}}'`)}]::jsonb[], ARRAY[${entry.hospital_case_type_wise_counts.map(item => `'{"cgx":${item.cgx},"pad":${item.pad},"pgx":${item.pgx},"uti":${item.uti},"nail":${item.nail},"covid":${item.covid},"wound":${item.wound},"gastro":${item.gastro},"cardiac":${item.cardiac},"diabetes":${item.diabetes},"hospital":"${item.hospital}","covid_flu":${item.covid_flu},"pulmonary":${item.pulmonary},"toxicology":${item.toxicology},"urinalysis":${item.urinalysis},"clinical_chemistry":${item.clinical_chemistry},"respiratory_pathogen_panel":${item.respiratory_pathogen_panel}}'`)}]::jsonb[])`
+        });
 
-      const insertedData = await this.statsService.update(existedData?.id, modifiedData)
+        const finalString = convertedData.join(',');
+
+        await this.statsService.updateMany(finalString)
+      }
+
 
 
       return res.status(200).json({
         success: true,
-        message: "Successfully Inserted Stat",
-        data: insertedData
+        message: SUCCESS_RETREIVE,
       })
     } catch (err) {
       console.log({ err });
       return res.status(500).json({
         success: false,
-        message: err.message || "Something Went Wrong"
+        message: err.message || SOMETHING_WENT_WRONG
       })
     }
   }
@@ -328,7 +347,7 @@ export class StatsController {
       console.log({ err });
       return res.status(500).json({
         success: false,
-        message: err.message || "Something Went Wrong"
+        message: err.message || SOMETHING_WENT_WRONG
       })
     }
   }
@@ -339,30 +358,136 @@ export class StatsController {
       let deleteData = await this.statsService.remove(id)
       return res.status(200).json({
         success: true,
-        message: "Successfully Deleted Stat",
+        message: SUCCESS_DELETE,
         data: deleteData
       })
     } catch (err) {
       console.log({ err });
       return res.status(500).json({
         success: false,
-        message: err.message || "Something Went Wrong"
+        message: err.message || SOMETHING_WENT_WRONG
       })
     }
   }
 
+
+  async prepareDateForPending(notExistedMarketers, existedDataMarketerIds, existedData, reqBody) {
+    const hospitalId = reqBody.hospital_id;
+    const date = reqBody.date;
+    const caseType = reqBody.case_type;
+
+    let modifiedDataArray = [];
+    if (notExistedMarketers.length > 0) {
+      for (let i = 0; i < notExistedMarketers.length; i++) {
+        let toInsertData = {
+          marketer_id: notExistedMarketers[i],
+          hospital_id: hospitalId,
+          date: date,
+          case_type: caseType
+        }
+
+        const modifiedData = this.prepareToInsertData(toInsertData)
+
+        modifiedDataArray.push(modifiedData);
+      }
+
+      if (modifiedDataArray.length > 0) {
+        await this.statsService.createMany(modifiedDataArray)
+      }
+    }
+
+
+
+    if (existedDataMarketerIds.length > 0) {
+      let existedModifiedArray = []
+      for (let i = 0; i < existedDataMarketerIds.length; i++) {
+
+        const marketerObject = existedData.find((item) => item.marketer_id === existedDataMarketerIds[i]);
+
+        const modifiedData = this.prepareDataToUpdate(marketerObject, reqBody);
+
+        existedModifiedArray.push(modifiedData)
+      }
+
+      if (existedModifiedArray.length > 0) {
+        const convertedData = existedModifiedArray.map(entry => {
+          return `(${entry.id}, '${entry.marketer_id}', ${entry.total_cases}, ${entry.pending_cases}, ${entry.completed_cases}, ${entry.hospitals_count}, ARRAY[${entry.case_type_wise_counts.map(item => `'{"pending":${item.pending},"case_type":"${item.case_type}","completed":${item.completed}}'`)}]::jsonb[], ARRAY[${entry.hospital_case_type_wise_counts.map(item => `'{"cgx":${item.cgx},"pad":${item.pad},"pgx":${item.pgx},"uti":${item.uti},"nail":${item.nail},"covid":${item.covid},"wound":${item.wound},"gastro":${item.gastro},"cardiac":${item.cardiac},"diabetes":${item.diabetes},"hospital":"${item.hospital}","covid_flu":${item.covid_flu},"pulmonary":${item.pulmonary},"toxicology":${item.toxicology},"urinalysis":${item.urinalysis},"clinical_chemistry":${item.clinical_chemistry},"respiratory_pathogen_panel":${item.respiratory_pathogen_panel}}'`)}]::jsonb[])`
+        });
+
+        const finalString = convertedData.join(',');
+
+        await this.statsService.updateMany(finalString)
+      }
+
+    }
+  }
   prepareToInsertData(reqBody) {
     let prepareNewData: any = {};
     prepareNewData = {
       marketer_id: reqBody.marketer_id,
       date: reqBody.date,
-      case_type_wise_counts: prepareCaseTypeCounts,
-      hospital_case_type_wise_counts: [prepareHospitalWiseCounts]
+      pending_cases: 0,
+      completed_cases: 0,
+      total_cases: 0,
+      case_type_wise_counts: [
+        {
+          ...COVID
+        },
+        {
+          ...RESPIRATORY_PATHOGEN_PANEL
+        },
+        {
+          ...TOXICOLOGY
+        },
+        {
+          ...CLINICAL_CHEMISTRY
+        },
+        {
+          ...UTI
+        },
+        {
+          ...URINALYSIS
+        },
+        {
+          ...PGX
+        },
+        {
+          ...WOUND
+        },
+        {
+          ...NAIL
+        },
+        {
+          ...COVID_FLU
+        },
+        {
+          ...CGX
+        },
+        {
+          ...CARDIAC
+        },
+        {
+          ...DIABETES
+        },
+        {
+          ...GASTRO
+        },
+        {
+          ...PAD
+        },
+        {
+          ...PULMONARY
+        }
+      ],
+      hospital_case_type_wise_counts: [{
+        ...prepareHospitalWiseCounts
+      }]
     }
 
     const indexToUpdate = prepareNewData.case_type_wise_counts.findIndex(
       (item) => item.case_type === reqBody.case_type.toUpperCase()
     );
+
 
     // If the case type is found, increment the counts
     if (indexToUpdate !== -1) {
@@ -376,9 +501,9 @@ export class StatsController {
       caseTypeObject["hospital"] = reqBody.hospital_id
     }
 
-    prepareNewData.total_cases = 1;
-    prepareNewData.pending_cases = 1;
-    prepareNewData.completed_cases = 0;
+    prepareNewData.pending_cases++;
+    prepareNewData.total_cases = prepareNewData.pending_cases + prepareNewData.completed_cases;
+
 
     prepareNewData.hospitals_count = prepareNewData.hospital_case_type_wise_counts.length
 

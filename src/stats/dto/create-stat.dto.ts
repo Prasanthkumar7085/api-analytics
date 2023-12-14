@@ -1,16 +1,21 @@
-import {IsString,IsEmail, IsMongoId, IsDate, IsDateString} from 'class-validator'
+import {IsString,IsEmail, IsMongoId, IsDate, IsDateString, IsArray, IsNotEmpty} from 'class-validator'
 export class CreateStatDto {
 
-    @IsMongoId()
-    marketer_id:string;
+    @IsMongoId({each: true, message: "Invalid Marketer Id"})
+    @IsArray({message: "Marketer Id must be an array"})
+    @IsNotEmpty({message: "Marketer Id is required"})
+    marketer_id:string[];
 
-    @IsMongoId()
+    @IsMongoId({message: "Invalid Hospital Id"})
+    @IsNotEmpty({message: "Hospital Id is required"})
     hospital_id : string;
 
-    @IsString()
+    @IsString({message: "Invalid Date"})
+    @IsNotEmpty({message: "Date is required"})
     date : string;
 
-    @IsString()
+    @IsString({message: "Invalid Case Type"})
+    @IsNotEmpty({message: "Case Type is required"})
     case_type : string;
 }
 

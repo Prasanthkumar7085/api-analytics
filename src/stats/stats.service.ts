@@ -10,6 +10,10 @@ export class StatsService {
     return this.prisma.marketer_stats.create({ data: body })
   }
 
+  createMany(body) {
+    return this.prisma.marketer_stats.createMany({ data: body })
+  }
+
   caseWiseCounts({ query, select, skip, limit, sort }) {
     return this.prisma.marketer_stats.findMany({
       select,
@@ -26,6 +30,12 @@ export class StatsService {
     });
   }
 
+  findMany(query) {
+    return this.prisma.marketer_stats.findMany({
+      where: query
+    });
+  }
+
   update(id: number, data) {
     return this.prisma.marketer_stats.upsert({
       where: {
@@ -34,6 +44,26 @@ export class StatsService {
       update: data,
       create: data,
     });
+  }
+
+  updateMany(queryString) {
+    const rawQuery = `
+    UPDATE marketer_stats AS t
+  SET 
+      total_cases = u.total_cases,
+      pending_cases = u.pending_cases,
+      completed_cases = u.completed_cases,
+      hospitals_count = u.hospitals_count,
+      case_type_wise_counts = u.case_type_wise_counts,
+      hospital_case_type_wise_counts = u.hospital_case_type_wise_counts
+  FROM (
+      VALUES
+      ${queryString}
+      ) as u(id, marketer_id, total_cases, pending_cases, completed_cases, hospitals_count, case_type_wise_counts, hospital_case_type_wise_counts)
+  WHERE t.id = u.id`;
+
+    return this.prisma.$executeRawUnsafe(rawQuery);
+
   }
 
   remove(id: number) {
