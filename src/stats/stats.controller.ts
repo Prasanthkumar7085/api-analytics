@@ -84,7 +84,6 @@ export class StatsController {
         marketer_id: true,
         date: true,
         case_type_wise_counts: true,
-        hospital_case_type_wise_counts: true,
       }
 
       const [statsData, count]: any = await Promise.all([
