@@ -207,7 +207,7 @@ export class StatsController {
 
       return res.status(200).json({
         success: true,
-        message: SUCCESS_PENDING
+        message: SUCCESS_PENDING,
       })
     } catch (err) {
       console.log({ err });
@@ -381,6 +381,7 @@ export class StatsController {
 
     let modifiedDataArray = [];
     if (notExistedMarketers.length > 0) {
+      console.log(1234);
       for (let i = 0; i < notExistedMarketers.length; i++) {
         let toInsertData = {
           marketer_id: notExistedMarketers[i],
@@ -423,7 +424,10 @@ export class StatsController {
       }
 
     }
+    return modifiedDataArray;
   }
+
+
   prepareToInsertData(toInsertData) {
     let prepareNewData: any = {};
     prepareNewData = {
