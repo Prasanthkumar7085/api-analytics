@@ -18,4 +18,15 @@ export class SortHelper{
 
         return dataArray;
     }
+
+    singleMarkterWise(orderBy, orderType, dataArray){
+        if(orderType == "desc"){
+            dataArray.sort((a, b) => b.counts[orderBy] - a.counts[orderBy]);
+        }
+        if(orderType == "asc"){
+            dataArray.sort((a, b) => a.counts[orderBy] - b.counts[orderBy]);
+        }
+
+        return dataArray;
+    }
 }
