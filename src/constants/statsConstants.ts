@@ -322,6 +322,6 @@ export const prepareHospitalWiseCounts = {
     "urinalysis": 0,
     "clinical_chemistry": 0,
     "respiratory_pathogen_panel": 0,
-    "GTI_STI": 0,
-    "GTI_WOMENS_HEALTH": 0
+    "gti_sti": 0,
+    "gti_womens_health": 0
 }
