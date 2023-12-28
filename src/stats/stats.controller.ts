@@ -8,7 +8,7 @@ import seedStats from 'src/seeder/statsSeeder';
 import { PaginationHelper } from 'src/helpers/paginationHelper';
 import { FilterHelper } from 'src/helpers/filterHelper';
 import { SortHelper } from 'src/helpers/sortHelper';
-import { CARDIAC, CGX, CLINICAL_CHEMISTRY, COVID, COVID_FLU, DIABETES, GASTRO, NAIL, PAD, PGX, PULMONARY, RESPIRATORY_PATHOGEN_PANEL, TOXICOLOGY, URINALYSIS, UTI, WOUND, prepareCaseTypeCounts, prepareHospitalWiseCounts } from 'src/constants/statsConstants';
+import { CARDIAC, CGX, CLINICAL_CHEMISTRY, COVID, COVID_FLU, DIABETES, GASTRO, GTISTI, GTIWOMENSHEALTH, NAIL, PAD, PGX, PULMONARY, RESPIRATORY_PATHOGEN_PANEL, TOXICOLOGY, URINALYSIS, UTI, WOUND, prepareHospitalWiseCounts } from 'src/constants/statsConstants';
 import { NOT_LESSER, SOMETHING_WENT_WRONG, SUCCESS_COMPLETE, SUCCESS_DELETE, SUCCESS_MARKETERS, SUCCESS_PENDING, SUCCESS_RETREIVE } from 'src/constants/messageConstants';
 
 
@@ -250,8 +250,6 @@ export class StatsController {
       const marketerIds = reqBody.marketer_ids;
       const date = reqBody.date;
 
-      console.log(marketerIds);
-
       let insertedData;
 
       let query = {
@@ -445,11 +443,8 @@ export class StatsController {
     const date = reqBody.date;
     const caseType = reqBody.case_type;
 
-    console.log({ notExistedMarketers });
-
     let modifiedDataArray = [];
     if (notExistedMarketers.length > 0) {
-      console.log(1234);
       for (let i = 0; i < notExistedMarketers.length; i++) {
         let toInsertData = {
           marketer_id: notExistedMarketers[i],
@@ -552,6 +547,12 @@ export class StatsController {
         },
         {
           ...PULMONARY
+        },
+        {
+          ...GTISTI
+        },
+        {
+          ...GTIWOMENSHEALTH
         }
       ],
       hospital_case_type_wise_counts: [{

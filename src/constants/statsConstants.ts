@@ -182,7 +182,7 @@ export const URINALYSIS = {
 
 export const PGX = {
     "pending": 0,
-    "case_type": "PGX",
+    "case_type": "PGX_TEST",
     "completed": 0
 }
 
@@ -206,7 +206,7 @@ export const COVID_FLU = {
 
 export const CGX = {
     "pending": 0,
-    "case_type": "CGX",
+    "case_type": "CGX_PANEL",
     "completed": 0
 }
 
@@ -230,15 +230,28 @@ export const GASTRO = {
 
 export const PAD = {
     "pending": 0,
-    "case_type": "PAD",
+    "case_type": "PAD_ALZHEIMERS",
     "completed": 0
 }
 
 export const PULMONARY = {
     "pending": 0,
-    "case_type": "PULMONARY",
+    "case_type": "PULMONARY_PANEL",
     "completed": 0
 }
+
+export const GTISTI = {
+    "pending": 0,
+    "case_type": "GTI_STI",
+    "completed": 0
+}
+
+export const GTIWOMENSHEALTH = {
+    "pending": 0,
+    "case_type": "GTI_WOMENS_HEALTH",
+    "completed": 0
+}
+
 
 export const prepareCaseTypeCounts = [
     {
@@ -293,9 +306,9 @@ export const prepareCaseTypeCounts = [
 
 
 export const prepareHospitalWiseCounts = {
-    "cgx": 0,
-    "pad": 0,
-    "pgx": 0,
+    "cgx_panel": 0,
+    "pad_alzheimers": 0,
+    "pgx_test": 0,
     "uti": 0,
     "nail": 0,
     "covid": 0,
@@ -304,9 +317,11 @@ export const prepareHospitalWiseCounts = {
     "cardiac": 0,
     "diabetes": 0,
     "covid_flu": 0,
-    "pulmonary": 0,
+    "pulmonary_panel": 0,
     "toxicology": 0,
     "urinalysis": 0,
     "clinical_chemistry": 0,
-    "respiratory_pathogen_panel": 0
+    "respiratory_pathogen_panel": 0,
+    "GTI_STI": 0,
+    "GTI_WOMENS_HEALTH": 0
 }
