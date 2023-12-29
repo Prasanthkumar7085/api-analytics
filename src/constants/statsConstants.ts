@@ -253,57 +253,6 @@ export const GTIWOMENSHEALTH = {
 }
 
 
-export const prepareCaseTypeCounts = [
-    {
-        ...COVID
-    },
-    {
-        ...RESPIRATORY_PATHOGEN_PANEL
-    },
-    {
-        ...TOXICOLOGY
-    },
-    {
-        ...CLINICAL_CHEMISTRY
-    },
-    {
-        ...UTI
-    },
-    {
-        ...URINALYSIS
-    },
-    {
-        ...PGX
-    },
-    {
-        ...WOUND
-    },
-    {
-        ...NAIL
-    },
-    {
-        ...COVID_FLU
-    },
-    {
-        ...CGX
-    },
-    {
-        ...CARDIAC
-    },
-    {
-        ...DIABETES
-    },
-    {
-        ...GASTRO
-    },
-    {
-        ...PAD
-    },
-    {
-        ...PULMONARY
-    }
-]
-
 
 export const prepareHospitalWiseCounts = {
     "cgx_panel": 0,

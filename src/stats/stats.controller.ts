@@ -455,7 +455,7 @@ export class StatsController {
 
         const modifiedData = this.prepareToInsertData(toInsertData)
 
-        modifiedDataArray.push(modifiedData);
+        modifiedDataArray.push({ ...modifiedData });
       }
 
       if (modifiedDataArray.length > 0) {
@@ -492,68 +492,34 @@ export class StatsController {
 
 
   prepareToInsertData(toInsertData) {
-    let prepareNewData: any = {};
-    prepareNewData = {
+    let prepareNewData: any = {
       marketer_id: toInsertData.marketer_id,
       date: toInsertData.date,
       pending_cases: 0,
       completed_cases: 0,
       total_cases: 0,
       case_type_wise_counts: [
-        {
-          ...COVID
-        },
-        {
-          ...RESPIRATORY_PATHOGEN_PANEL
-        },
-        {
-          ...TOXICOLOGY
-        },
-        {
-          ...CLINICAL_CHEMISTRY
-        },
-        {
-          ...UTI
-        },
-        {
-          ...URINALYSIS
-        },
-        {
-          ...PGX
-        },
-        {
-          ...WOUND
-        },
-        {
-          ...NAIL
-        },
-        {
-          ...COVID_FLU
-        },
-        {
-          ...CGX
-        },
-        {
-          ...CARDIAC
-        },
-        {
-          ...DIABETES
-        },
-        {
-          ...GASTRO
-        },
-        {
-          ...PAD
-        },
-        {
-          ...PULMONARY
-        },
-        {
-          ...GTISTI
-        },
-        {
-          ...GTIWOMENSHEALTH
-        }
+        Object.create(COVID),
+        Object.create(RESPIRATORY_PATHOGEN_PANEL),
+        Object.create(TOXICOLOGY),
+        Object.create(CLINICAL_CHEMISTRY),
+        Object.create(UTI),
+        Object.create(URINALYSIS),
+        Object.create(PGX),
+        Object.create(WOUND),
+        Object.create(NAIL),
+        Object.create(COVID_FLU),
+        Object.create(CGX),
+        Object.create(COVID_FLU),
+        Object.create(CGX),
+        Object.create(CARDIAC),
+        Object.create(DIABETES),
+        Object.create(GASTRO),
+        Object.create(PAD),
+        Object.create(PULMONARY),
+        Object.create(CGX),
+        Object.create(GTISTI),
+        Object.create(GTIWOMENSHEALTH)
       ],
       hospital_case_type_wise_counts: [{
         ...prepareHospitalWiseCounts
