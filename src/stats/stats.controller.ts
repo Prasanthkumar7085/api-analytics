@@ -261,21 +261,19 @@ export class StatsController {
         }
       }
 
-      console.log(">>>", JSON.stringify(reqBody))
-
-
       let existedData = await this.statsService.findMany(query);
 
       let existedDataMarketerIds = existedData.map((e) => e.marketer_id);
 
       const notExistedMarketers = marketerIds.filter(item => !existedDataMarketerIds.includes(item));
 
-      await this.prepareDateForPending(notExistedMarketers, existedDataMarketerIds, existedData, reqBody);
+      let data = await this.prepareDateForPending(notExistedMarketers, existedDataMarketerIds, existedData, reqBody);
 
 
       return res.status(200).json({
         success: true,
         message: SUCCESS_PENDING,
+        data
       })
     } catch (err) {
       console.log({ err });
@@ -505,29 +503,29 @@ export class StatsController {
       completed_cases: 0,
       total_cases: 0,
       case_type_wise_counts: [
-        Object.create(COVID),
-        Object.create(RESPIRATORY_PATHOGEN_PANEL),
-        Object.create(TOXICOLOGY),
-        Object.create(CLINICAL_CHEMISTRY),
-        Object.create(UTI),
-        Object.create(URINALYSIS),
-        Object.create(PGX),
-        Object.create(WOUND),
-        Object.create(NAIL),
-        Object.create(COVID_FLU),
-        Object.create(CGX),
-        Object.create(COVID_FLU),
-        Object.create(CGX),
-        Object.create(CARDIAC),
-        Object.create(DIABETES),
-        Object.create(GASTRO),
-        Object.create(PAD),
-        Object.create(PULMONARY),
-        Object.create(CGX),
-        Object.create(GTISTI),
-        Object.create(GTIWOMENSHEALTH)
+        { ...COVID},
+        { ...RESPIRATORY_PATHOGEN_PANEL },
+        { ...TOXICOLOGY },
+        { ...CLINICAL_CHEMISTRY },
+        { ...UTI },
+        { ...URINALYSIS },
+        { ...PGX },
+        { ...WOUND },
+        { ...NAIL },
+        { ...COVID_FLU },
+        { ...CGX },
+        { ...COVID_FLU },
+        { ...CGX },
+        { ...CARDIAC },
+        { ...DIABETES },
+        { ...GASTRO },
+        { ...PAD },
+        { ...PULMONARY },
+        { ...CGX },
+        { ...GTISTI },
+        { ...GTIWOMENSHEALTH }
       ],
-      hospital_case_type_wise_counts: [Object.create(prepareHospitalWiseCounts)]
+      hospital_case_type_wise_counts: [{ ...prepareHospitalWiseCounts }]
     }
 
     const indexToUpdate = prepareNewData.case_type_wise_counts.findIndex(
@@ -572,7 +570,7 @@ export class StatsController {
     if (hospitalObject) {
       hospitalObject[reqBody.case_type.toLowerCase()]++; // Increment the "covid" count by 1
     } else {
-      let hospitalData = Object.create(prepareHospitalWiseCounts)
+      let hospitalData = { ...prepareHospitalWiseCounts }
       hospitalData[reqBody.case_type.toLowerCase()]++;
       hospitalData["hospital"] = reqBody.hospital_id;
       existedData.hospital_case_type_wise_counts.push(hospitalData)
@@ -583,7 +581,6 @@ export class StatsController {
 
     existedData.hospitals_count = existedData.hospital_case_type_wise_counts.length
 
-    console.log(existedData);
     return existedData;
 
   }
