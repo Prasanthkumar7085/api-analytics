@@ -261,6 +261,8 @@ export class StatsController {
         }
       }
 
+      console.log(">>>", JSON.stringify(reqBody))
+
 
       let existedData = await this.statsService.findMany(query);
 
@@ -458,6 +460,10 @@ export class StatsController {
         modifiedDataArray.push({ ...modifiedData });
       }
 
+
+      JSON.stringify(modifiedDataArray);
+
+
       if (modifiedDataArray.length > 0) {
         await this.statsService.createMany(modifiedDataArray)
       }
@@ -521,9 +527,7 @@ export class StatsController {
         Object.create(GTISTI),
         Object.create(GTIWOMENSHEALTH)
       ],
-      hospital_case_type_wise_counts: [{
-        ...prepareHospitalWiseCounts
-      }]
+      hospital_case_type_wise_counts: [Object.create(prepareHospitalWiseCounts)]
     }
 
     const indexToUpdate = prepareNewData.case_type_wise_counts.findIndex(
@@ -568,7 +572,7 @@ export class StatsController {
     if (hospitalObject) {
       hospitalObject[reqBody.case_type.toLowerCase()]++; // Increment the "covid" count by 1
     } else {
-      let hospitalData = prepareHospitalWiseCounts
+      let hospitalData = Object.create(prepareHospitalWiseCounts)
       hospitalData[reqBody.case_type.toLowerCase()]++;
       hospitalData["hospital"] = reqBody.hospital_id;
       existedData.hospital_case_type_wise_counts.push(hospitalData)
@@ -579,6 +583,7 @@ export class StatsController {
 
     existedData.hospitals_count = existedData.hospital_case_type_wise_counts.length
 
+    console.log(existedData);
     return existedData;
 
   }
