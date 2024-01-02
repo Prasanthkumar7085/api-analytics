@@ -22,16 +22,17 @@ export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer.apply(ExpiredTokenMiddleware).forRoutes('*');
     consumer.apply(QueueBodyMiddleware)
-    .forRoutes({
+    .forRoutes(
+      {
       path: 'v1.0/marketers-stats/case/pending',
       method: RequestMethod.POST,
     },
     {
-      path: 'v1.0/case/complete/conform',
+      path: 'v1.0/marketers-stats/case/complete/conform',
       method: RequestMethod.POST,
     },
     {
-      path: 'v1.0/case/complete/retrieve',
+      path: 'v1.0/marketers-stats/case/complete/retrieve',
       method: RequestMethod.POST,
     })
   }
