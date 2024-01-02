@@ -25,6 +25,14 @@ export class AppModule implements NestModule {
     .forRoutes({
       path: 'v1.0/marketers-stats/case/pending',
       method: RequestMethod.POST,
+    },
+    {
+      path: 'v1.0/case/complete/conform',
+      method: RequestMethod.POST,
+    },
+    {
+      path: 'v1.0/case/complete/retrieve',
+      method: RequestMethod.POST,
     })
   }
 }
