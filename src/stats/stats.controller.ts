@@ -284,9 +284,10 @@ export class StatsController {
 
 
   @Post("case/complete/conform")
-  async addCompleted(@Body() createStatDto: CreateStatDto, @Res() res: any) {
+  async addCompleted(@Body() createStatDto: any, @Res() res: any) {
     try {
       let reqBody = createStatDto;
+      console.log(reqBody);
 
       const marketerIds = reqBody.marketer_ids;
       const date = reqBody.date;
@@ -335,9 +336,10 @@ export class StatsController {
   }
 
   @Post("case/complete/retrieve")
-  async addRetrieve(@Body() createStatDto: CreateStatDto, @Res() res: any) {
+  async addRetrieve(@Body() createStatDto: any, @Res() res: any) {
     try {
       let reqBody = createStatDto;
+      console.log(reqBody);
 
       const marketerIds = reqBody.marketer_ids;
       const date = reqBody.date;
