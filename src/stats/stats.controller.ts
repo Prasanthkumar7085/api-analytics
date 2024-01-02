@@ -247,12 +247,8 @@ export class StatsController {
     try {
       let reqBody = createStatDto;
 
-      console.log(reqBody);
-
       const marketerIds = reqBody.marketer_ids;
       const date = reqBody.date;
-
-      let insertedData;
 
       let query = {
         date: {
