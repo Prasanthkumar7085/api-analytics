@@ -246,6 +246,7 @@ export class StatsController {
   async addPending(@Body() createStatDto: any, @Res() res: any) {
     try {
       let reqBody = createStatDto;
+      console.log({reqBody});
 
       const marketerIds = reqBody.marketer_ids;
       const date = reqBody.date;
