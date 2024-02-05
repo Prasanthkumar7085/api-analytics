@@ -7,6 +7,7 @@ export class FilterHelper {
         const marketer = query.marketer_id;
         const totalCases = query.total_cases;
         const hospitalsCount = query.hospitals_count;
+        const hospitalMarketers = query.hospital_marketers;
 
         let filter: any = {}
         if (pendingCases) {
@@ -44,6 +45,10 @@ export class FilterHelper {
             filter.hospitals_count = {
                 equals: parseInt(hospitalsCount)
             }
+        }
+
+        if (hospitalMarketers) {
+            filter.marketer_id = { in: hospitalMarketers }
         }
 
 

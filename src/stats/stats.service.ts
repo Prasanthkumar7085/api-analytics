@@ -83,7 +83,8 @@ export class StatsService {
   }
 
   async marketers(query, sort) {
-    return this.prisma.marketer_stats.groupBy({
+    console.log(121234);
+    let data = this.prisma.marketer_stats.groupBy({
       by: ['marketer_id'],
       where: query,
       _sum: {
@@ -96,6 +97,9 @@ export class StatsService {
         _sum: sort
       }
     });
+
+    console.log("ASDFG");
+    return data;
   }
 
   async findAll(query) {
