@@ -12,7 +12,6 @@ export class LisService {
 
 
     async getUsers(query, projection = {}) {
-        console.log(23);
         return await this.userModel.find(query).select(projection);
     }
 }

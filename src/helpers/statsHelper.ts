@@ -1,15 +1,18 @@
-import { Inject, Injectable } from "@nestjs/common";
-import { MARKETERS_NOT_THERE } from "src/constants/messageConstants";
+import { Injectable } from "@nestjs/common";
 import { CARDIAC, CGX, CLINICAL_CHEMISTRY, COVID, COVID_FLU, DIABETES, GASTRO, GTISTI, GTIWOMENSHEALTH, NAIL, PAD, PGX, PULMONARY, RESPIRATORY_PATHOGEN_PANEL, TOXICOLOGY, URINALYSIS, UTI, WOUND, prepareHospitalWiseCounts } from "src/constants/statsConstants";
 import { LisService } from "src/lis/lis.service";
 import { StatsService } from "src/stats/stats.service";
+import { FilterHelper } from "./filterHelper";
+import { SortHelper } from "./sortHelper";
 
 
 @Injectable()
 export class StatsHelper {
     constructor(
         private readonly statsService: StatsService,
-        private readonly lisService: LisService
+        private readonly lisService: LisService,
+        private readonly sortHelper: SortHelper,
+        private readonly filterHelper: FilterHelper
     ) { }
 
     async prepareDateForPending(notExistedMarketers, existedDataMarketerIds, existedData, reqBody) {
@@ -200,33 +203,58 @@ export class StatsHelper {
     }
 
 
-    async getUsersData(managerId, res, projection = {}){
-        
-      let query = {
-        hospital_marketing_manager: { $in: [managerId] },
-        user_type: "MARKETER"
-      }
+    async getUsersData(managerId, projection = {}) {
 
-      console.log({ query });
+        let query = {
+            hospital_marketing_manager: { $in: [managerId] },
+            user_type: "MARKETER"
+        }
+
+        let marketersData = await this.lisService.getUsers(query)
+
+        let finalArray = [];
+
+        if (marketersData.length) {
+            const marketersIdsArray = marketersData.map((e: any) => e._id.toString());
+
+            finalArray = [...marketersIdsArray, managerId];
+        } else {
+            finalArray = [managerId];
+        };
+
+        return finalArray;
+    }
 
 
-      let marketersData = await this.lisService.getUsers(query)
+    async forHospitalWiseData(orderBy, orderType, statsQuery) {
 
-      let marketersIdsArray = [];
+        let statsData: any = await this.statsService.findAll(statsQuery);
 
-      if (!marketersData.length) {
-        console.log("INSIDE");
+        const result = {};
 
-        return res.status(404).json({
-          success: false,
-          message: MARKETERS_NOT_THERE
-        })
+        statsData.forEach((entry) => {
+            entry.hospital_case_type_wise_counts.forEach((hospitalData) => {
+                const hospitalId = hospitalData.hospital;
 
-      }
+                if (!result[hospitalId]) {
+                    // Initialize if not exists
+                    result[hospitalId] = { hospital: hospitalId, ...hospitalData };
+                } else {
+                    // Sum values
+                    Object.keys(hospitalData).forEach((key) => {
+                        if (key !== 'hospital') {
+                            result[hospitalId][key] += hospitalData[key];
+                        }
+                    });
+                }
+            });
+        });
 
-      marketersIdsArray = marketersData.map((e: any) => e._id.toString());
+        let dataArray = Object.values(result);
 
-      return marketersIdsArray
+        dataArray = this.sortHelper.hospitalWise(orderBy, orderType, dataArray);
+
+        return dataArray;
     }
 
 }

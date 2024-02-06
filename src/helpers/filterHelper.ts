@@ -86,7 +86,7 @@ export class FilterHelper {
         return filter;
     }
 
-    hospitalWiseMarketers(fromDate, toDate, marketer) {
+    hospitalWiseMarketers(fromDate, toDate, marketer, marketerIdsArray = []) {
         let filter: any = {}
 
         if (fromDate && toDate) {
@@ -99,6 +99,12 @@ export class FilterHelper {
         if (marketer) {
             filter.marketer_id = {
                 equals: marketer
+            }
+        }
+
+        if (marketerIdsArray.length) {
+            filter.marketer_id = {
+                in: marketerIdsArray
             }
         }
 

@@ -12,6 +12,8 @@ import { CARDIAC, CGX, CLINICAL_CHEMISTRY, COVID, COVID_FLU, DIABETES, GASTRO, G
 import { MARKETERS_NOT_THERE, NOT_LESSER, SOMETHING_WENT_WRONG, SUCCESS_COMPLETE, SUCCESS_DELETE, SUCCESS_MANAGER_MARKETER, SUCCESS_MARKETERS, SUCCESS_PENDING, SUCCESS_RETREIVE, SUCCESS_USERS } from 'src/constants/messageConstants';
 import { StatsHelper } from 'src/helpers/statsHelper';
 import { LisService } from 'src/lis/lis.service';
+import { ManagerCombinedDto } from './dto/manager-combined.dto';
+import { ManagerIndividualDto } from './dto/manager-individual';
 
 
 @Controller({
@@ -134,36 +136,11 @@ export class StatsController {
           success: false,
           message: NOT_LESSER
         })
-      }
+      };
 
-      const query = this.filterHelper.hospitalWiseMarketers(fromDate, toDate, marketer_id)
+      const query = this.filterHelper.hospitalWiseMarketers(fromDate, toDate, marketer_id);
 
-      let statsData: any = await this.statsService.findAll(query);
-
-      const result = {};
-
-      statsData.forEach((entry) => {
-        entry.hospital_case_type_wise_counts.forEach((hospitalData) => {
-          const hospitalId = hospitalData.hospital;
-
-          if (!result[hospitalId]) {
-            // Initialize if not exists
-            result[hospitalId] = { hospital: hospitalId, ...hospitalData };
-          } else {
-            // Sum values
-            Object.keys(hospitalData).forEach((key) => {
-              if (key !== 'hospital') {
-                result[hospitalId][key] += hospitalData[key];
-              }
-            });
-          }
-        });
-      });
-
-      let dataArray = Object.values(result);
-
-      dataArray = this.sortHelper.hospitalWise(orderBy, orderType, dataArray)
-
+      const dataArray = await this.statsHelper.forHospitalWiseData(orderBy, orderType, query);
 
       return res.status(200).json({
         success: true,
@@ -177,74 +154,6 @@ export class StatsController {
       })
     }
   }
-
-
-  @Get(":marketer_id/:from_date/:to_date/comparison")
-  async singleMarketerComparison(
-    @Param('marketer_id') marketer_id: any,
-    @Param('from_date') fromDate: any,
-    @Param('to_date') toDate: any,
-    @Req() req: any,
-    @Res() res: any) {
-
-    try {
-      let orderBy = req.query.order_by;
-      let orderType = req.query.order_type;
-
-      if (toDate < fromDate) {
-        return res.status(400).json({
-          success: false,
-          message: NOT_LESSER
-        })
-      }
-
-      const query = this.filterHelper.hospitalWiseMarketers(fromDate, toDate, marketer_id)
-
-      let statsData: any = await this.statsService.findAll(query);
-
-      let hospitalSumArray = [];
-
-      statsData.forEach((item) => {
-        item.hospital_case_type_wise_counts.forEach((hospitalCounts) => {
-          const hospitalId = hospitalCounts.hospital;
-
-          let hospitalData = hospitalSumArray.find((data) => data.hospital === hospitalId);
-
-          if (!hospitalData) {
-            hospitalData = {
-              hospital: hospitalId,
-              counts: { ...hospitalCounts },
-            };
-
-            delete hospitalData.counts.hospital;
-            hospitalSumArray.push(hospitalData);
-          } else {
-
-            Object.keys(hospitalCounts).forEach((key) => {
-              if (key !== 'hospital') {
-                hospitalData.counts[key] += hospitalCounts[key];
-              }
-            });
-          }
-        });
-      });
-
-
-      hospitalSumArray = this.sortHelper.singleMarkterWise(orderBy, orderType, hospitalSumArray)
-
-      return res.status(200).json({
-        success: true,
-        message: SUCCESS_MARKETERS,
-        data: hospitalSumArray
-      });
-    } catch (error) {
-      return res.status(500).json({
-        success: false,
-        message: error.message || SOMETHING_WENT_WRONG
-      })
-    }
-  }
-
 
   @Post("case/pending")
   async addPending(@Body() createStatDto: any, @Res() res: any) {
@@ -439,116 +348,89 @@ export class StatsController {
     }
   }
 
-  @Get("manager/:manager_id/:from_date/:to_date")
+  @Post("manager/combined")
   async getMarketersStatsByManager(
-    @Param('manager_id') managerId: string,
-    @Param('from_date') fromDate: any,
-    @Param('to_date') toDate: any,
-    @Res() res: any,
-    @Req() req: any) {
+    @Body() reqBody: ManagerCombinedDto,
+    @Res() res: any) {
     try {
 
-      const orderBy = req.query.order_by || "total_cases";
-      const orderType = req.query.order_type || "desc";
+      const orderBy = reqBody.order_by || "total_cases";
+      const orderType = reqBody.order_type || "desc";
+      const managerId = reqBody.manager_id;
+      const fromDate = reqBody.from_date;
+      const toDate = reqBody.to_date;
+      const marketerIds = reqBody.marketer_ids || [];
 
-      console.log({ managerId });
 
-      const marketersIdsArray = await this.statsHelper.getUsersData(managerId, res)
+      let statsQuery;
+      if (!marketerIds.length) {
+        const marketersIdsArray = await this.statsHelper.getUsersData(managerId);
 
-      const statsQuery = {
-        hospital_marketers: marketersIdsArray
-      }
+        statsQuery = {
+          hospital_marketers: marketersIdsArray
+        };
 
-      console.log({ marketersIdsArray });
+      } else {
+
+        statsQuery = {
+          hospital_marketers: marketerIds
+        };
+      };
 
       let finalStatsQuery: any = this.filterHelper.stats(statsQuery, fromDate, toDate);
 
-
-
-      console.log({ finalStatsQuery })
-
-
       let sort = {}
       if (orderBy && orderType) {
-        sort = this.sortHelper.stats(orderBy, orderType)
+        sort = this.sortHelper.stats(orderBy, orderType);
       }
 
       let statsData = await this.statsService.marketers(finalStatsQuery, sort);
 
-      console.log("LKJHGFDS");
       return res.status(200).json({
         success: true,
         message: SUCCESS_MANAGER_MARKETER,
-        data: statsData,
-        finalStatsQuery
-      })
+        data: statsData
+      });
     } catch (err) {
       console.log({ err });
       return res.status(500).json({
         success: false,
         message: err.message || SOMETHING_WENT_WRONG
-      })
-    }
-  }
-
-
-  @Get("manager/:manager_id/:from_date/:to_date/hospitals")
-  async getMarketersHopitalsStatsByManager(
-    @Param('manager_id') managerId: string,
-    @Param('from_date') fromDate: any,
-    @Param('to_date') toDate: any,
-    @Res() res: any,
-    @Req() req: any
-  ){
-    try {
-      console.log("INSIDE");
-
-      let orderBy = req.query.order_by;
-      let orderType = req.query.order_type;
-
-      const marketersIdsArray = await this.statsHelper.getUsersData(managerId, res)
-
-      const statsQuery = {
-        marketer_id: {
-          "in": marketersIdsArray
-        }
-      }
-
-      console.log({ marketersIdsArray });
-
-      let statsData: any = await this.statsService.findAll(statsQuery);
-
-      const result = {};
-
-      statsData.forEach((entry) => {
-        entry.hospital_case_type_wise_counts.forEach((hospitalData) => {
-          const hospitalId = hospitalData.hospital;
-
-          if (!result[hospitalId]) {
-            // Initialize if not exists
-            result[hospitalId] = { hospital: hospitalId, ...hospitalData };
-          } else {
-            // Sum values
-            Object.keys(hospitalData).forEach((key) => {
-              if (key !== 'hospital') {
-                result[hospitalId][key] += hospitalData[key];
-              }
-            });
-          }
-        });
       });
+    };
+  };
 
-      let dataArray = Object.values(result);
 
-      dataArray = this.sortHelper.hospitalWise(orderBy, orderType, dataArray)
+  @Post("manager/individual")
+  async getMarketersHopitalsStatsByManager(
+    @Body() reqBody: ManagerIndividualDto,
+    @Res() res: any
+  ) {
+    try {
+      const orderBy = reqBody.order_by || "total_cases";
+      const orderType = reqBody.order_type || "desc";
+      const managerId = reqBody.manager_id;
+      const fromDate = reqBody.from_date;
+      const toDate = reqBody.to_date;
+      const marketerIds = reqBody.marketer_ids || [];
 
+      let marketersIdsArray = [];
+      if (!marketerIds.length) {
+        marketersIdsArray = await this.statsHelper.getUsersData(managerId);
+      } else {
+        marketersIdsArray = marketerIds;
+      };
+
+      const statsQuery = this.filterHelper.hospitalWiseMarketers(fromDate, toDate, marketerIds, marketersIdsArray)
+
+      const dataArray = await this.statsHelper.forHospitalWiseData(orderBy, orderType, statsQuery);
 
       return res.status(200).json({
         success: true,
         message: SUCCESS_MANAGER_MARKETER,
         data: dataArray
       })
-    } catch(err){
+    } catch (err) {
       console.log({ err });
       return res.status(500).json({
         success: false,
