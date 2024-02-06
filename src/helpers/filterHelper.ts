@@ -4,7 +4,6 @@ export class FilterHelper {
     stats(query, fromDate, toDate) {
         const pendingCases = query.pending_cases;
         const completedCases = query.completed_cases;
-        const marketer = query.marketer_id;
         const totalCases = query.total_cases;
         const hospitalsCount = query.hospitals_count;
         const hospitalMarketers = query.hospital_marketers;
@@ -19,12 +18,6 @@ export class FilterHelper {
         if (completedCases) {
             filter.completed_cases = {
                 equals: parseInt(completedCases)
-            }
-        }
-
-        if (marketer) {
-            filter.marketer_id = {
-                equals: marketer
             }
         }
 
@@ -47,7 +40,7 @@ export class FilterHelper {
             }
         }
 
-        if (hospitalMarketers) {
+        if (hospitalMarketers.length) {
             filter.marketer_id = { in: hospitalMarketers }
         }
 
@@ -76,7 +69,6 @@ export class FilterHelper {
         }
 
         if (caseType) {
-            console.log(123);
             filter.case_type_wise_counts = {
                 path: ['case_type'],
                 equals: 'Claudine',

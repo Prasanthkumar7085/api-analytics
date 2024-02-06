@@ -83,7 +83,6 @@ export class StatsService {
   }
 
   async marketers(query, sort) {
-    console.log(121234);
     let data = this.prisma.marketer_stats.groupBy({
       by: ['marketer_id'],
       where: query,
@@ -98,7 +97,6 @@ export class StatsService {
       }
     });
 
-    console.log("ASDFG");
     return data;
   }
 

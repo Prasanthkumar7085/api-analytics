@@ -5,7 +5,7 @@ export class ManagerCombinedDto {
 
     @IsMongoId({each: true, message: "Invalid Manager"})
     @IsString({message: "Invalid Manager"})
-    @IsNotEmpty({message: "Manager is Required"})
+    @IsOptional()
     manager_id: string
 
     @IsMongoId({each: true, message: "Invalid Marketer"})

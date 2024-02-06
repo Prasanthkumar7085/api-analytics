@@ -9,7 +9,7 @@ import { PaginationHelper } from 'src/helpers/paginationHelper';
 import { FilterHelper } from 'src/helpers/filterHelper';
 import { SortHelper } from 'src/helpers/sortHelper';
 import { CARDIAC, CGX, CLINICAL_CHEMISTRY, COVID, COVID_FLU, DIABETES, GASTRO, GTISTI, GTIWOMENSHEALTH, NAIL, PAD, PGX, PULMONARY, RESPIRATORY_PATHOGEN_PANEL, TOXICOLOGY, URINALYSIS, UTI, WOUND, prepareHospitalWiseCounts } from 'src/constants/statsConstants';
-import { MARKETERS_NOT_THERE, NOT_LESSER, SOMETHING_WENT_WRONG, SUCCESS_COMPLETE, SUCCESS_DELETE, SUCCESS_MANAGER_MARKETER, SUCCESS_MARKETERS, SUCCESS_PENDING, SUCCESS_RETREIVE, SUCCESS_USERS } from 'src/constants/messageConstants';
+import { MARKETERS_NOT_THERE, NOT_LESSER, SOMETHING_WENT_WRONG, SUCCESS_COMPLETE, SUCCESS_DELETE, SUCCESS_MARKETERS, SUCCESS_PENDING, SUCCESS_RETREIVE, SUCCESS_USERS } from 'src/constants/messageConstants';
 import { StatsHelper } from 'src/helpers/statsHelper';
 import { LisService } from 'src/lis/lis.service';
 import { ManagerCombinedDto } from './dto/manager-combined.dto';
@@ -29,45 +29,6 @@ export class StatsController {
     private readonly statsHelper: StatsHelper,
     private readonly lisService: LisService
   ) { }
-
-  @Get(":from_date/:to_date")
-  async findAll(@Param('from_date') from_date: any, @Param('to_date') to_date: any, @Req() req: any, @Res() res: any) {
-    try {
-      const orderBy = req.query.order_by || "total_cases";
-      const orderType = req.query.order_type || "desc";
-
-      if (to_date < from_date) {
-        return res.status(400).json({
-          success: false,
-          message: NOT_LESSER
-        })
-      }
-
-      let query: any = this.filterHelper.stats(req.query, from_date, to_date)
-
-      let sort = {}
-      if (orderBy && orderType) {
-        sort = this.sortHelper.stats(orderBy, orderType)
-      }
-
-      let statsData = await this.statsService.marketers(query, sort);
-
-
-      return res.status(200).json({
-        success: true,
-        message: SUCCESS_MARKETERS,
-        data: statsData
-
-      });
-
-    } catch (error) {
-      console.log({ error });
-      return res.status(500).json({
-        success: false,
-        message: error.message || SOMETHING_WENT_WRONG
-      })
-    }
-  }
 
   @Get("case-type")
   async getMarketersByCaseTypes(@Req() req: any, @Res() res: any) {
@@ -112,42 +73,6 @@ export class StatsController {
 
     } catch (error) {
       console.log({ error });
-      return res.status(500).json({
-        success: false,
-        message: error.message || SOMETHING_WENT_WRONG
-      })
-    }
-  }
-
-  @Get(":marketer_id/:from_date/:to_date")
-  async singleMarketer(
-    @Param('marketer_id') marketer_id: any,
-    @Param('from_date') fromDate: any,
-    @Param('to_date') toDate: any,
-    @Req() req: any,
-    @Res() res: any) {
-
-    try {
-      let orderBy = req.query.order_by;
-      let orderType = req.query.order_type;
-
-      if (toDate < fromDate) {
-        return res.status(400).json({
-          success: false,
-          message: NOT_LESSER
-        })
-      };
-
-      const query = this.filterHelper.hospitalWiseMarketers(fromDate, toDate, marketer_id);
-
-      const dataArray = await this.statsHelper.forHospitalWiseData(orderBy, orderType, query);
-
-      return res.status(200).json({
-        success: true,
-        message: SUCCESS_MARKETERS,
-        data: dataArray
-      });
-    } catch (error) {
       return res.status(500).json({
         success: false,
         message: error.message || SOMETHING_WENT_WRONG
@@ -348,7 +273,7 @@ export class StatsController {
     }
   }
 
-  @Post("manager/combined")
+  @Post("combined")
   async getMarketersStatsByManager(
     @Body() reqBody: ManagerCombinedDto,
     @Res() res: any) {
@@ -361,9 +286,16 @@ export class StatsController {
       const toDate = reqBody.to_date;
       const marketerIds = reqBody.marketer_ids || [];
 
+      if (toDate < fromDate) {
+        return res.status(400).json({
+          success: false,
+          message: NOT_LESSER
+        })
+      };
+
 
       let statsQuery;
-      if (!marketerIds.length) {
+      if (managerId && marketerIds.length == 0) {
         const marketersIdsArray = await this.statsHelper.getUsersData(managerId);
 
         statsQuery = {
@@ -371,7 +303,6 @@ export class StatsController {
         };
 
       } else {
-
         statsQuery = {
           hospital_marketers: marketerIds
         };
@@ -388,7 +319,7 @@ export class StatsController {
 
       return res.status(200).json({
         success: true,
-        message: SUCCESS_MANAGER_MARKETER,
+        message: SUCCESS_MARKETERS,
         data: statsData
       });
     } catch (err) {
@@ -401,7 +332,7 @@ export class StatsController {
   };
 
 
-  @Post("manager/individual")
+  @Post("individual")
   async getMarketersHopitalsStatsByManager(
     @Body() reqBody: ManagerIndividualDto,
     @Res() res: any
@@ -413,6 +344,13 @@ export class StatsController {
       const fromDate = reqBody.from_date;
       const toDate = reqBody.to_date;
       const marketerIds = reqBody.marketer_ids || [];
+
+      if (toDate < fromDate) {
+        return res.status(400).json({
+          success: false,
+          message: NOT_LESSER
+        })
+      };
 
       let marketersIdsArray = [];
       if (!marketerIds.length) {
@@ -427,7 +365,7 @@ export class StatsController {
 
       return res.status(200).json({
         success: true,
-        message: SUCCESS_MANAGER_MARKETER,
+        message: SUCCESS_MARKETERS,
         data: dataArray
       })
     } catch (err) {
