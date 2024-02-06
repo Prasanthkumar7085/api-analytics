@@ -6,8 +6,12 @@ const NOT_LESSER = "To-Date is not be lesser than From-Date"
 const SUCCESS_PENDING = "Successfully Inserted Pending Stat"
 const SUCCESS_DELETE = "Successfully Deleted Stat"
 
+const SUCCESS_USERS = "Successfully Fetched Users"
+const MARKETERS_NOT_THERE = "Marketers Data Not Found"
+const SUCCESS_MANAGER_MARKETER = "Successfully Fetched Manager Stats"
+
 
 export {
     SUCCESS_COMPLETE, SUCCESS_RETREIVE, SOMETHING_WENT_WRONG, SUCCESS_MARKETERS, NOT_LESSER,
-    SUCCESS_PENDING, SUCCESS_DELETE
+    SUCCESS_PENDING, SUCCESS_DELETE, SUCCESS_USERS, MARKETERS_NOT_THERE, SUCCESS_MANAGER_MARKETER
 }

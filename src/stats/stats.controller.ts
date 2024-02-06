@@ -9,7 +9,11 @@ import { PaginationHelper } from 'src/helpers/paginationHelper';
 import { FilterHelper } from 'src/helpers/filterHelper';
 import { SortHelper } from 'src/helpers/sortHelper';
 import { CARDIAC, CGX, CLINICAL_CHEMISTRY, COVID, COVID_FLU, DIABETES, GASTRO, GTISTI, GTIWOMENSHEALTH, NAIL, PAD, PGX, PULMONARY, RESPIRATORY_PATHOGEN_PANEL, TOXICOLOGY, URINALYSIS, UTI, WOUND, prepareHospitalWiseCounts } from 'src/constants/statsConstants';
-import { NOT_LESSER, SOMETHING_WENT_WRONG, SUCCESS_COMPLETE, SUCCESS_DELETE, SUCCESS_MARKETERS, SUCCESS_PENDING, SUCCESS_RETREIVE } from 'src/constants/messageConstants';
+import { MARKETERS_NOT_THERE, NOT_LESSER, SOMETHING_WENT_WRONG, SUCCESS_COMPLETE, SUCCESS_DELETE, SUCCESS_MANAGER_MARKETER, SUCCESS_MARKETERS, SUCCESS_PENDING, SUCCESS_RETREIVE, SUCCESS_USERS } from 'src/constants/messageConstants';
+import { StatsHelper } from 'src/helpers/statsHelper';
+import { LisService } from 'src/lis/lis.service';
+import { ManagerCombinedDto } from './dto/manager-combined.dto';
+import { ManagerIndividualDto } from './dto/manager-individual';
 
 
 @Controller({
@@ -21,7 +25,9 @@ export class StatsController {
     private readonly statsService: StatsService,
     private readonly paginationHelper: PaginationHelper,
     private readonly filterHelper: FilterHelper,
-    private readonly sortHelper: SortHelper
+    private readonly sortHelper: SortHelper,
+    private readonly statsHelper: StatsHelper,
+    private readonly lisService: LisService
   ) { }
 
   @Get(":from_date/:to_date")
@@ -130,36 +136,11 @@ export class StatsController {
           success: false,
           message: NOT_LESSER
         })
-      }
+      };
 
-      const query = this.filterHelper.hospitalWiseMarketers(fromDate, toDate, marketer_id)
+      const query = this.filterHelper.hospitalWiseMarketers(fromDate, toDate, marketer_id);
 
-      let statsData: any = await this.statsService.findAll(query);
-
-      const result = {};
-
-      statsData.forEach((entry) => {
-        entry.hospital_case_type_wise_counts.forEach((hospitalData) => {
-          const hospitalId = hospitalData.hospital;
-
-          if (!result[hospitalId]) {
-            // Initialize if not exists
-            result[hospitalId] = { hospital: hospitalId, ...hospitalData };
-          } else {
-            // Sum values
-            Object.keys(hospitalData).forEach((key) => {
-              if (key !== 'hospital') {
-                result[hospitalId][key] += hospitalData[key];
-              }
-            });
-          }
-        });
-      });
-
-      let dataArray = Object.values(result);
-
-      dataArray = this.sortHelper.hospitalWise(orderBy, orderType, dataArray)
-
+      const dataArray = await this.statsHelper.forHospitalWiseData(orderBy, orderType, query);
 
       return res.status(200).json({
         success: true,
@@ -173,74 +154,6 @@ export class StatsController {
       })
     }
   }
-
-
-  @Get(":marketer_id/:from_date/:to_date/comparison")
-  async singleMarketerComparison(
-    @Param('marketer_id') marketer_id: any,
-    @Param('from_date') fromDate: any,
-    @Param('to_date') toDate: any,
-    @Req() req: any,
-    @Res() res: any) {
-
-    try {
-      let orderBy = req.query.order_by;
-      let orderType = req.query.order_type;
-
-      if (toDate < fromDate) {
-        return res.status(400).json({
-          success: false,
-          message: NOT_LESSER
-        })
-      }
-
-      const query = this.filterHelper.hospitalWiseMarketers(fromDate, toDate, marketer_id)
-
-      let statsData: any = await this.statsService.findAll(query);
-
-      let hospitalSumArray = [];
-
-      statsData.forEach((item) => {
-        item.hospital_case_type_wise_counts.forEach((hospitalCounts) => {
-          const hospitalId = hospitalCounts.hospital;
-
-          let hospitalData = hospitalSumArray.find((data) => data.hospital === hospitalId);
-
-          if (!hospitalData) {
-            hospitalData = {
-              hospital: hospitalId,
-              counts: { ...hospitalCounts },
-            };
-
-            delete hospitalData.counts.hospital;
-            hospitalSumArray.push(hospitalData);
-          } else {
-
-            Object.keys(hospitalCounts).forEach((key) => {
-              if (key !== 'hospital') {
-                hospitalData.counts[key] += hospitalCounts[key];
-              }
-            });
-          }
-        });
-      });
-
-
-      hospitalSumArray = this.sortHelper.singleMarkterWise(orderBy, orderType, hospitalSumArray)
-
-      return res.status(200).json({
-        success: true,
-        message: SUCCESS_MARKETERS,
-        data: hospitalSumArray
-      });
-    } catch (error) {
-      return res.status(500).json({
-        success: false,
-        message: error.message || SOMETHING_WENT_WRONG
-      })
-    }
-  }
-
 
   @Post("case/pending")
   async addPending(@Body() createStatDto: any, @Res() res: any) {
@@ -265,7 +178,7 @@ export class StatsController {
 
       const notExistedMarketers = marketerIds.filter(item => !existedDataMarketerIds.includes(item));
 
-      let data = await this.prepareDateForPending(notExistedMarketers, existedDataMarketerIds, existedData, reqBody);
+      let data = await this.statsHelper.prepareDateForPending(notExistedMarketers, existedDataMarketerIds, existedData, reqBody);
 
 
       return res.status(200).json({
@@ -305,7 +218,7 @@ export class StatsController {
       let modifiedDataArray = []
       for (let i = 0; i < marketerIds.length; i++) {
         const marketerObject = existedData.find((item) => item.marketer_id === marketerIds[i]);
-        const modifiedData = this.prepareToUpdateComplete(marketerObject, reqBody);
+        const modifiedData = this.statsHelper.prepareToUpdateComplete(marketerObject, reqBody);
 
         modifiedDataArray.push(modifiedData);
 
@@ -359,7 +272,7 @@ export class StatsController {
       for (let i = 0; i < marketerIds.length; i++) {
         const marketerObject = existedData.find((item) => item.marketer_id === marketerIds[i]);
 
-        const modifiedData = this.prepareToUpdateRetrive(marketerObject, reqBody);
+        const modifiedData = this.statsHelper.prepareToUpdateRetrive(marketerObject, reqBody);
         modifiedDataArray.push(modifiedData);
       }
 
@@ -435,191 +348,96 @@ export class StatsController {
     }
   }
 
+  @Post("manager/combined")
+  async getMarketersStatsByManager(
+    @Body() reqBody: ManagerCombinedDto,
+    @Res() res: any) {
+    try {
 
-  async prepareDateForPending(notExistedMarketers, existedDataMarketerIds, existedData, reqBody) {
-    const hospitalId = reqBody.hospital_id;
-    const date = reqBody.date;
-    const caseType = reqBody.case_type;
+      const orderBy = reqBody.order_by || "total_cases";
+      const orderType = reqBody.order_type || "desc";
+      const managerId = reqBody.manager_id;
+      const fromDate = reqBody.from_date;
+      const toDate = reqBody.to_date;
+      const marketerIds = reqBody.marketer_ids || [];
 
-    let modifiedDataArray = [];
-    if (notExistedMarketers.length > 0) {
-      for (let i = 0; i < notExistedMarketers.length; i++) {
-        let toInsertData = {
-          marketer_id: notExistedMarketers[i],
-          hospital_id: hospitalId,
-          date: date,
-          case_type: caseType
-        }
 
-        const modifiedData = this.prepareToInsertData(toInsertData)
+      let statsQuery;
+      if (!marketerIds.length) {
+        const marketersIdsArray = await this.statsHelper.getUsersData(managerId);
 
-        modifiedDataArray.push({ ...modifiedData });
+        statsQuery = {
+          hospital_marketers: marketersIdsArray
+        };
+
+      } else {
+
+        statsQuery = {
+          hospital_marketers: marketerIds
+        };
+      };
+
+      let finalStatsQuery: any = this.filterHelper.stats(statsQuery, fromDate, toDate);
+
+      let sort = {}
+      if (orderBy && orderType) {
+        sort = this.sortHelper.stats(orderBy, orderType);
       }
 
+      let statsData = await this.statsService.marketers(finalStatsQuery, sort);
 
-      JSON.stringify(modifiedDataArray);
+      return res.status(200).json({
+        success: true,
+        message: SUCCESS_MANAGER_MARKETER,
+        data: statsData
+      });
+    } catch (err) {
+      console.log({ err });
+      return res.status(500).json({
+        success: false,
+        message: err.message || SOMETHING_WENT_WRONG
+      });
+    };
+  };
 
 
-      if (modifiedDataArray.length > 0) {
-        await this.statsService.createMany(modifiedDataArray)
-      }
+  @Post("manager/individual")
+  async getMarketersHopitalsStatsByManager(
+    @Body() reqBody: ManagerIndividualDto,
+    @Res() res: any
+  ) {
+    try {
+      const orderBy = reqBody.order_by || "total_cases";
+      const orderType = reqBody.order_type || "desc";
+      const managerId = reqBody.manager_id;
+      const fromDate = reqBody.from_date;
+      const toDate = reqBody.to_date;
+      const marketerIds = reqBody.marketer_ids || [];
+
+      let marketersIdsArray = [];
+      if (!marketerIds.length) {
+        marketersIdsArray = await this.statsHelper.getUsersData(managerId);
+      } else {
+        marketersIdsArray = marketerIds;
+      };
+
+      const statsQuery = this.filterHelper.hospitalWiseMarketers(fromDate, toDate, marketerIds, marketersIdsArray)
+
+      const dataArray = await this.statsHelper.forHospitalWiseData(orderBy, orderType, statsQuery);
+
+      return res.status(200).json({
+        success: true,
+        message: SUCCESS_MANAGER_MARKETER,
+        data: dataArray
+      })
+    } catch (err) {
+      console.log({ err });
+      return res.status(500).json({
+        success: false,
+        message: err.message || SOMETHING_WENT_WRONG
+      })
     }
-
-
-
-    if (existedDataMarketerIds.length > 0) {
-      let existedModifiedArray = []
-      for (let i = 0; i < existedDataMarketerIds.length; i++) {
-
-        const marketerObject = existedData.find((item) => item.marketer_id === existedDataMarketerIds[i]);
-
-        const modifiedData = this.prepareDataToUpdate(marketerObject, reqBody);
-
-        existedModifiedArray.push(modifiedData)
-      }
-
-      if (existedModifiedArray.length > 0) {
-        const convertedData = existedModifiedArray.map(entry => {
-          return `(${entry.id}, '${entry.marketer_id}', ${entry.total_cases}, ${entry.pending_cases}, ${entry.completed_cases}, ${entry.hospitals_count}, ARRAY[${entry.case_type_wise_counts.map(item => `'{"pending":${item.pending},"case_type":"${item.case_type}","completed":${item.completed}}'`)}]::jsonb[], ARRAY[${entry.hospital_case_type_wise_counts.map(item => `'{"cgx_panel":${item.cgx_panel},"pad_alzheimers":${item.pad_alzheimers},"pgx_test":${item.pgx_test},"uti":${item.uti},"nail":${item.nail},"covid":${item.covid},"wound":${item.wound},"gastro":${item.gastro},"cardiac":${item.cardiac},"diabetes":${item.diabetes},"hospital":"${item.hospital}","covid_flu":${item.covid_flu},"pulmonary_panel":${item.pulmonary_panel},"toxicology":${item.toxicology},"urinalysis":${item.urinalysis},"clinical_chemistry":${item.clinical_chemistry},"respiratory_pathogen_panel":${item.respiratory_pathogen_panel},"gti_sti":${item.gti_sti},"gti_womens_health":${item.gti_womens_health}}'`)}]::jsonb[])`
-        });
-
-        const finalString = convertedData.join(',');
-
-        await this.statsService.updateMany(finalString)
-      }
-
-    }
-    return modifiedDataArray;
   }
 
 
-  prepareToInsertData(toInsertData) {
-    let prepareNewData: any = {
-      marketer_id: toInsertData.marketer_id,
-      date: toInsertData.date,
-      pending_cases: 0,
-      completed_cases: 0,
-      total_cases: 0,
-      case_type_wise_counts: [
-        { ...COVID},
-        { ...RESPIRATORY_PATHOGEN_PANEL },
-        { ...TOXICOLOGY },
-        { ...CLINICAL_CHEMISTRY },
-        { ...UTI },
-        { ...URINALYSIS },
-        { ...PGX },
-        { ...WOUND },
-        { ...NAIL },
-        { ...COVID_FLU },
-        { ...CGX },
-        { ...COVID_FLU },
-        { ...CGX },
-        { ...CARDIAC },
-        { ...DIABETES },
-        { ...GASTRO },
-        { ...PAD },
-        { ...PULMONARY },
-        { ...CGX },
-        { ...GTISTI },
-        { ...GTIWOMENSHEALTH }
-      ],
-      hospital_case_type_wise_counts: [{ ...prepareHospitalWiseCounts }]
-    }
-
-    const indexToUpdate = prepareNewData.case_type_wise_counts.findIndex(
-      (item) => item.case_type === toInsertData.case_type.toUpperCase()
-    );
-
-
-    // If the case type is found, increment the counts
-    if (indexToUpdate !== -1) {
-      prepareNewData.case_type_wise_counts[indexToUpdate].pending++; // You can adjust the increment as needed
-    }
-
-
-    const caseTypeObject = prepareNewData.hospital_case_type_wise_counts.find(obj => obj.hasOwnProperty(toInsertData.case_type.toLowerCase()));
-    if (caseTypeObject) {
-      caseTypeObject[toInsertData.case_type.toLowerCase()]++;
-      caseTypeObject["hospital"] = toInsertData.hospital_id
-    }
-
-    prepareNewData.pending_cases++;
-    prepareNewData.total_cases = prepareNewData.pending_cases + prepareNewData.completed_cases;
-
-
-    prepareNewData.hospitals_count = prepareNewData.hospital_case_type_wise_counts.length
-
-    return prepareNewData;
-  }
-
-  prepareDataToUpdate(existedData, reqBody) {
-
-    const indexToUpdate = existedData.case_type_wise_counts.findIndex(
-      (item) => item.case_type === reqBody.case_type.toUpperCase()
-    );
-
-    // If the case type is found, increment the counts
-    if (indexToUpdate !== -1) {
-      existedData.case_type_wise_counts[indexToUpdate].pending++; // You can adjust the increment as needed
-    }
-
-    const hospitalObject = existedData.hospital_case_type_wise_counts.find(obj => obj.hospital === reqBody.hospital_id);
-
-    if (hospitalObject) {
-      hospitalObject[reqBody.case_type.toLowerCase()]++; // Increment the "covid" count by 1
-    } else {
-      let hospitalData = { ...prepareHospitalWiseCounts }
-      hospitalData[reqBody.case_type.toLowerCase()]++;
-      hospitalData["hospital"] = reqBody.hospital_id;
-      existedData.hospital_case_type_wise_counts.push(hospitalData)
-    }
-
-    existedData.total_cases++;
-    existedData.pending_cases++;
-
-    existedData.hospitals_count = existedData.hospital_case_type_wise_counts.length
-
-    return existedData;
-
-  }
-
-  prepareToUpdateComplete(existedData, reqBody) {
-    const indexToUpdate = existedData.case_type_wise_counts.findIndex(
-      (item) => item.case_type === reqBody.case_type.toUpperCase()
-    );
-
-    // If the case type is found, increment the counts
-    if (indexToUpdate !== -1) {
-      existedData.case_type_wise_counts[indexToUpdate].completed++; // You can adjust the increment as needed
-      existedData.case_type_wise_counts[indexToUpdate].pending--;
-    }
-
-    existedData.pending_cases--;
-    existedData.completed_cases++;
-
-    existedData.total_cases = existedData.pending_cases + existedData.completed_cases;
-
-    return existedData;
-
-  }
-
-  prepareToUpdateRetrive(existedData, reqBody) {
-    const indexToUpdate = existedData.case_type_wise_counts.findIndex(
-      (item) => item.case_type === reqBody.case_type.toUpperCase()
-    );
-
-    // If the case type is found, increment the counts
-    if (indexToUpdate !== -1) {
-      existedData.case_type_wise_counts[indexToUpdate].completed--; // You can adjust the increment as needed
-      existedData.case_type_wise_counts[indexToUpdate].pending++;
-    }
-
-    existedData.pending_cases++;
-    existedData.completed_cases--;
-
-    existedData.total_cases = existedData.pending_cases + existedData.completed_cases;
-
-    return existedData;
-
-  }
 }

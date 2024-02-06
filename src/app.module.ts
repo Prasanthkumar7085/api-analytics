@@ -7,17 +7,24 @@ import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from './prisma/prisma.module';
 import { ExpiredTokenMiddleware } from './middlewares/token.verify.middleware';
 import { QueueBodyMiddleware } from './middlewares/queueBody.middleware';
-import { StatsController } from './stats/stats.controller';
+import { MongooseModule } from '@nestjs/mongoose';
+import { UserSchema } from './schemas/userSchema';
+import { LisModule } from './lis/lis.module';
+
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       load: [configuration],
     }),
-    StatsModule, PrismaModule],
+    MongooseModule.forFeature([{ name: 'UserSchema', schema: UserSchema }]),
+    MongooseModule.forRoot(process.env.LIS_DB_URL + '?authSource=admin'),
+    StatsModule, PrismaModule, LisModule],
   controllers: [AppController],
   providers: [AppService],
 })
+
+
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer.apply(ExpiredTokenMiddleware).forRoutes('*');

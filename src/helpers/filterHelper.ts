@@ -7,6 +7,7 @@ export class FilterHelper {
         const marketer = query.marketer_id;
         const totalCases = query.total_cases;
         const hospitalsCount = query.hospitals_count;
+        const hospitalMarketers = query.hospital_marketers;
 
         let filter: any = {}
         if (pendingCases) {
@@ -46,6 +47,10 @@ export class FilterHelper {
             }
         }
 
+        if (hospitalMarketers) {
+            filter.marketer_id = { in: hospitalMarketers }
+        }
+
 
         return filter;
     }
@@ -81,7 +86,7 @@ export class FilterHelper {
         return filter;
     }
 
-    hospitalWiseMarketers(fromDate, toDate, marketer) {
+    hospitalWiseMarketers(fromDate, toDate, marketer, marketerIdsArray = []) {
         let filter: any = {}
 
         if (fromDate && toDate) {
@@ -94,6 +99,12 @@ export class FilterHelper {
         if (marketer) {
             filter.marketer_id = {
                 equals: marketer
+            }
+        }
+
+        if (marketerIdsArray.length) {
+            filter.marketer_id = {
+                in: marketerIdsArray
             }
         }
 
