@@ -8,8 +8,10 @@ const SUCCESS_DELETE = "Successfully Deleted Stat"
 const FILE_UPLOAD = 'File uploaded and processed successfully'
 const NO_FILE = 'No file uploaded'
 const INVALID_FILE = 'Invalid file format. Please upload a CSV file.'
+const SUCCESS_USERS = "Successfully Fetched Users"
+const MARKETERS_NOT_THERE = "Marketers Data Not Found"
 
 export {
     SUCCESS_COMPLETE, SUCCESS_RETREIVE, SOMETHING_WENT_WRONG, SUCCESS_MARKETERS, NOT_LESSER,
-    SUCCESS_PENDING, SUCCESS_DELETE, FILE_UPLOAD, NO_FILE, INVALID_FILE
+    SUCCESS_PENDING, SUCCESS_DELETE, FILE_UPLOAD, NO_FILE, INVALID_FILE, SUCCESS_USERS, MARKETERS_NOT_THERE
 }

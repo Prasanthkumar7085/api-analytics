@@ -10,11 +10,11 @@ import { RevenueStatsHelpers } from 'src/helpers/revenuStatsHelper';
 })
 export class RevenueStatsController {
   constructor(
-    private readonly revenueStatsHelpers: RevenueStatsHelpers
+    private readonly revenueStatsHelpers: RevenueStatsHelpers,
   ) { }
 
 
-  @Post()
+  @Post("upload")
   @UseInterceptors(
     FileInterceptor('file', {
       limits: {
@@ -26,12 +26,13 @@ export class RevenueStatsController {
   async processRawCsvFile(@UploadedFile() file, @Req() req: any, @Res() res: any) {
     try {
 
-     const jsonData = await this.revenueStatsHelpers.covertCsvToJson(file);
+      const modifiedData = await this.revenueStatsHelpers.prepareModifyData(file);
 
+      const finalModifiedData = await this.revenueStatsHelpers.getDataFromLis(modifiedData);
       return res.status(200).json({
         success: true,
         message: FILE_UPLOAD,
-        data: jsonData
+        data: finalModifiedData
       });
     } catch (err) {
       console.log("err", err)
@@ -41,6 +42,5 @@ export class RevenueStatsController {
       });
     }
   }
-
 
 }
