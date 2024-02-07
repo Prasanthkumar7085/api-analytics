@@ -3,6 +3,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
 import { FILE_UPLOAD, SOMETHING_WENT_WRONG } from 'src/constants/messageConstants';
 import { RevenueStatsHelpers } from 'src/helpers/revenuStatsHelper';
+import { RevenueStatsService } from './revenue-stats.service';
 
 @Controller({
   version: '1.0',
@@ -10,6 +11,7 @@ import { RevenueStatsHelpers } from 'src/helpers/revenuStatsHelper';
 })
 export class RevenueStatsController {
   constructor(
+    private readonly revenueStatsService: RevenueStatsService,
     private readonly revenueStatsHelpers: RevenueStatsHelpers,
   ) { }
 
@@ -29,6 +31,8 @@ export class RevenueStatsController {
       const modifiedData = await this.revenueStatsHelpers.prepareModifyData(file);
 
       const finalModifiedData = await this.revenueStatsHelpers.getDataFromLis(modifiedData);
+
+      const saveDataInDb = await this.revenueStatsService.saveDataInDb(finalModifiedData)
       return res.status(200).json({
         success: true,
         message: FILE_UPLOAD,
@@ -38,9 +42,8 @@ export class RevenueStatsController {
       console.log("err", err)
       return res.status(500).json({
         success: false,
-        message: err.message || SOMETHING_WENT_WRONG,
+        message: err.message || SOMETHING_WENT_WRONG
       });
     }
   }
-
 }

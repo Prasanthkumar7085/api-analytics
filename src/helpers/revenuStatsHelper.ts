@@ -48,7 +48,8 @@ export class RevenueStatsHelpers {
             patient_payment_amount: e['Patient Payment Amount'],
             patient_adjustment_amount: e['Patient Adjustment Amount'],
             patient_write_of_amount: e['Patient Write-Off Amount'],
-            line_item_balance: e['Line Item Balance']
+            line_item_balance: e['Line Item Balance'],
+            insurance_name: e['Primary Insurance']
         }))
 
 
@@ -100,7 +101,7 @@ export class RevenueStatsHelpers {
                     patient_adjustment_amount: [item.patient_adjustment_amount],
                     patient_write_of_amount: [item.patient_write_of_amount],
                     line_item_balance: [item.line_item_balance],
-
+                    insurance_name: item.insurance_name
                 };
                 acc.push(newEntry);
             }
@@ -129,7 +130,7 @@ export class RevenueStatsHelpers {
             const patient_adjustment_amount_sum = entry.patient_adjustment_amount.reduce((sum, value) => sum + Number(value), 0);
             const patient_write_of_amount_sum = entry.patient_write_of_amount.reduce((sum, value) => sum + Number(value), 0);
 
-            
+
             entry.paid_amount = Math.floor(insurance_payment_amount_sum + insurance_adjustment_amount_sum + insurance_write_of_amount_sum + patient_payment_amount_sum + patient_adjustment_amount_sum + patient_write_of_amount_sum);
 
             entry.pending_amount = Math.floor(entry.line_item_balance.reduce((sum, value) => sum + Number(value), 0));
@@ -143,46 +144,44 @@ export class RevenueStatsHelpers {
 
 
 
-    
-  async getDataFromLis(modifiedData) {
-    const accessionIdsArray = modifiedData.map((e) => e.accession_id);
 
-    const query = {
-      accession_id: {
-        "$in": accessionIdsArray
-      }
+    async getDataFromLis(modifiedData) {
+        const accessionIdsArray = modifiedData.map((e) => e.accession_id);
+
+        const query = {
+            accession_id: {
+                "$in": accessionIdsArray
+            }
+        }
+
+        const caseDataArray = await this.lisService.getCaseByAccessionId(query);
+        console.log("caseDataArray", caseDataArray)
+        let mergedArray: any = [];
+        if (caseDataArray.length) {
+            mergedArray = this.mergeArrays(caseDataArray, modifiedData)
+        }
+
+        return mergedArray;
     }
 
-    const caseDataArray = await this.lisService.getCaseByAccessionId(query);
 
-    let mergedArray: any = [];
-    if (caseDataArray.length) {
-      mergedArray = this.mergeArrays(caseDataArray, modifiedData)
+
+    mergeArrays(caseDataArray, modifiedData) {
+        // Merge arrays based on hospital_marketer and date
+        const mergedArrays = caseDataArray.map(objA => {
+            const matchingObjB = modifiedData.find(objB => objB.accession_id === objA.accession_id);
+            return {
+                case_id: objA._id,
+                case_types: objA.case_types,
+                hospital: objA.hospital,
+                hospital_marketers: objA.hospital_marketers,
+                process_status: "PENDING",
+                ...matchingObjB
+            };
+        });
+        return mergedArrays;
+
     }
-
-    return mergedArray;
-  }
-
-
-
-  mergeArrays(caseDataArray, modifiedData) {
-    // Merge arrays based on hospital_marketer and date
-    const mergedArrays = caseDataArray.map(objA => {
-      const matchingObjB = modifiedData.find(objB => objB.accession_id === objA.accession_id);
-
-      return {
-       case_id: objA._id,
-       case_types: objA.case_types,
-       hospital: objA.hospital,
-       hospital_marketers: objA.hospital_marketers,
-       process_status: "PENDING",
-       ...matchingObjB
-      };
-    });
-
-    return mergedArrays;
-
-  }
 
 
 
