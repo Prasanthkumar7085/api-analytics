@@ -8,13 +8,14 @@ import { PrismaModule } from './prisma/prisma.module';
 import { ExpiredTokenMiddleware } from './middlewares/token.verify.middleware';
 import { QueueBodyMiddleware } from './middlewares/queueBody.middleware';
 import { StatsController } from './stats/stats.controller';
+import { RevenueStatsModule } from './revenue-stats/revenue-stats.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       load: [configuration],
     }),
-    StatsModule, PrismaModule],
+    StatsModule, PrismaModule, RevenueStatsModule],
   controllers: [AppController],
   providers: [AppService],
 })

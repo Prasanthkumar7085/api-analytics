@@ -1,0 +1,60 @@
+-- CreateTable
+CREATE TABLE "marketer_stats" (
+    "id" SERIAL NOT NULL,
+    "marketer_id" TEXT NOT NULL,
+    "total_cases" INTEGER NOT NULL,
+    "pending_cases" INTEGER NOT NULL DEFAULT 0,
+    "completed_cases" INTEGER NOT NULL DEFAULT 0,
+    "hospitals_count" INTEGER NOT NULL DEFAULT 0,
+    "date" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
+    "case_type_wise_counts" JSONB[],
+    "hospital_case_type_wise_counts" JSONB[],
+    "created_at" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "marketer_stats_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "revenue_marketers_schema" (
+    "id" SERIAL NOT NULL,
+    "encounter_id" TEXT NOT NULL,
+    "patient_code" TEXT NOT NULL,
+    "accession_id" TEXT NOT NULL,
+    "patient" TEXT NOT NULL,
+    "patient_id" TEXT NOT NULL,
+    "case_type" TEXT NOT NULL,
+    "billing_npi" TEXT NOT NULL,
+    "referring_provider" TEXT NOT NULL,
+    "referring_npi" TEXT NOT NULL,
+    "total_charges" INTEGER NOT NULL DEFAULT 0,
+    "date_of_service" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
+    "date_of_birth" TIMESTAMP(3),
+    "icd_codes" TEXT NOT NULL,
+    "primary_insurance" TEXT NOT NULL,
+    "payor_id" TEXT NOT NULL,
+    "primary_policy_number" TEXT NOT NULL,
+    "payment_status" TEXT NOT NULL,
+    "initial_billed_date" TIMESTAMP(3),
+    "last_claim_status" TEXT NOT NULL,
+    "created_date" TIMESTAMP(3),
+    "created_by" TEXT NOT NULL,
+    "modified_date" TIMESTAMP(3),
+    "modifiedBy" TEXT NOT NULL,
+    "cpt_codes" TEXT NOT NULL,
+    "line_item_units" INTEGER NOT NULL DEFAULT 0,
+    "line_item_charge" INTEGER NOT NULL DEFAULT 0,
+    "line_item_total" INTEGER NOT NULL DEFAULT 0,
+    "insurance_payment_amount" INTEGER NOT NULL DEFAULT 0,
+    "insurance_adjustment_amount" INTEGER NOT NULL DEFAULT 0,
+    "expected_rate" INTEGER NOT NULL DEFAULT 0,
+    "insurance_write_of_amount" INTEGER NOT NULL DEFAULT 0,
+    "patient_payment_amount" INTEGER NOT NULL DEFAULT 0,
+    "patient_adjustment_amount" INTEGER NOT NULL DEFAULT 0,
+    "patient_write_of_amount" INTEGER NOT NULL DEFAULT 0,
+    "line_item_balance" INTEGER NOT NULL DEFAULT 0,
+    "line_item_rendering_provider" TEXT NOT NULL,
+    "line_item_status" TEXT NOT NULL,
+
+    CONSTRAINT "revenue_marketers_schema_pkey" PRIMARY KEY ("id")
+);
