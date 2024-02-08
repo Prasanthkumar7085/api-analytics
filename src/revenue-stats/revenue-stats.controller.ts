@@ -1,10 +1,15 @@
-import { Controller, Delete, Get, Param, Post, Req, Res, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { StatsHelper } from 'src/helpers/statsHelper';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Req, Res, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
-import { DELETE_REVENUE_RAW, FILE_UPLOAD, PROCESS_SUCCESS, REVENUE_STATS,  REVENUE_MODIFIED_DATA, SOMETHING_WENT_WRONG, SUCCESS_DELETE } from 'src/constants/messageConstants';
+import { DELETE_REVENUE_RAW, FILE_UPLOAD, NOT_LESSER, PROCESS_SUCCESS, REVENUE_MODIFIED_DATA, REVENUE_STATS, REVENUE_STAT_SINGLE, SOMETHING_WENT_WRONG, SUCCESS_MARKETERS } from 'src/constants/messageConstants';
+import { FilterHelper } from 'src/helpers/filterHelper';
+import { PaginationHelper } from 'src/helpers/paginationHelper';
 import { RevenueStatsHelpers } from 'src/helpers/revenuStatsHelper';
 import { RevenueStatsService } from './revenue-stats.service';
 import { CustomError } from 'src/middlewares/customValidationMiddleware';
+import { ManagerCombinedDto } from 'src/stats/dto/manager-combined.dto';
+import { SortHelper } from 'src/helpers/sortHelper';
 
 @Controller({
   version: '1.0',
@@ -14,6 +19,10 @@ export class RevenueStatsController {
   constructor(
     private readonly revenueStatsService: RevenueStatsService,
     private readonly revenueStatsHelpers: RevenueStatsHelpers,
+    private readonly filterHelper: FilterHelper,
+    private readonly paginationHelper: PaginationHelper,
+    private readonly statsHelper: StatsHelper,
+    private readonly sortHelper: SortHelper,
   ) { }
 
 
@@ -32,7 +41,6 @@ export class RevenueStatsController {
       const modifiedData = await this.revenueStatsHelpers.prepareModifyData(file);
 
       const finalModifiedData = await this.revenueStatsHelpers.getDataFromLis(modifiedData);
-
       const saveDataInDb = await this.revenueStatsService.saveDataInDb(finalModifiedData);
 
       return res.status(200).json({
@@ -117,7 +125,74 @@ export class RevenueStatsController {
   }
 
 
+  @Get('stats')
+  async getRevenueStats(@Req() req: any, @Res() res: any) {
+    try {
 
+      let page = req.query.page || 1;
+      let limit = req.query.limit || 100;
+      let orderBy = req.query.order_by || "date";
+      let orderType = req.query.order_type || "desc";
+
+      let skip = (page - 1) * limit;
+
+      const sort = {
+        [orderBy]: orderType
+      }
+
+      let query = this.filterHelper.marketerPaymentWiseCounts(req.query);
+      const select = {
+        marketer_id: true,
+        date: true,
+        total_amount: true,
+        pending_amount: true,
+        paid_amount: true
+      }
+
+      const [statsData, count]: any = await Promise.all([
+        await this.revenueStatsService.getRevenueStats({ query, select, skip, limit, sort }),
+        await this.revenueStatsService.countStats(query),
+      ]);
+
+      const response = this.paginationHelper.getPaginationResponse({
+        page: +req.query.page || 1,
+        count,
+        limit,
+        skip,
+        data: statsData,
+        message: REVENUE_STATS,
+        searchString: req.query.search_string,
+      });
+
+      return res.status(200).json(response);
+
+    }
+    catch (err) {
+      console.log("err", err)
+      return res.status(500).json({
+        success: false,
+        message: err.message || SOMETHING_WENT_WRONG
+      })
+    }
+  }
+
+  @Get('stats/:id')
+  async getRevenueStatsById(@Param('id') id: number, @Res() res: any) {
+    try {
+
+      let fetchSingleRevenueRecord = await this.revenueStatsService.fetchRecord(id)
+
+      return res.status(200).json({
+        success: true,
+        message: REVENUE_STAT_SINGLE,
+        data: fetchSingleRevenueRecord
+      })
+    }
+    catch (err) {
+      console.log("err", err)
+
+    }
+  }
 
   @Delete("raw/:id")
   async revenueModifiedData(@Param('id') id: number, @Res() res: any) {
@@ -139,9 +214,6 @@ export class RevenueStatsController {
   }
 
 
-
-
-
   @Delete("stats/:id")
   async deleteRevenueStats(@Param('id') id: number, @Res() res: any) {
     try {
@@ -160,4 +232,106 @@ export class RevenueStatsController {
       })
     }
   }
+
+  @Post('individual')
+  async getMarketerRevenueByManeger(
+    @Body() reqBody: ManagerCombinedDto,
+    @Res() res: any
+  ) {
+    try {
+      const orderBy = reqBody.order_by || "total_amount";
+      const orderType = reqBody.order_type || "desc";
+      const managerId = reqBody.manager_id;
+      const fromDate = reqBody.from_date;
+      const toDate = reqBody.to_date;
+      const marketerIds = reqBody.marketer_ids || [];
+
+      if (toDate < fromDate) {
+        return res.status(400).json({
+          success: false,
+          message: NOT_LESSER
+        })
+      };
+
+      let marketersIdsArray = [];
+      if (!marketerIds.length) {
+        marketersIdsArray = await this.statsHelper.getUsersData(managerId);
+      } else {
+        marketersIdsArray = marketerIds;
+      };
+      const statsQuery = this.filterHelper.hospitalWiseMarketers(fromDate, toDate, marketerIds, marketersIdsArray)
+      const dataArray = await this.revenueStatsHelpers.forHospitalWiseData(orderBy, orderType, statsQuery);
+
+      return res.status(200).json({
+        success: true,
+        message: SUCCESS_MARKETERS,
+        data: dataArray
+      })
+    }
+    catch (err) {
+      return res.status(500).json({
+        success: false,
+        message: err.message || SOMETHING_WENT_WRONG
+      })
+    }
+  }
+
+  @Post('combined')
+  async getMarketersRevenueStatsByManager(
+    @Body() reqBody: ManagerCombinedDto,
+    @Res() res: any) {
+    try {
+
+      const orderBy = reqBody.order_by || "total_amount";
+      const orderType = reqBody.order_type || "desc";
+      const managerId = reqBody.manager_id;
+      const fromDate = reqBody.from_date;
+      const toDate = reqBody.to_date;
+      const marketerIds = reqBody.marketer_ids || [];
+
+      if (toDate < fromDate) {
+        return res.status(400).json({
+          success: false,
+          message: NOT_LESSER
+        })
+      };
+
+
+      let statsQuery;
+      if (managerId && marketerIds.length == 0) {
+        const marketersIdsArray = await this.statsHelper.getUsersData(managerId);
+
+        statsQuery = {
+          hospital_marketers: marketersIdsArray
+        };
+
+      } else {
+        statsQuery = {
+          hospital_marketers: marketerIds
+        };
+      };
+
+      let finalStatsQuery: any = this.filterHelper.revenueStats(statsQuery, fromDate, toDate);
+
+      let sort = {}
+      if (orderBy && orderType) {
+        sort = this.sortHelper.stats(orderBy, orderType);
+      }
+
+      let statsData = await this.revenueStatsService.marketers(finalStatsQuery, sort);
+
+      return res.status(200).json({
+        success: true,
+        message: SUCCESS_MARKETERS,
+        data: statsData
+      });
+    } catch (err) {
+      console.log({ err });
+      return res.status(500).json({
+        success: false,
+        message: err.message || SOMETHING_WENT_WRONG
+      });
+    };
+  };
+
 }
