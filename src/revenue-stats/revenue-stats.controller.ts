@@ -65,7 +65,6 @@ export class RevenueStatsController {
       }
 
       const processedData = await this.revenueStatsHelpers.processData(pendingRawData);
-
       const processedDataIds = processedData.map((e) => e.raw_id);
 
       const finalProcessedIds = [...new Set(processedDataIds)]
