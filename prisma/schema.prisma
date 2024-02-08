@@ -60,7 +60,7 @@ model revenue_stats  {
     paid_amount                        Int
     pending_amount                     Int
     case_type_wise_counts              Json[]
-    hospital_marketer_wise_count       Json[]
+    hospital_wise_counts                Json[]
     hospitals                          Int
     created_at                        DateTime?   @default(now())
     updated_at                        DateTime?   @default(now())

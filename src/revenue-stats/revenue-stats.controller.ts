@@ -1,7 +1,7 @@
-import { Controller, Get, Post, Req, Res, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Controller, Delete, Get, Param, Post, Req, Res, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
-import { FILE_UPLOAD, REVENUE_MODIFIED_DATA, SOMETHING_WENT_WRONG } from 'src/constants/messageConstants';
+import { FILE_UPLOAD, REVENUE_MODIFIED_DATA, REVENUE_STATS, SOMETHING_WENT_WRONG, SUCCESS_DELETE } from 'src/constants/messageConstants';
 import { RevenueStatsHelpers } from 'src/helpers/revenuStatsHelper';
 import { RevenueStatsService } from './revenue-stats.service';
 
@@ -67,4 +67,22 @@ export class RevenueStatsController {
     }
   }
 
+
+  @Post()
+  async saveRevenueMarketerStats(@Req() req: any, @Res() res: any) {
+    try {
+
+      let data = req.body;
+      data.date = this.revenueStatsHelpers.modifyDate(data.date)
+      let saveRevenueStats = await this.revenueStatsService.saveStats(data)
+      return res.status(200).json({
+        success: true,
+        message: REVENUE_STATS,
+        data: saveRevenueStats
+      })
+    }
+    catch (err) {
+      throw err
+    }
+  }
 }

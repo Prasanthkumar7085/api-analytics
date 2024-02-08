@@ -102,4 +102,5 @@ export class FilterHelper {
 
         return filter;
     }
+
 }
