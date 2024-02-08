@@ -7,7 +7,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 export class RevenueStatsService {
   constructor(private prisma: PrismaService) { }
 
-  async insertRevenueData(revenueData) {
-    return this.prisma.revenue_marketers_schema.createMany({ data: revenueData })
+  async saveDataInDb(revenueData) {
+    return this.prisma.revenue_marketers_schema.createMany({ data: revenueData });
   }
 }

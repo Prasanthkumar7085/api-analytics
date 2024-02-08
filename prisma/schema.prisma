@@ -27,42 +27,26 @@ model marketer_stats {
 
 
 model revenue_marketers_schema {
-  id                                        Int    @id @default(autoincrement())
-  encounter_id                              String 
-  patient_code                              String
+  id                                        Int           @id @default(autoincrement())
+  case_id                                   String
+  hospital                                  String
   accession_id                              String
-  patient                                   String
-  patient_id                                String
-  case_type                                 String
-  billing_npi                               String
-  referring_provider                        String
-  referring_npi                             String
-  total_charges                             Int                @default(0)        
-  date_of_service                           DateTime?           @default(now())
-  date_of_birth                             DateTime?
-  icd_codes                                 String
-  primary_insurance                         String
-  payor_id                                  String
-  primary_policy_number                     String
+  case_types                                String[] 
+  hospital_marketers                        String[] 
+  date_of_service                           DateTime      @db.Date
+  insurance_name                            String
   payment_status                            String
-  initial_billed_date                       DateTime?
-  last_claim_status                         String
-  created_date                              DateTime?
-  created_by                                String
-  modified_date                             DateTime?
-  modifiedBy                                String
-  cpt_codes                                 String
-  line_item_units                           Int                           @default(0)
-  line_item_charge                          Int                           @default(0)
-  line_item_total                           Int                           @default(0)
-  insurance_payment_amount                  Int                           @default(0)
-  insurance_adjustment_amount               Int                           @default(0)
-  expected_rate                             Int                           @default(0)
-  insurance_write_of_amount                 Int                           @default(0)
-  patient_payment_amount                    Int                           @default(0)
-  patient_adjustment_amount                 Int                           @default(0)
-  patient_write_of_amount                   Int                           @default(0)
-  line_item_balance                         Int                           @default(0)
-  line_item_rendering_provider              String        
-  line_item_status                          String 
+  cpt_codes                                 String[]                    
+  line_item_total                           String[]                          
+  insurance_payment_amount                  String[]                          
+  insurance_adjustment_amount               String[]                          
+  insurance_write_of_amount                 String[]                           
+  patient_payment_amount                    String[]                          
+  patient_adjustment_amount                 String[]                          
+  patient_write_of_amount                   String[]                          
+  line_item_balance                         String[]   
+  total_amount                              Int  
+  paid_amount                               Int
+  pending_amount                            Int                     
+  process_status                            String
 }

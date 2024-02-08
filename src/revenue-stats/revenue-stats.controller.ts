@@ -3,6 +3,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
 import { FILE_UPLOAD, PROCESS_SUCCESS, SOMETHING_WENT_WRONG } from 'src/constants/messageConstants';
 import { RevenueStatsHelpers } from 'src/helpers/revenuStatsHelper';
+import { RevenueStatsService } from './revenue-stats.service';
 
 @Controller({
   version: '1.0',
@@ -10,6 +11,7 @@ import { RevenueStatsHelpers } from 'src/helpers/revenuStatsHelper';
 })
 export class RevenueStatsController {
   constructor(
+    private readonly revenueStatsService: RevenueStatsService,
     private readonly revenueStatsHelpers: RevenueStatsHelpers,
   ) { }
 
@@ -29,16 +31,19 @@ export class RevenueStatsController {
       const modifiedData = await this.revenueStatsHelpers.prepareModifyData(file);
 
       const finalModifiedData = await this.revenueStatsHelpers.getDataFromLis(modifiedData);
+
+      const saveDataInDb = await this.revenueStatsService.saveDataInDb(finalModifiedData);
+
       return res.status(200).json({
         success: true,
         message: FILE_UPLOAD,
-        data: finalModifiedData
+        data: saveDataInDb
       });
     } catch (err) {
       console.log("err", err)
       return res.status(500).json({
         success: false,
-        message: err.message || SOMETHING_WENT_WRONG,
+        message: err.message || SOMETHING_WENT_WRONG
       });
     }
   }
@@ -398,7 +403,7 @@ export class RevenueStatsController {
       ]
 
 
-      const processedData = this.processHospitalMarketers(resp);
+      const processedData = await this.revenueStatsHelpers.processHospitalMarketers(resp);
 
 
       return res.status(200).json({
@@ -413,47 +418,6 @@ export class RevenueStatsController {
         message: err.message || "Something Went Wrong"
       })
     }
-  }
-
-
-  processHospitalMarketers(data) {
-    const processedData = {};
-
-    data.forEach(entry => {
-      entry.hospital_marketers.forEach(marketer => {
-        if (!processedData[entry.date_of_service]) {
-          processedData[entry.date_of_service] = {};
-        }
-
-        if (!processedData[entry.date_of_service][marketer]) {
-          processedData[entry.date_of_service][marketer] = {
-            marketer_id: marketer,
-            date: entry.date_of_service,
-            total_amount: 0,
-            paid_amount: 0,
-            pending_amount: 0,
-            hospitals: new Set()
-          };
-        }
-
-        processedData[entry.date_of_service][marketer].total_amount += entry.total_amount || 0;
-        processedData[entry.date_of_service][marketer].paid_amount += entry.paid_amount || 0;
-        processedData[entry.date_of_service][marketer].pending_amount += entry.pending_amount || 0;
-        processedData[entry.date_of_service][marketer].hospitals.add(entry.hospital);
-      });
-    });
-
-    const result = [];
-    for (const date in processedData) {
-      for (const marketerId in processedData[date]) {
-        const marketerData = processedData[date][marketerId];
-        marketerData.number_of_hospitals = marketerData.hospitals.size;
-        delete marketerData.hospitals;
-        result.push(marketerData);
-      }
-    }
-
-    return result;
   }
 
 }
