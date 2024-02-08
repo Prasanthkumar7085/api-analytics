@@ -57,13 +57,19 @@ export class RevenueStatsHelpers {
         return modifiedData;
     }
 
-    modifyDate(date) {
-        const originalDate = new Date(date);
+    modifyDate(dateString) {
 
-        const year = originalDate.getUTCFullYear();
-        const month = String(originalDate.getUTCMonth() + 1).padStart(2, '0');
-        const day = String(originalDate.getUTCDate()).padStart(2, '0');
-        const formattedDateObject = new Date(`${year}-${month}-${day}`);
+        const originalDate = new Date(dateString);
+
+        const year = originalDate.getFullYear();
+        const month = originalDate.getMonth();
+        const day = originalDate.getDate();
+
+        // Constructing the formattedDateObject without using UTC functions
+        const formattedDateObject = new Date(0);  // Epoch time
+        formattedDateObject.setUTCFullYear(year);
+        formattedDateObject.setUTCMonth(month);
+        formattedDateObject.setUTCDate(day);
 
         return formattedDateObject;
     }
