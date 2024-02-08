@@ -25,7 +25,7 @@ export class RevenueStatsHelpers {
             }
 
             const csvFileData = await this.fileUploadDataServiceProvider.processCsv(file);
-            // console.log("fileRews", csvFileData);
+
             const modifiedData = await this.modifyRawData(csvFileData)
 
             return modifiedData;
@@ -63,8 +63,9 @@ export class RevenueStatsHelpers {
         const year = originalDate.getUTCFullYear();
         const month = String(originalDate.getUTCMonth() + 1).padStart(2, '0');
         const day = String(originalDate.getUTCDate()).padStart(2, '0');
+        const formattedDateObject = new Date(`${year}-${month}-${day}`);
 
-        return `${year}-${month}-${day}`;
+        return formattedDateObject;
     }
 
 
@@ -155,7 +156,7 @@ export class RevenueStatsHelpers {
         }
 
         const caseDataArray = await this.lisService.getCaseByAccessionId(query);
-        console.log("caseDataArray", caseDataArray)
+
         let mergedArray: any = [];
         if (caseDataArray.length) {
             mergedArray = this.mergeArrays(caseDataArray, modifiedData)
