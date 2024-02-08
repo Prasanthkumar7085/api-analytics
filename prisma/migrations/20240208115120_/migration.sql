@@ -52,7 +52,7 @@ CREATE TABLE "revenue_stats" (
     "paid_amount" INTEGER NOT NULL,
     "pending_amount" INTEGER NOT NULL,
     "case_type_wise_counts" JSONB[],
-    "hospital_marketer_wise_count" JSONB[],
+    "hospital_wise_counts" JSONB[],
     "hospitals" INTEGER NOT NULL,
     "created_at" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,

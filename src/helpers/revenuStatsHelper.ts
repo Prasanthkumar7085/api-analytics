@@ -187,4 +187,137 @@ export class RevenueStatsHelpers {
 
 
 
+    processData(data) {
+        let processedData = {};
+
+        data.forEach(entry => {
+            entry.hospital_marketers.forEach(marketer => {
+                if (!processedData[entry.date_of_service]) {
+                    processedData[entry.date_of_service] = {};
+                }
+
+                const forMarketerResp = this.forMarketersAndCountsSeperation(processedData, entry, marketer);
+
+                processedData = forMarketerResp.processedData;
+                entry = forMarketerResp.entry;
+
+                //  Initialize counts for case_types wise
+                const caseTypeWiseResp = this.forCaseTypeWiseCounts(processedData, entry, marketer);
+
+                processedData = caseTypeWiseResp.processedData;
+                entry = caseTypeWiseResp.entry;
+
+                // Initialize counts for hospital-wise case_types
+                const hospitalId = entry.hospital;
+                const hospitalData = processedData[entry.date_of_service][marketer].hospital_wise_counts.find(hospital => hospital.hospital === hospitalId);
+
+                const hospitalWiseResp = this.forHospitalWiseCounts(processedData, entry, marketer, hospitalId, hospitalData);
+
+                processedData = hospitalWiseResp.processedData;
+                entry = hospitalWiseResp.entry;
+            });
+        });
+
+        const result = [];
+        for (const date in processedData) {
+            for (const marketerId in processedData[date]) {
+                const marketerData = processedData[date][marketerId];
+                marketerData.hospitals = marketerData.hospitals_data.size;
+                delete marketerData.hospitals_data;
+                result.push(marketerData);
+            }
+        }
+
+        return result;
+    }
+
+
+    forMarketersAndCountsSeperation(processedData, entry, marketer) {
+        if (!processedData[entry.date_of_service][marketer]) {
+            processedData[entry.date_of_service][marketer] = {
+                raw_id: entry.id,
+                marketer_id: marketer,
+                date: this.modifyDate(entry.date_of_service),
+                total_amount: 0,
+                paid_amount: 0,
+                pending_amount: 0,
+                hospitals_data: new Set(),
+                case_type_wise_counts: [], // Updated to use an array
+                hospital_wise_counts: []
+            };
+
+            // Initialize counts for all case_types
+            ["COVID", "RESPIRATORY_PATHOGEN_PANEL", "TOXICOLOGY", "CLINICAL_CHEMISTRY", "UTI", "URINALYSIS", "PGX", "WOUND", "NAIL", "COVID_FLU", "CGX", "CARDIAC", "DIABETES", "GASTRO", "PAD", "PULMONARY"].forEach(caseType => {
+                processedData[entry.date_of_service][marketer].case_type_wise_counts.push({
+                    case_type: caseType.toLowerCase(),
+                    total_amount: 0,
+                    paid_amount: 0,
+                    pending_amount: 0
+                });
+            });
+        }
+
+        processedData[entry.date_of_service][marketer].total_amount += entry.total_amount || 0;
+        processedData[entry.date_of_service][marketer].paid_amount += entry.paid_amount || 0;
+        processedData[entry.date_of_service][marketer].pending_amount += entry.pending_amount || 0;
+        processedData[entry.date_of_service][marketer].hospitals_data.add(entry.hospital);
+
+        const resp = { processedData, entry };
+        return resp;
+    }
+
+
+    forCaseTypeWiseCounts(processedData, entry, marketer) {
+        entry.case_types.forEach(caseType => {
+            const lowercaseCaseType = caseType.toLowerCase();
+            const caseTypeData = processedData[entry.date_of_service][marketer].case_type_wise_counts.find(item => item.case_type === lowercaseCaseType);
+
+            caseTypeData.total_amount += entry.total_amount || 0;
+            caseTypeData.paid_amount += entry.paid_amount || 0;
+            caseTypeData.pending_amount += entry.pending_amount || 0;
+        });
+
+        const resp = { processedData, entry };
+        return resp;
+    }
+
+
+    forHospitalWiseCounts(processedData, entry, marketer, hospitalId, hospitalData) {
+        if (!hospitalData) {
+            processedData[entry.date_of_service][marketer].hospital_wise_counts.push({
+                hospital: hospitalId,
+                total_amount: 0,
+                paid_amount: 0,
+                pending_amount: 0,
+                case_type_wise_counts: []
+            });
+
+            // Initialize counts for all case_types within hospital
+            ["COVID", "RESPIRATORY_PATHOGEN_PANEL", "TOXICOLOGY", "CLINICAL_CHEMISTRY", "UTI", "URINALYSIS", "PGX", "WOUND", "NAIL", "COVID_FLU", "CGX", "CARDIAC", "DIABETES", "GASTRO", "PAD", "PULMONARY"].forEach(caseType => {
+                processedData[entry.date_of_service][marketer].hospital_wise_counts.find(hospital => hospital.hospital === hospitalId).case_type_wise_counts.push({
+                    case_type: caseType.toLowerCase(),
+                    total_amount: 0,
+                    paid_amount: 0,
+                    pending_amount: 0
+                });
+            });
+        }
+
+        processedData[entry.date_of_service][marketer].hospital_wise_counts.find(hospital => hospital.hospital === hospitalId).total_amount += entry.total_amount || 0;
+        processedData[entry.date_of_service][marketer].hospital_wise_counts.find(hospital => hospital.hospital === hospitalId).paid_amount += entry.paid_amount || 0;
+        processedData[entry.date_of_service][marketer].hospital_wise_counts.find(hospital => hospital.hospital === hospitalId).pending_amount += entry.pending_amount || 0;
+
+        entry.case_types.forEach(caseType => {
+            const lowercaseCaseType = caseType.toLowerCase();
+            const caseTypeData = processedData[entry.date_of_service][marketer].hospital_wise_counts.find(hospital => hospital.hospital === hospitalId).case_type_wise_counts.find(item => item.case_type === lowercaseCaseType);
+
+            caseTypeData.total_amount += entry.total_amount || 0;
+            caseTypeData.paid_amount += entry.paid_amount || 0;
+            caseTypeData.pending_amount += entry.pending_amount || 0;
+        });
+
+        const resp = { processedData, entry };
+        return resp;
+    }
+
 }
