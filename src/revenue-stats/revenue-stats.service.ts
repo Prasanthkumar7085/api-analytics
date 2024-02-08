@@ -28,10 +28,8 @@ export class RevenueStatsService {
   }
 
   async deleteRevenueRawData(id) {
-    return this.prisma.revenue_marketers_schema.delete({
-      where: {
-        id: id
-      }
+    return this.prisma.revenue_marketers_schema.deleteMany({
+      
     })
   }
 
@@ -44,10 +42,14 @@ export class RevenueStatsService {
 
 
   async deleteRevenueStats(id) {
-    return this.prisma.revenue_stats.delete({
-      where: {
-        id: id
-      }
+    return this.prisma.revenue_stats.deleteMany({
+   
     })
+  }
+
+  async getRevenueStats(query) {
+    return this.prisma.revenue_stats.findMany({
+      where: query
+    });
   }
 }
