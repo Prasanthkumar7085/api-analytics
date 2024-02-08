@@ -9,10 +9,12 @@ import { LisService } from 'src/lis/lis.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CaseSchema } from 'src/schemas/caseSchema';
 import { UserSchema } from 'src/schemas/userSchema';
+import { FilterHelper } from 'src/helpers/filterHelper';
+import { PaginationHelper } from 'src/helpers/paginationHelper';
 
 @Module({
   controllers: [RevenueStatsController],
-  providers: [RevenueStatsService, PrismaService, FileUploadDataServiceProvider, RevenueStatsHelpers, LisService],
+  providers: [RevenueStatsService, PrismaService, FileUploadDataServiceProvider, RevenueStatsHelpers, LisService, FilterHelper, PaginationHelper],
   imports: [
     MongooseModule.forFeature([
       { name: 'User', schema: UserSchema },

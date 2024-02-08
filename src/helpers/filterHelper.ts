@@ -103,4 +103,27 @@ export class FilterHelper {
         return filter;
     }
 
+
+    marketerPaymentWiseCounts(query) {
+        let filter: any = {}
+
+        let fromDate = query.from_date
+        let toDate = query.to_date
+        let marketer = query.marketer_id
+
+        if (fromDate && toDate) {
+            filter.date = {
+                gte: new Date(fromDate).toISOString(),
+                lte: new Date(toDate).toISOString()
+            }
+        }
+
+        if (marketer) {
+            filter.marketer_id = {
+                equals: marketer
+            }
+        }
+        return filter;
+    }
+
 }
