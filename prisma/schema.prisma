@@ -33,7 +33,7 @@ model revenue_marketers_schema {
   accession_id                              String
   case_types                                String[] 
   hospital_marketers                        String[] 
-  date_of_service                           DateTime      @db.Date
+  date_of_service                           DateTime?          
   insurance_name                            String
   payment_status                            String
   cpt_codes                                 String[]                    
@@ -49,4 +49,19 @@ model revenue_marketers_schema {
   paid_amount                               Int
   pending_amount                            Int                     
   process_status                            String
+}
+
+
+model revenue_stats  {
+    id                                 Int      @id @default(autoincrement())
+    marketer_id                        String
+    date                               DateTime
+    total_amount                       Int
+    paid_amount                        Int
+    pending_amount                     Int
+    case_type_wise_counts              Json[]
+    hospital_wise_counts               Json[]
+    hospitals                          Int
+    created_at                        DateTime?   @default(now())
+    updated_at                        DateTime?   @default(now())
 }

@@ -25,7 +25,7 @@ export class RevenueStatsHelpers {
             }
 
             const csvFileData = await this.fileUploadDataServiceProvider.processCsv(file);
-            // console.log("fileRews", csvFileData);
+
             const modifiedData = await this.modifyRawData(csvFileData)
 
             return modifiedData;
@@ -63,10 +63,9 @@ export class RevenueStatsHelpers {
         const year = originalDate.getUTCFullYear();
         const month = String(originalDate.getUTCMonth() + 1).padStart(2, '0');
         const day = String(originalDate.getUTCDate()).padStart(2, '0');
+        const formattedDateObject = new Date(`${year}-${month}-${day}`);
 
-        const formattedString = `${year}-${month}-${day}`;
-
-        return new Date(formattedString).toISOString().split('T')[0];
+        return formattedDateObject;
     }
 
 
@@ -157,7 +156,7 @@ export class RevenueStatsHelpers {
         }
 
         const caseDataArray = await this.lisService.getCaseByAccessionId(query);
-        console.log("caseDataArray", caseDataArray)
+
         let mergedArray: any = [];
         if (caseDataArray.length) {
             mergedArray = this.mergeArrays(caseDataArray, modifiedData)
@@ -188,7 +187,7 @@ export class RevenueStatsHelpers {
 
 
 
-    processHospitalMarketers(data) {
+    processData(data) {
         let processedData = {};
 
         data.forEach(entry => {
@@ -236,8 +235,9 @@ export class RevenueStatsHelpers {
     forMarketersAndCountsSeperation(processedData, entry, marketer) {
         if (!processedData[entry.date_of_service][marketer]) {
             processedData[entry.date_of_service][marketer] = {
+                raw_id: entry.id,
                 marketer_id: marketer,
-                date: entry.date_of_service,
+                date: this.modifyDate(entry.date_of_service),
                 total_amount: 0,
                 paid_amount: 0,
                 pending_amount: 0,

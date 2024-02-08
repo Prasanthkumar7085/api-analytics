@@ -11,9 +11,13 @@ const INVALID_FILE = 'Invalid file format. Please upload a CSV file.'
 const SUCCESS_USERS = "Successfully Fetched Users"
 const MARKETERS_NOT_THERE = "Marketers Data Not Found"
 const PROCESS_SUCCESS = "Processed Successfully"
+const REVENUE_MODIFIED_DATA = "Revenue modified data fetched successfully"
+const DELETE_REVENUE_RAW = "Revenue Raw Data Deleted Successfully"
+const DELETE_REVENUE_STAT = "Revenue Stats Data Deleted Successfully"
+
 
 export {
     SUCCESS_COMPLETE, SUCCESS_RETREIVE, SOMETHING_WENT_WRONG, SUCCESS_MARKETERS, NOT_LESSER,
     SUCCESS_PENDING, SUCCESS_DELETE, FILE_UPLOAD, NO_FILE, INVALID_FILE, SUCCESS_USERS, MARKETERS_NOT_THERE,
-    PROCESS_SUCCESS
+    PROCESS_SUCCESS, REVENUE_MODIFIED_DATA, DELETE_REVENUE_RAW, DELETE_REVENUE_STAT
 }
