@@ -66,23 +66,4 @@ export class RevenueStatsController {
       })
     }
   }
-
-
-  @Post()
-  async saveRevenueMarketerStats(@Req() req: any, @Res() res: any) {
-    try {
-
-      let data = req.body;
-      data.date = this.revenueStatsHelpers.modifyDate(data.date)
-      let saveRevenueStats = await this.revenueStatsService.saveStats(data)
-      return res.status(200).json({
-        success: true,
-        message: REVENUE_STATS,
-        data: saveRevenueStats
-      })
-    }
-    catch (err) {
-      throw err
-    }
-  }
 }

@@ -12,9 +12,4 @@ export class RevenueStatsService {
   async getRawRevenueRawData() {
     return this.prisma.revenue_marketers_schema.findMany({})
   }
-
-  async saveStats(revenueStats) {
-    return this.prisma.revenue_stats.createMany({ data: revenueStats })
-  }
-
 }
