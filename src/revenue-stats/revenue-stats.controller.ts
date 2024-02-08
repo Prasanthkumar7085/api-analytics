@@ -1,12 +1,15 @@
-import { Controller, Delete, Get, Param, Patch, Post, Req, Res, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { StatsHelper } from 'src/helpers/statsHelper';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Req, Res, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
-import { DELETE_REVENUE_RAW, FILE_UPLOAD, PROCESS_SUCCESS, REVENUE_MODIFIED_DATA, REVENUE_STATS, REVENUE_STAT_SINGLE, SOMETHING_WENT_WRONG } from 'src/constants/messageConstants';
+import { DELETE_REVENUE_RAW, FILE_UPLOAD, NOT_LESSER, PROCESS_SUCCESS, REVENUE_MODIFIED_DATA, REVENUE_STATS, REVENUE_STAT_SINGLE, SOMETHING_WENT_WRONG, SUCCESS_MARKETERS } from 'src/constants/messageConstants';
 import { FilterHelper } from 'src/helpers/filterHelper';
 import { PaginationHelper } from 'src/helpers/paginationHelper';
 import { RevenueStatsHelpers } from 'src/helpers/revenuStatsHelper';
 import { RevenueStatsService } from './revenue-stats.service';
 import { CustomError } from 'src/middlewares/customValidationMiddleware';
+import { ManagerCombinedDto } from 'src/stats/dto/manager-combined.dto';
+import { SortHelper } from 'src/helpers/sortHelper';
 
 @Controller({
   version: '1.0',
@@ -17,7 +20,9 @@ export class RevenueStatsController {
     private readonly revenueStatsService: RevenueStatsService,
     private readonly revenueStatsHelpers: RevenueStatsHelpers,
     private readonly filterHelper: FilterHelper,
-    private readonly paginationHelper: PaginationHelper
+    private readonly paginationHelper: PaginationHelper,
+    private readonly statsHelper: StatsHelper,
+    private readonly sortHelper: SortHelper,
   ) { }
 
 
@@ -228,6 +233,105 @@ export class RevenueStatsController {
     }
   }
 
+  @Post('individual')
+  async getMarketerRevenueByManeger(
+    @Body() reqBody: ManagerCombinedDto,
+    @Res() res: any
+  ) {
+    try {
+      const orderBy = reqBody.order_by || "total_amount";
+      const orderType = reqBody.order_type || "desc";
+      const managerId = reqBody.manager_id;
+      const fromDate = reqBody.from_date;
+      const toDate = reqBody.to_date;
+      const marketerIds = reqBody.marketer_ids || [];
 
+      if (toDate < fromDate) {
+        return res.status(400).json({
+          success: false,
+          message: NOT_LESSER
+        })
+      };
+
+      let marketersIdsArray = [];
+      if (!marketerIds.length) {
+        marketersIdsArray = await this.statsHelper.getUsersData(managerId);
+      } else {
+        marketersIdsArray = marketerIds;
+      };
+      const statsQuery = this.filterHelper.hospitalWiseMarketers(fromDate, toDate, marketerIds, marketersIdsArray)
+      const dataArray = await this.revenueStatsHelpers.forHospitalWiseData(orderBy, orderType, statsQuery);
+
+      return res.status(200).json({
+        success: true,
+        message: SUCCESS_MARKETERS,
+        data: dataArray
+      })
+    }
+    catch (err) {
+      return res.status(500).json({
+        success: false,
+        message: err.message || SOMETHING_WENT_WRONG
+      })
+    }
+  }
+
+  @Post('combined')
+  async getMarketersRevenueStatsByManager(
+    @Body() reqBody: ManagerCombinedDto,
+    @Res() res: any) {
+    try {
+
+      const orderBy = reqBody.order_by || "total_amount";
+      const orderType = reqBody.order_type || "desc";
+      const managerId = reqBody.manager_id;
+      const fromDate = reqBody.from_date;
+      const toDate = reqBody.to_date;
+      const marketerIds = reqBody.marketer_ids || [];
+
+      if (toDate < fromDate) {
+        return res.status(400).json({
+          success: false,
+          message: NOT_LESSER
+        })
+      };
+
+
+      let statsQuery;
+      if (managerId && marketerIds.length == 0) {
+        const marketersIdsArray = await this.statsHelper.getUsersData(managerId);
+
+        statsQuery = {
+          hospital_marketers: marketersIdsArray
+        };
+
+      } else {
+        statsQuery = {
+          hospital_marketers: marketerIds
+        };
+      };
+
+      let finalStatsQuery: any = this.filterHelper.revenueStats(statsQuery, fromDate, toDate);
+
+      let sort = {}
+      if (orderBy && orderType) {
+        sort = this.sortHelper.stats(orderBy, orderType);
+      }
+
+      let statsData = await this.revenueStatsService.marketers(finalStatsQuery, sort);
+
+      return res.status(200).json({
+        success: true,
+        message: SUCCESS_MARKETERS,
+        data: statsData
+      });
+    } catch (err) {
+      console.log({ err });
+      return res.status(500).json({
+        success: false,
+        message: err.message || SOMETHING_WENT_WRONG
+      });
+    };
+  };
 
 }

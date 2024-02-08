@@ -35,8 +35,6 @@ export class RevenueStatsService {
     })
   }
 
-
-
   // Revenue Stats
   async insertStats(insertData) {
     return this.prisma.revenue_stats.createMany({ data: insertData });
@@ -67,5 +65,41 @@ export class RevenueStatsService {
 
   async fetchRecord(id: number) {
     return this.prisma.revenue_stats.findFirst({ where: { id } });
+  }
+
+  async findAll(query) {
+    return this.prisma.revenue_stats.findMany({
+      where: query
+    })
+  }
+
+  async marketers(query, sort) {
+    let data: any = this.prisma.revenue_stats.groupBy({
+      by: ['marketer_id'],
+      where: query,
+      _sum: {
+        total_amount: true,
+        paid_amount: true,
+        pending_amount: true,
+      },
+      orderBy: {
+        _sum: sort
+      }
+    })
+    // groupBy({
+    //   by: ['marketer_id'],
+    //   where: query,
+    //   _sum: {
+    //     total_amount: true,
+    //     paid_amount: true,
+    //     pending_amount: true,
+    //     hospitals_count: true,
+    //   },
+    //   orderBy: {
+    //     _sum: sort
+    //   }
+    // });
+
+    return data;
   }
 }

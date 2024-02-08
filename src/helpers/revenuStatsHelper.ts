@@ -3,14 +3,17 @@ import { INVALID_FILE, NO_FILE } from "src/constants/messageConstants";
 import { CustomError } from "src/middlewares/customValidationMiddleware";
 import { Injectable } from "@nestjs/common";
 import { LisService } from "src/lis/lis.service";
+import { RevenueStatsService } from "src/revenue-stats/revenue-stats.service";
+import { SortHelper } from "./sortHelper";
 
 
 @Injectable()
 export class RevenueStatsHelpers {
     constructor(
         private readonly fileUploadDataServiceProvider: FileUploadDataServiceProvider,
-        private readonly lisService: LisService
-
+        private readonly lisService: LisService,
+        private readonly revenueStatsService: RevenueStatsService,
+        private readonly sortHelper: SortHelper
     ) { }
 
 
@@ -324,6 +327,39 @@ export class RevenueStatsHelpers {
 
         const resp = { processedData, entry };
         return resp;
+    }
+
+
+    async forHospitalWiseData(orderBy, orderType, statsQuery) {
+
+        let revenueStatsData: any = await this.revenueStatsService.findAll(statsQuery);
+
+        const result = {};
+
+        revenueStatsData.forEach((entry) => {
+
+            entry.hospital_wise_counts.forEach((hospitalData) => {
+                const hospitalId = hospitalData.hospital;
+
+                if (!result[hospitalId]) {
+                    // Initialize if not exists
+                    result[hospitalId] = { hospital: hospitalId, ...hospitalData };
+                } else {
+                    // Sum values
+                    Object.keys(hospitalData).forEach((key) => {
+                        if (key !== 'hospital') {
+                            result[hospitalId][key] += hospitalData[key];
+                        }
+                    });
+                }
+            });
+        });
+
+        let dataArray = Object.values(result);
+
+        dataArray = this.sortHelper.hospitalWise(orderBy, orderType, dataArray);
+
+        return dataArray;
     }
 
 }

@@ -113,8 +113,8 @@ export class FilterHelper {
 
         if (fromDate && toDate) {
             filter.date = {
-                gte: new Date(fromDate).toISOString(),
-                lte: new Date(toDate).toISOString()
+                gte: fromDate,
+                lte: toDate
             }
         }
 
@@ -123,6 +123,48 @@ export class FilterHelper {
                 equals: marketer
             }
         }
+
+        return filter
+    }
+
+
+    revenueStats(query, fromDate, toDate) {
+        const pendingAmount = query.pending_amount;
+        const paidAmount = query.paid_amount;
+        const totalAmount = query.totla_amount;
+        const hospitalMarketers = query.hospital_marketers;
+
+        let filter: any = {}
+        if (pendingAmount) {
+            filter.pending_amount = {
+                equals: parseInt(pendingAmount)
+            }
+        }
+
+        if (totalAmount) {
+            filter.totla_amount = {
+                equals: parseInt(totalAmount)
+            }
+        }
+
+        if (paidAmount) {
+            filter.paid_amount = {
+                equals: parseInt(paidAmount)
+            }
+        }
+
+        if (fromDate && toDate) {
+            filter.date = {
+                gte: fromDate,
+                lte: toDate
+            }
+        }
+
+        if (hospitalMarketers.length) {
+            filter.marketer_id = { in: hospitalMarketers }
+        }
+
+
         return filter;
     }
 

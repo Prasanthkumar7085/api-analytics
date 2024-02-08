@@ -233,6 +233,7 @@ export class StatsHelper {
         const result = {};
 
         statsData.forEach((entry) => {
+
             entry.hospital_case_type_wise_counts.forEach((hospitalData) => {
                 const hospitalId = hospitalData.hospital;
 
