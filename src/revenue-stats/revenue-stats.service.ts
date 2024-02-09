@@ -28,11 +28,44 @@ export class RevenueStatsService {
   }
 
   async deleteRevenueRawData(id) {
-    return this.prisma.revenue_marketers_schema.delete({
+    return this.prisma.revenue_marketers_schema.deleteMany({
       where: {
-        id: id
       }
     })
+  }
+
+
+  async updateManyRaw(queryString) {
+    const rawQuery = `UPDATE revenue_marketers_schema AS t
+    SET
+      case_id = u.case_id,
+      hospital = u.hospital,
+      accession_id = u.accession_id,
+      payment_status = u.payment_status,
+      cpt_codes = u.cpt_codes,
+      line_item_total = u.line_item_total,
+      insurance_payment_amount = u.insurance_payment_amount,
+      insurance_adjustment_amount = u.insurance_adjustment_amount,
+      insurance_write_of_amount = u.insurance_write_of_amount,
+      patient_payment_amount = u.patient_payment_amount,
+      patient_adjustment_amount = u.patient_adjustment_amount,
+      patient_write_of_amount = u.patient_write_of_amount,
+      line_item_balance = u.line_item_balance,
+      insurance_name = u.insurance_name,
+      total_amount = u.total_amount,
+      paid_amount = u.paid_amount,
+      pending_amount = u.pending_amount,
+      difference_values = u.difference_values,
+      values_changed = u.values_changed
+    FROM(
+      VALUES
+
+    ${queryString}
+    ) as u(case_id, hospital, accession_id, payment_status, cpt_codes, line_item_total, insurance_payment_amount, insurance_adjustment_amount, insurance_write_of_amount, patient_payment_amount, patient_adjustment_amount, patient_write_of_amount, line_item_balance, insurance_name, total_amount, paid_amount, pending_amount, difference_values, values_changed)
+    WHERE t.accession_id = u.accession_id`
+
+    return this.prisma.$executeRawUnsafe(rawQuery);
+
   }
 
   // Revenue Stats
@@ -42,9 +75,8 @@ export class RevenueStatsService {
 
 
   async deleteRevenueStats(id) {
-    return this.prisma.revenue_stats.delete({
+    return this.prisma.revenue_stats.deleteMany({
       where: {
-        id: id
       }
     })
   }

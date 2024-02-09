@@ -362,4 +362,93 @@ export class RevenueStatsHelpers {
         return dataArray;
     }
 
+
+
+    async checkAlreadyExisted(modifiedData) {
+
+        const someData = modifiedData.map(obj => {
+            // Using object destructuring to extract only the specified fields
+            const { accession_id, date_of_service, case_types } = obj;
+            return { accession_id, date_of_service, case_types };
+        })
+
+
+        const queryString: any = {
+            OR: someData.map(item => ({
+                AND: [
+                    { accession_id: item.accession_id },
+                    { date_of_service: new Date(item.date_of_service) }, // Assuming 'date' is stored as a Date in the database
+                    // { case_types: item.case_types }
+                ]
+            }))
+        }
+
+        const existedData = await this.revenueStatsService.getRevenueRawData(queryString);
+
+
+        const { matchedObjects, notMatchedObjects } = await this.seperateExistedAndNotExistedData(modifiedData, existedData);        
+
+        if (existedData.length > 0) {
+            this.checkDifference(matchedObjects, existedData);
+        }
+
+        return { matchedObjects, notMatchedObjects };
+    }
+
+
+    checkDifference(matchedObjects, existedData) {
+        for (const finalData of matchedObjects) {
+            const matchingExistedDataIndex = existedData.findIndex(
+                (existedData) =>
+                    existedData.accession_id === finalData.accession_id &&
+                    new Date(existedData.date_of_service).toISOString() === new Date(finalData.date_of_service).toISOString()
+            );
+
+            if (matchingExistedDataIndex !== -1) {
+                const matchingExistedData = existedData[matchingExistedDataIndex];
+
+                const total_amount_difference = finalData.total_amount - matchingExistedData.total_amount;
+                const paid_amount_difference = finalData.paid_amount - matchingExistedData.paid_amount;
+                const pending_amount_difference = finalData.pending_amount - matchingExistedData.pending_amount;
+
+                if (total_amount_difference !== 0 && paid_amount_difference !== 0 && pending_amount_difference !== 0) {
+                    // Update the difference_values property
+                    finalData.difference_values = {
+                        total_amount_difference: total_amount_difference,
+                        paid_amount_difference: paid_amount_difference,
+                        pending_amount_difference: pending_amount_difference,
+                    };
+                    finalData.values_changed = true;
+                } else {
+                    finalData.difference_values = {
+                        total_amount_difference: 0,
+                        paid_amount_difference: 0,
+                        pending_amount_difference: 0,
+                    };
+                    finalData.values_changed = false;
+                }
+            }
+        }
+    }
+
+
+    async seperateExistedAndNotExistedData(body, existedData) {
+        const matchedObjects = [];
+        const notMatchedObjects = body.filter(objOne => {
+            const matchingObj = existedData.find(objTwo =>
+                objOne.accession_id === objTwo.accession_id &&
+                new Date(objOne.date_of_service).toISOString() === new Date(objTwo.date_of_service).toISOString()
+            );
+
+            if (matchingObj) {
+                matchedObjects.push({ ...objOne });
+                return false; // Filter out the matched object
+            } else {
+                return true; // Keep the not matched object
+            }
+        });
+
+        return { matchedObjects, notMatchedObjects };
+    }
+
 }
