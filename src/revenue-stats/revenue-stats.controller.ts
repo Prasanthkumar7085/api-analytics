@@ -46,25 +46,28 @@ export class RevenueStatsController {
 
 
       if (notMatchedObjects.length > 0) {
-        // const saveDataInDb = await this.revenueStatsService.saveDataInDb(finalModifiedData);
+        this.revenueStatsService.saveDataInDb(notMatchedObjects);
       }
 
       if (matchedObjects.length > 0) {
-
         const convertedData = matchedObjects.map(entry => {
-          const formattedCptCodes = entry.cpt_codes.map(code => `'${code}'`).join(', ');
-          const formattedLineItemTotal = entry.line_item_total.map(total => `'${total}'`).join(', ');
-          const formattedInsurancePaymentAmount = entry.insurance_payment_amount.map(total => `'${total}'`).join(', ');
-          const formattedInsuranceAdjustmentAmount = entry.insurance_adjustment_amount.map(total => `'${total}'`).join(', ');
-          const formattedInsuranceWriteOfAmount = entry.insurance_write_of_amount.map(total => `'${total}'`).join(', ');
-          const formattedPatientPaymentAmount = entry.patient_payment_amount.map(total => `'${total}'`).join(', ');
-          const formattedPatientAdjustmentAmount = entry.patient_adjustment_amount.map(total => `'${total}'`).join(', ');
-          const formattedPatientWriteOfAmount = entry.patient_write_of_amount.map(total => `'${total}'`).join(', ');;
-          const formattedLineItemBalance = entry.line_item_balance.map(total => `'${total}'`).join(', ');
+          const formattedCptCodes = entry.cpt_codes.map(code => `('${code}'::jsonb)`).join(', ');
+          const formattedLineItemTotal = entry.line_item_total.map(total => `'${total}'::jsonb`).join(', ');
+          const formattedInsurancePaymentAmount = entry.insurance_payment_amount.map(total => `'${total}'::jsonb`).join(', ');
+          const formattedInsuranceAdjustmentAmount = entry.insurance_adjustment_amount.map(total => `'${total}'::jsonb`).join(', ');
+          const formattedInsuranceWriteOfAmount = entry.insurance_write_of_amount.map(total => `'${total}'::jsonb`).join(', ');
+          const formattedPatientPaymentAmount = entry.patient_payment_amount.map(total => `'${total}'::jsonb`).join(', ');
+          const formattedPatientAdjustmentAmount = entry.patient_adjustment_amount.map(total => `'${total}'::jsonb`).join(', ');
+          const formattedPatientWriteOfAmount = entry.patient_write_of_amount.map(total => `'${total}'::jsonb`).join(', ');
+          const formattedLineItemBalance = entry.line_item_balance.map(total => `'${total}'::jsonb`).join(', ');
 
-          console.log(`('${entry.case_id}', '${entry.hospital}', '${entry.accession_id}', ARRAY[${formattedCptCodes}]::jsonb[], ARRAY[${formattedLineItemTotal}]::jsonb[], ARRAY[${formattedInsurancePaymentAmount}]::jsonb[], ARRAY[${formattedInsuranceAdjustmentAmount}]::jsonb[], ARRAY[${formattedInsuranceWriteOfAmount}]::jsonb[], ARRAY[${formattedPatientPaymentAmount}]::jsonb[], ARRAY[${formattedPatientAdjustmentAmount}]::jsonb[], ARRAY[${formattedPatientWriteOfAmount}]::jsonb[], ARRAY[${formattedLineItemBalance}]::jsonb[], '${entry.insurance_name}', ${entry.total_amount}, ${entry.paid_amount}, ${entry.pending_amount}, ${entry.difference_values.total_amount_difference}, ${entry.difference_values.paid_amount_difference}, ${entry.difference_values.pending_amount_difference}, ${entry.values_changed})`)
-          return `('${entry.case_id}', '${entry.hospital}', '${entry.accession_id}', ARRAY[${formattedCptCodes}]::jsonb[], ARRAY[${formattedLineItemTotal}]::jsonb[], ARRAY[${formattedInsurancePaymentAmount}]::jsonb[], ARRAY[${formattedInsuranceAdjustmentAmount}]::jsonb[], ARRAY[${formattedInsuranceWriteOfAmount}]::jsonb[], ARRAY[${formattedPatientPaymentAmount}]::jsonb[], ARRAY[${formattedPatientAdjustmentAmount}]::jsonb[], ARRAY[${formattedPatientWriteOfAmount}]::jsonb[], ARRAY[${formattedLineItemBalance}]::jsonb[], '${entry.insurance_name}', ${entry.total_amount}, ${entry.paid_amount}, ${entry.pending_amount}, ${entry.difference_values.total_amount_difference}, ${entry.difference_values.paid_amount_difference}, ${entry.difference_values.pending_amount_difference}, ${entry.values_changed})`;
+          const formattedDate = new Date(entry.date_of_service).toISOString();
+          const formattedMarketers = `${entry.hospital_marketers.map(m => `'${JSON.stringify(m)}'::jsonb`).join(', ')}`;
+
+          return `('${entry.case_id}', '${entry.hospital}', '${entry.accession_id}', ARRAY[${formattedCptCodes}]::jsonb[], ARRAY[${formattedLineItemTotal}]::jsonb[], ARRAY[${formattedInsurancePaymentAmount}]::jsonb[], ARRAY[${formattedInsuranceAdjustmentAmount}]::jsonb[], ARRAY[${formattedInsuranceWriteOfAmount}]::jsonb[], ARRAY[${formattedPatientPaymentAmount}]::jsonb[], ARRAY[${formattedPatientAdjustmentAmount}]::jsonb[], ARRAY[${formattedPatientWriteOfAmount}]::jsonb[], ARRAY[${formattedLineItemBalance}]::jsonb[], '${entry.insurance_name}', ${entry.total_amount}, ${entry.paid_amount}, ${entry.pending_amount}, '{"total_amount_difference":${entry.difference_values.total_amount_difference},"paid_amount_difference":${entry.difference_values.paid_amount_difference},"pending_amount_difference":${entry.difference_values.pending_amount_difference}}'::jsonb, ${entry.values_changed}, '${entry.process_status}', '${entry.payment_status}', '${formattedDate}'::timestamp, ARRAY[${formattedMarketers}])`;
+
         });
+
         const finalString = convertedData.join(',');
 
         this.revenueStatsService.updateManyRaw(finalString);
@@ -72,10 +75,7 @@ export class RevenueStatsController {
 
       return res.status(200).json({
         success: true,
-        message: FILE_UPLOAD,
-        matchedObjects,
-        notMatchedObjects
-        // saveDataInDb
+        message: FILE_UPLOAD
 
       });
     } catch (err) {
@@ -125,7 +125,7 @@ export class RevenueStatsController {
 
         matchedObjects.forEach(objOne => {
           const matchingObj = findMatch(revenueStatsData, objOne.marketer_id, objOne.date);
-          console.log({ matchingObj });
+
           if (matchingObj) {
             // Update values based on matchingObj
             objOne.paid_amount = matchingObj.paid_amount;
