@@ -300,8 +300,8 @@ export class StatsController {
           hospital_marketers: marketerIds
         };
       };
-
       let finalStatsQuery: any = this.filterHelper.stats(statsQuery, fromDate, toDate);
+
 
       let sort = {}
       if (orderBy && orderType) {

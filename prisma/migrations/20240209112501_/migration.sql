@@ -39,6 +39,8 @@ CREATE TABLE "revenue_marketers_schema" (
     "paid_amount" INTEGER NOT NULL,
     "pending_amount" INTEGER NOT NULL,
     "process_status" TEXT NOT NULL,
+    "values_changed" BOOLEAN NOT NULL,
+    "difference_values" JSONB NOT NULL,
 
     CONSTRAINT "revenue_marketers_schema_pkey" PRIMARY KEY ("id")
 );

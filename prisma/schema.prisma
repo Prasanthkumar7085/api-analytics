@@ -32,23 +32,25 @@ model revenue_marketers_schema {
   hospital                                  String
   accession_id                              String
   case_types                                String[] 
-  hospital_marketers                        String[] 
+  hospital_marketers                        Json[] 
   date_of_service                           DateTime?          
   insurance_name                            String
   payment_status                            String
-  cpt_codes                                 String[]                    
-  line_item_total                           String[]                          
-  insurance_payment_amount                  String[]                          
-  insurance_adjustment_amount               String[]                          
-  insurance_write_of_amount                 String[]                           
-  patient_payment_amount                    String[]                          
-  patient_adjustment_amount                 String[]                          
-  patient_write_of_amount                   String[]                          
-  line_item_balance                         String[]   
+  cpt_codes                                 Json[]                   
+  line_item_total                           Json[]                         
+  insurance_payment_amount                  Json[]                         
+  insurance_adjustment_amount               Json[]                         
+  insurance_write_of_amount                 Json[]                          
+  patient_payment_amount                    Json[]                         
+  patient_adjustment_amount                 Json[]                         
+  patient_write_of_amount                   Json[]                         
+  line_item_balance                         Json[]  
   total_amount                              Int  
   paid_amount                               Int
   pending_amount                            Int                     
   process_status                            String
+  values_changed                            Boolean           @default(false)
+  difference_values                         Json?
 }
 
 
