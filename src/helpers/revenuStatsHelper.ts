@@ -420,6 +420,7 @@ export class RevenueStatsHelpers {
                         pending_amount_difference: pending_amount_difference,
                     };
                     finalData.values_changed = true;
+                    finalData.process_status = "PENDING";
                 } else {
                     finalData.difference_values = {
                         total_amount_difference: 0,

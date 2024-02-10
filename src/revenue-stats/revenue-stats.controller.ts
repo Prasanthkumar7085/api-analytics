@@ -46,11 +46,10 @@ export class RevenueStatsController {
 
 
       if (notMatchedObjects.length > 0) {
-        const saveDataInDb = await this.revenueStatsService.saveDataInDb(notMatchedObjects);
+        this.revenueStatsService.saveDataInDb(notMatchedObjects);
       }
 
       if (matchedObjects.length > 0) {
-
         const convertedData = matchedObjects.map(entry => {
           const formattedCptCodes = entry.cpt_codes.map(code => `('${code}'::jsonb)`).join(', ');
           const formattedLineItemTotal = entry.line_item_total.map(total => `'${total}'::jsonb`).join(', ');
@@ -61,34 +60,12 @@ export class RevenueStatsController {
           const formattedPatientAdjustmentAmount = entry.patient_adjustment_amount.map(total => `'${total}'::jsonb`).join(', ');
           const formattedPatientWriteOfAmount = entry.patient_write_of_amount.map(total => `'${total}'::jsonb`).join(', ');
           const formattedLineItemBalance = entry.line_item_balance.map(total => `'${total}'::jsonb`).join(', ');
-          const formattedHospitalMarketers = entry.hospital_marketers.map(marketer => `('${marketer}'::jsonb)`).join(', ')
+
           const formattedDate = new Date(entry.date_of_service).toISOString();
+          const formattedMarketers = `${entry.hospital_marketers.map(m => `'${JSON.stringify(m)}'::jsonb`).join(', ')}`;
 
+          return `('${entry.case_id}', '${entry.hospital}', '${entry.accession_id}', ARRAY[${formattedCptCodes}]::jsonb[], ARRAY[${formattedLineItemTotal}]::jsonb[], ARRAY[${formattedInsurancePaymentAmount}]::jsonb[], ARRAY[${formattedInsuranceAdjustmentAmount}]::jsonb[], ARRAY[${formattedInsuranceWriteOfAmount}]::jsonb[], ARRAY[${formattedPatientPaymentAmount}]::jsonb[], ARRAY[${formattedPatientAdjustmentAmount}]::jsonb[], ARRAY[${formattedPatientWriteOfAmount}]::jsonb[], ARRAY[${formattedLineItemBalance}]::jsonb[], '${entry.insurance_name}', ${entry.total_amount}, ${entry.paid_amount}, ${entry.pending_amount}, '{"total_amount_difference":${entry.difference_values.total_amount_difference},"paid_amount_difference":${entry.difference_values.paid_amount_difference},"pending_amount_difference":${entry.difference_values.pending_amount_difference}}'::jsonb, ${entry.values_changed}, '${entry.process_status}', '${entry.payment_status}', '${formattedDate}'::timestamp, ARRAY[${formattedMarketers}])`;
 
-          return `('${entry.case_id}',
-           '${entry.hospital}', 
-           '${entry.accession_id}',
-            ARRAY[${formattedCptCodes}]::jsonb[], 
-            ARRAY[${formattedHospitalMarketers}]::jsonb[],
-            ARRAY[${formattedLineItemTotal}]::jsonb[], 
-            ARRAY[${formattedInsurancePaymentAmount}]::jsonb[],
-            ARRAY[${formattedInsuranceAdjustmentAmount}]::jsonb[],
-            ARRAY[${formattedInsuranceWriteOfAmount}]::jsonb[],
-            ARRAY[${formattedPatientPaymentAmount}]::jsonb[],
-            ARRAY[${formattedPatientAdjustmentAmount}]::jsonb[],
-            ARRAY[${formattedPatientWriteOfAmount}]::jsonb[], 
-            ARRAY[${formattedLineItemBalance}]::jsonb[], 
-            '${entry.insurance_name}', 
-            ${entry.total_amount}, 
-            ${entry.paid_amount}, 
-            ${entry.pending_amount}, 
-            '{"total_amount_difference":${entry.difference_values.total_amount_difference},
-            "paid_amount_difference":${entry.difference_values.paid_amount_difference},
-            "pending_amount_difference":${entry.difference_values.pending_amount_difference}}'::jsonb, 
-            ${entry.values_changed}, 
-            '${entry.process_status}', 
-            '${entry.payment_status}', 
-            '${formattedDate}'::timestamp)`;
         });
 
         const finalString = convertedData.join(',');
@@ -98,10 +75,7 @@ export class RevenueStatsController {
 
       return res.status(200).json({
         success: true,
-        message: FILE_UPLOAD,
-        matchedObjects,
-        notMatchedObjects
-        // saveDataInDb
+        message: FILE_UPLOAD
 
       });
     } catch (err) {
