@@ -62,9 +62,9 @@ export class RevenueStatsController {
           const formattedLineItemBalance = entry.line_item_balance.map(total => `'${total}'::jsonb`).join(', ');
 
           const formattedDate = new Date(entry.date_of_service).toISOString();
-          const formattedMarketers = `${entry.hospital_marketers.map(m => `'${JSON.stringify(m)}'::jsonb`).join(', ')}`;
+          const formattedMarketers = entry.hospital_marketers.map(m => `('${JSON.stringify(m)}'::jsonb)`).join(', ');
 
-          return `('${entry.case_id}', '${entry.hospital}', '${entry.accession_id}', ARRAY[${formattedCptCodes}]::jsonb[], ARRAY[${formattedLineItemTotal}]::jsonb[], ARRAY[${formattedInsurancePaymentAmount}]::jsonb[], ARRAY[${formattedInsuranceAdjustmentAmount}]::jsonb[], ARRAY[${formattedInsuranceWriteOfAmount}]::jsonb[], ARRAY[${formattedPatientPaymentAmount}]::jsonb[], ARRAY[${formattedPatientAdjustmentAmount}]::jsonb[], ARRAY[${formattedPatientWriteOfAmount}]::jsonb[], ARRAY[${formattedLineItemBalance}]::jsonb[], '${entry.insurance_name}', ${entry.total_amount}, ${entry.paid_amount}, ${entry.pending_amount}, '{"total_amount_difference":${entry.difference_values.total_amount_difference},"paid_amount_difference":${entry.difference_values.paid_amount_difference},"pending_amount_difference":${entry.difference_values.pending_amount_difference}}'::jsonb, ${entry.values_changed}, '${entry.process_status}', '${entry.payment_status}', '${formattedDate}'::timestamp, ARRAY[${formattedMarketers}])`;
+          return `('${entry.case_id}', '${entry.hospital}', '${entry.accession_id}', ARRAY[${formattedCptCodes}]::jsonb[], ARRAY[${formattedLineItemTotal}]::jsonb[], ARRAY[${formattedInsurancePaymentAmount}]::jsonb[], ARRAY[${formattedInsuranceAdjustmentAmount}]::jsonb[], ARRAY[${formattedInsuranceWriteOfAmount}]::jsonb[], ARRAY[${formattedPatientPaymentAmount}]::jsonb[], ARRAY[${formattedPatientAdjustmentAmount}]::jsonb[], ARRAY[${formattedPatientWriteOfAmount}]::jsonb[], ARRAY[${formattedLineItemBalance}]::jsonb[], '${entry.insurance_name}', ${entry.total_amount}, ${entry.paid_amount}, ${entry.pending_amount}, '{"total_amount_difference":${entry.difference_values.total_amount_difference},"paid_amount_difference":${entry.difference_values.paid_amount_difference},"pending_amount_difference":${entry.difference_values.pending_amount_difference}}'::jsonb, ${entry.values_changed}, '${entry.process_status}', '${entry.payment_status}', '${formattedDate}'::timestamp, ARRAY[${formattedMarketers}]::jsonb[])`;
 
         });
 
@@ -97,7 +97,101 @@ export class RevenueStatsController {
         }
       }
 
-      const pendingRawData = await this.revenueStatsService.getRevenueRawData(query);
+      const pendingRawData = [
+        {
+            "id": 29,
+            "case_id": "65c20bfa6232164b899d0917",
+            "hospital": "641761708a041d4818e08cc1",
+            "accession_id": "MC240206001",
+            "case_types": [
+                "CLINICAL_CHEMISTRY"
+            ],
+            "hospital_marketers": [
+                "649d4768db25b39e25e24e0a",
+                "658c645dae3c1fd6ac94f2c0",
+                "65945abcac7b293016313209"
+            ],
+            "date_of_service": "2023-10-18T00:00:00.000Z",
+            "insurance_name": "Medicare - Alabama (Formerly MR054)",
+            "payment_status": "New Encounter",
+            "cpt_codes": [
+                82607,
+                86141,
+                82627,
+                80053,
+                36415
+            ],
+            "line_item_total": [
+                19,
+                17,
+                28,
+                14,
+                11
+            ],
+            "insurance_payment_amount": [
+                0,
+                0,
+                0,
+                0,
+                0
+            ],
+            "insurance_adjustment_amount": [
+                0,
+                0,
+                0,
+                0,
+                0
+            ],
+            "insurance_write_of_amount": [
+                0,
+                0,
+                0,
+                0,
+                0
+            ],
+            "patient_payment_amount": [
+                0,
+                0,
+                0,
+                0,
+                0
+            ],
+            "patient_adjustment_amount": [
+                0,
+                0,
+                0,
+                0,
+                0
+            ],
+            "patient_write_of_amount": [
+                0,
+                0,
+                0,
+                0,
+                0
+            ],
+            "line_item_balance": [
+                19,
+                17,
+                28,
+                14,
+                11
+            ],
+            "total_amount": 89,
+            "paid_amount": 0,
+            "pending_amount": 89,
+            "process_status": "PENDING",
+            "values_changed": true,
+            "difference_values": {
+                "paid_amount_difference": -20,
+                "total_amount_difference": -11,
+                "pending_amount_difference": 9
+            }
+        }
+    ]
+      // await this.revenueStatsService.getRevenueRawData(query);
+
+
 
       if (!pendingRawData.length) {
         throw new CustomError(404, "Pending Data is Not Found!");
@@ -112,11 +206,15 @@ export class RevenueStatsController {
 
 
       if (notMatchedObjects.length > 0) {
-        // const insertStatsData = await this.revenueStatsService.insertStats(finalProcessedData);
+        console.log("INSERT");
+        // const insertStatsData = await this.revenueStatsService.insertStats(notMatchedObjects);
       }
 
 
       if (matchedObjects.length > 0) {
+        console.log("UPDATE");
+
+
         const findMatch = (arr, marketerId, date) => {
           return arr.find(obj =>
             obj.marketer_id === marketerId && new Date(obj.date).toISOString() === new Date(date).toISOString()
@@ -128,15 +226,70 @@ export class RevenueStatsController {
 
           if (matchingObj) {
             // Update values based on matchingObj
-            objOne.paid_amount = matchingObj.paid_amount;
-            objOne.total_amount = matchingObj.total_amount;
-            objOne.pending_amount = matchingObj.pending_amount;
+            objOne.total_amount = objOne.total_amount + matchingObj.total_amount;
+            objOne.paid_amount = objOne.paid_amount + matchingObj.paid_amount;
+            objOne.pending_amount = objOne.pending_amount + matchingObj.pending_amount;
             objOne.case_type_wise_counts.forEach((caseType, index) => {
-              caseType.paid_amount = matchingObj.case_type_wise_counts[index].paid_amount;
-              caseType.total_amount = matchingObj.case_type_wise_counts[index].total_amount;
-              caseType.pending_amount = matchingObj.case_type_wise_counts[index].pending_amount;
+              caseType.total_amount = caseType.total_amount + matchingObj.case_type_wise_counts[index].total_amount;
+              caseType.paid_amount = caseType.paid_amount + matchingObj.case_type_wise_counts[index].paid_amount;
+              caseType.pending_amount = caseType.pending_amount + matchingObj.case_type_wise_counts[index].pending_amount;
             });
+
+            objOne.hospital_wise_counts.forEach((hospitalWise, index) => {
+              hospitalWise.total_amount = hospitalWise.total_amount + matchingObj.hospital_wise_counts[index].total_amount;
+              hospitalWise.paid_amount = hospitalWise.paid_amount + matchingObj.hospital_wise_counts[index].paid_amount;
+              hospitalWise.pending_amount = hospitalWise.pending_amount + matchingObj.hospital_wise_counts[index].pending_amount;
+              hospitalWise.case_type_wise_counts.forEach((caseType, index1) => {
+                caseType.total_amount = caseType.total_amount + matchingObj.hospital_wise_counts[index].case_type_wise_counts[index1].total_amount;
+                caseType.paid_amount = caseType.paid_amount + matchingObj.hospital_wise_counts[index].case_type_wise_counts[index1].paid_amount;
+                caseType.pending_amount = caseType.pending_amount + matchingObj.hospital_wise_counts[index].case_type_wise_counts[index1].pending_amount;
+              })
+            });
+
           }
+
+          const convertedData = matchedObjects.map(entry => {
+            const formattedDate = new Date(entry.date).toISOString();
+
+            // console.log(`(
+            //   '${entry.marketer_id}',
+            //   '${formattedDate}'::timestamp,
+            //   ARRAY[
+            //     ${entry.hospital_wise_counts.map(item => `'{"hospital":"${item.hospital}","total_amount":${item.total_amount},"paid_amount":${item.paid_amount},"pending_amount":${item.pending_amount},
+            //     ARRAY[
+            //       ${item.case_type_wise_counts.map(e => `'{"case_type":"${e.case_type}","total_amount":${e.total_amount},"paid_amount":${e.paid_amount},"pending_amount":${e.pending_amount}}'`)}
+            //     ]::jsonb
+            //   }'`)}
+            //   ]::jsonb)`)
+
+
+              return `(
+                '${entry.marketer_id}',
+                '${formattedDate}'::timestamp,
+                ${entry.total_amount},
+                ${entry.paid_amount},
+                ${entry.pending_amount},
+                ARRAY[${entry.case_type_wise_counts.map(item => `'{"case_type":"${item.case_type}","total_amount":${item.total_amount},"paid_amount":${item.paid_amount},"pending_amount":${item.pending_amount}}'`)}]::jsonb[],  
+                ARRAY[${entry.hospital_wise_counts.map(item => `
+                  jsonb_build_object(
+                    'hospital', '${item.hospital}',
+                    'total_amount', ${item.total_amount},
+                    'paid_amount', ${item.paid_amount},
+                    'pending_amount', ${item.pending_amount},
+                    'case_type_wise_counts', ARRAY[${item.case_type_wise_counts.map(e => `
+                      jsonb_build_object(
+                        'case_type', '${e.case_type}',
+                        'total_amount', ${e.total_amount},
+                        'paid_amount', ${e.paid_amount},
+                        'pending_amount', ${e.pending_amount}
+                      )::jsonb`)}]
+                  )::jsonb`
+                )}]
+              )`;
+          });
+          const finalString = convertedData.join(',');
+
+          // this.revenueStatsService.updateManyStats(finalString);
         });
       }
 
@@ -151,6 +304,7 @@ export class RevenueStatsController {
         // finalProcessedData,
         // someData,
         // revenueStatsData,
+        // pendingRawData,
         matchedObjects,
         notMatchedObjects
       })
@@ -422,7 +576,7 @@ export class RevenueStatsController {
       OR: someData.map(item => ({
         AND: [
           { marketer_id: item.marketer_id },
-          { date: new Date(item.date) } // Assuming 'date' is stored as a Date in the database
+          { date: new Date(item.date) }, // Assuming 'date' is stored as a Date in the database
         ]
       }))
     }

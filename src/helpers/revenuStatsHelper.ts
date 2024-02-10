@@ -266,9 +266,15 @@ export class RevenueStatsHelpers {
             });
         }
 
-        processedData[entry.date_of_service][marketer].total_amount += entry.total_amount || 0;
-        processedData[entry.date_of_service][marketer].paid_amount += entry.paid_amount || 0;
-        processedData[entry.date_of_service][marketer].pending_amount += entry.pending_amount || 0;
+        if (entry.values_changed === true) {
+            processedData[entry.date_of_service][marketer].total_amount += entry.difference_values.total_amount_difference || 0;
+            processedData[entry.date_of_service][marketer].paid_amount += entry.difference_values.paid_amount_difference || 0;
+            processedData[entry.date_of_service][marketer].pending_amount += entry.difference_values.pending_amount_difference || 0;
+        } else {
+            processedData[entry.date_of_service][marketer].total_amount += entry.total_amount || 0;
+            processedData[entry.date_of_service][marketer].paid_amount += entry.paid_amount || 0;
+            processedData[entry.date_of_service][marketer].pending_amount += entry.pending_amount || 0;
+        }
         processedData[entry.date_of_service][marketer].hospitals_data.add(entry.hospital);
 
         const resp = { processedData, entry };
@@ -281,9 +287,15 @@ export class RevenueStatsHelpers {
             const lowercaseCaseType = caseType.toLowerCase();
             const caseTypeData = processedData[entry.date_of_service][marketer].case_type_wise_counts.find(item => item.case_type === lowercaseCaseType);
 
-            caseTypeData.total_amount += entry.total_amount || 0;
-            caseTypeData.paid_amount += entry.paid_amount || 0;
-            caseTypeData.pending_amount += entry.pending_amount || 0;
+            if (entry.values_changed === true) {
+                caseTypeData.total_amount += entry.difference_values.total_amount_difference || 0;
+                caseTypeData.paid_amount += entry.difference_values.paid_amount_difference || 0;
+                caseTypeData.pending_amount += entry.difference_values.pending_amount_difference || 0;
+            } else {
+                caseTypeData.total_amount += entry.total_amount || 0;
+                caseTypeData.paid_amount += entry.paid_amount || 0;
+                caseTypeData.pending_amount += entry.pending_amount || 0;
+            }
         });
 
         const resp = { processedData, entry };
@@ -312,17 +324,29 @@ export class RevenueStatsHelpers {
             });
         }
 
-        processedData[entry.date_of_service][marketer].hospital_wise_counts.find(hospital => hospital.hospital === hospitalId).total_amount += entry.total_amount || 0;
-        processedData[entry.date_of_service][marketer].hospital_wise_counts.find(hospital => hospital.hospital === hospitalId).paid_amount += entry.paid_amount || 0;
-        processedData[entry.date_of_service][marketer].hospital_wise_counts.find(hospital => hospital.hospital === hospitalId).pending_amount += entry.pending_amount || 0;
+        if (entry.values_changed === true) {
+            processedData[entry.date_of_service][marketer].hospital_wise_counts.find(hospital => hospital.hospital === hospitalId).total_amount += entry.difference_values.total_amount_difference || 0;
+            processedData[entry.date_of_service][marketer].hospital_wise_counts.find(hospital => hospital.hospital === hospitalId).paid_amount += entry.difference_values.paid_amount_difference || 0;
+            processedData[entry.date_of_service][marketer].hospital_wise_counts.find(hospital => hospital.hospital === hospitalId).pending_amount += entry.difference_values.pending_amount_difference || 0;
+        } else {
+            processedData[entry.date_of_service][marketer].hospital_wise_counts.find(hospital => hospital.hospital === hospitalId).total_amount += entry.total_amount || 0;
+            processedData[entry.date_of_service][marketer].hospital_wise_counts.find(hospital => hospital.hospital === hospitalId).paid_amount += entry.paid_amount || 0;
+            processedData[entry.date_of_service][marketer].hospital_wise_counts.find(hospital => hospital.hospital === hospitalId).pending_amount += entry.pending_amount || 0;
+        }
 
         entry.case_types.forEach(caseType => {
             const lowercaseCaseType = caseType.toLowerCase();
             const caseTypeData = processedData[entry.date_of_service][marketer].hospital_wise_counts.find(hospital => hospital.hospital === hospitalId).case_type_wise_counts.find(item => item.case_type === lowercaseCaseType);
 
-            caseTypeData.total_amount += entry.total_amount || 0;
-            caseTypeData.paid_amount += entry.paid_amount || 0;
-            caseTypeData.pending_amount += entry.pending_amount || 0;
+            if (entry.values_changed === true) {
+                caseTypeData.total_amount += entry.difference_values.total_amount_difference || 0;
+                caseTypeData.paid_amount += entry.difference_values.paid_amount_difference || 0;
+                caseTypeData.pending_amount += entry.difference_values.pending_amount_difference || 0;
+            } else {
+                caseTypeData.total_amount += entry.total_amount || 0;
+                caseTypeData.paid_amount += entry.paid_amount || 0;
+                caseTypeData.pending_amount += entry.pending_amount || 0;
+            }
         });
 
         const resp = { processedData, entry };

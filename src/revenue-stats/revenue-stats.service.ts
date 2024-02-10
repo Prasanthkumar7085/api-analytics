@@ -30,7 +30,6 @@ export class RevenueStatsService {
   async deleteRevenueRawData(id) {
     return this.prisma.revenue_marketers_schema.deleteMany({
       where: {
-        id: id
       }
     })
   }
@@ -44,7 +43,6 @@ export class RevenueStatsService {
       hospital = u.hospital,
       accession_id = u.accession_id,
       cpt_codes = u.cpt_codes,
-      hospital_marketers = u.hospital_marketers,
       line_item_total = u.line_item_total,
       insurance_payment_amount = u.insurance_payment_amount,
       insurance_adjustment_amount = u.insurance_adjustment_amount,
@@ -83,7 +81,6 @@ export class RevenueStatsService {
   async deleteRevenueStats(id) {
     return this.prisma.revenue_stats.deleteMany({
       where: {
-        id: id
       }
     })
   }
@@ -134,5 +131,28 @@ export class RevenueStatsService {
     })
 
     return data;
+  }
+
+
+  async updateManyStats(queryString) {
+    const rawQuery = `
+    UPDATE revenue_stats AS t
+    SET
+      marketer_id = u.marketer_id,
+      date = u.date,
+      total_amount = u.total_amount,
+      paid_amount = u.paid_amount,
+      pending_amount = u.pending_amount,
+      case_type_wise_counts = u.case_type_wise_counts,
+      hospital_wise_counts = u.hospital_wise_counts
+    FROM(
+      VALUES
+
+    ${queryString}
+    ) as u(marketer_id, date, total_amount, paid_amount, pending_amount, case_type_wise_counts, hospital_wise_counts)
+    WHERE t.marketer_id = u.marketer_id AND t.date = u.date`
+
+    return this.prisma.$executeRawUnsafe(rawQuery);
+
   }
 }
