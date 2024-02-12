@@ -40,7 +40,7 @@ export class RevenueStatsController {
 
       // To prepare the raw data which was came from file
       const modifiedData = await this.revenueStatsHelpers.prepareModifyData(file);
-      
+
       // Need to get the Data from LIS based on the above modified data
       const finalModifiedData = await this.revenueStatsHelpers.getDataFromLis(modifiedData);
 

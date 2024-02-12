@@ -167,7 +167,7 @@ export class RevenueStatsHelpers {
                 "$in": accessionIdsArray
             }
         }
-        
+
         // Get the hospital, marketers and case_type based on the accession_ids from modified data
         const caseDataArray = await this.lisService.getCaseByAccessionId(query);
 
@@ -214,7 +214,7 @@ export class RevenueStatsHelpers {
                 // Seperating the values based on the marketers
                 const forMarketerResp = this.forMarketersAndCountsSeperation(processedData, entry, marketer);
 
-                processedData = forMarketerResp.processedData;
+                processedData = forMarketerResp.processedData
                 entry = forMarketerResp.entry;
 
                 //  Initialize counts for case_types wise
@@ -264,7 +264,7 @@ export class RevenueStatsHelpers {
             };
 
             // Initialize counts for all case_types
-            ["COVID", "RESPIRATORY_PATHOGEN_PANEL", "TOXICOLOGY", "CLINICAL_CHEMISTRY", "UTI", "URINALYSIS", "PGX", "WOUND", "NAIL", "COVID_FLU", "CGX", "CARDIAC", "DIABETES", "GASTRO", "PAD", "PULMONARY"].forEach(caseType => {
+            ["COVID", "RESPIRATORY_PATHOGEN_PANEL", "TOXICOLOGY", "CLINICAL_CHEMISTRY", "UTI", "URINALYSIS", "PGX", "WOUND", "NAIL", "COVID_FLU", "CGX", "CARDIAC", "DIABETES", "GASTRO", "PAD", "PULMONARY", "GTI_STI", "GTI_WOMENS_HEALTH"].forEach(caseType => {
                 processedData[entry.date_of_service][marketer].case_type_wise_counts.push({
                     case_type: caseType.toLowerCase(),
                     total_amount: 0,
@@ -292,14 +292,17 @@ export class RevenueStatsHelpers {
 
     forCaseTypeWiseCounts(processedData, entry, marketer) {
         entry.case_types.forEach(caseType => {
-            const lowercaseCaseType = caseType.toLowerCase();
-            const caseTypeData = processedData[entry.date_of_service][marketer].case_type_wise_counts.find(item => item.case_type === lowercaseCaseType);
+            let lowercaseCaseType: any = caseType.toLowerCase();
+            lowercaseCaseType = this.updateCaseTypeInCsv(lowercaseCaseType)
 
+            const caseTypeData = processedData[entry.date_of_service][marketer].case_type_wise_counts.find(item => item.case_type === lowercaseCaseType);
             if (entry.values_changed === true) {
+
                 caseTypeData.total_amount += entry.difference_values.total_amount_difference || 0;
                 caseTypeData.paid_amount += entry.difference_values.paid_amount_difference || 0;
                 caseTypeData.pending_amount += entry.difference_values.pending_amount_difference || 0;
             } else {
+
                 caseTypeData.total_amount += entry.total_amount || 0;
                 caseTypeData.paid_amount += entry.paid_amount || 0;
                 caseTypeData.pending_amount += entry.pending_amount || 0;
@@ -322,7 +325,7 @@ export class RevenueStatsHelpers {
             });
 
             // Initialize counts for all case_types within hospital
-            ["COVID", "RESPIRATORY_PATHOGEN_PANEL", "TOXICOLOGY", "CLINICAL_CHEMISTRY", "UTI", "URINALYSIS", "PGX", "WOUND", "NAIL", "COVID_FLU", "CGX", "CARDIAC", "DIABETES", "GASTRO", "PAD", "PULMONARY"].forEach(caseType => {
+            ["COVID", "RESPIRATORY_PATHOGEN_PANEL", "TOXICOLOGY", "CLINICAL_CHEMISTRY", "UTI", "URINALYSIS", "PGX", "WOUND", "NAIL", "COVID_FLU", "CGX", "CARDIAC", "DIABETES", "GASTRO", "PAD", "PULMONARY", "GTI_STI", "GTI_WOMENS_HEALTH"].forEach(caseType => {
                 processedData[entry.date_of_service][marketer].hospital_wise_counts.find(hospital => hospital.hospital === hospitalId).case_type_wise_counts.push({
                     case_type: caseType.toLowerCase(),
                     total_amount: 0,
@@ -343,7 +346,10 @@ export class RevenueStatsHelpers {
         }
 
         entry.case_types.forEach(caseType => {
-            const lowercaseCaseType = caseType.toLowerCase();
+            let lowercaseCaseType: any = caseType.toLowerCase();
+
+            lowercaseCaseType = this.updateCaseTypeInCsv(lowercaseCaseType)
+
             const caseTypeData = processedData[entry.date_of_service][marketer].hospital_wise_counts.find(hospital => hospital.hospital === hospitalId).case_type_wise_counts.find(item => item.case_type === lowercaseCaseType);
 
             if (entry.values_changed === true) {
@@ -639,4 +645,19 @@ export class RevenueStatsHelpers {
         }
     }
 
+    updateCaseTypeInCsv(lowercaseCaseType) {
+        if (lowercaseCaseType === "pad_alzheimers") {
+            lowercaseCaseType = "pad"
+        }
+        else if (lowercaseCaseType === "pulmonary_panel") {
+            lowercaseCaseType = "pulmonary"
+        }
+        else if (lowercaseCaseType === "cgx_panel") {
+            lowercaseCaseType = "cgx"
+        }
+        else if (lowercaseCaseType === "pgx_test") {
+            lowercaseCaseType = "pgx"
+        }
+        return lowercaseCaseType
+    }
 }

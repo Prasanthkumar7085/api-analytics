@@ -30,6 +30,7 @@ export class RevenueStatsService {
   async deleteRevenueRawData(id) {
     return this.prisma.revenue_marketers_schema.deleteMany({
       where: {
+        id: id
       }
     })
   }
@@ -81,6 +82,7 @@ export class RevenueStatsService {
   async deleteRevenueStats(id) {
     return this.prisma.revenue_stats.deleteMany({
       where: {
+        id: id
       }
     })
   }
