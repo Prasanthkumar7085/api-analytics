@@ -27,8 +27,10 @@ export class RevenueStatsHelpers {
                 throw new CustomError(400, INVALID_FILE)
             }
 
+            // Get the data from CSV
             const csvFileData = await this.fileUploadDataServiceProvider.processCsv(file);
 
+            // modify raw data from csvFileData
             const modifiedData = await this.modifyRawData(csvFileData)
 
             return modifiedData;
@@ -55,7 +57,7 @@ export class RevenueStatsHelpers {
             insurance_name: e['Primary Insurance']
         }))
 
-
+        // Need to Group the Raw Data
         const modifiedData = this.groupingKeys(rawData);
         return modifiedData;
     }
@@ -79,6 +81,7 @@ export class RevenueStatsHelpers {
 
 
     groupingKeys(data) {
+        // Need ti push the data into an array based on the key(accesion_id and date_of_service)
         const result = data.reduce((acc, item) => {
             const key = `${item.accession_id}_${item.date_of_service}`;
             const existingEntry = acc.find((entry) => entry.key === key);
@@ -156,6 +159,7 @@ export class RevenueStatsHelpers {
 
 
     async getDataFromLis(modifiedData) {
+        // Get the accession_id's from modified data
         const accessionIdsArray = modifiedData.map((e) => e.accession_id);
 
         const query = {
@@ -163,11 +167,13 @@ export class RevenueStatsHelpers {
                 "$in": accessionIdsArray
             }
         }
-
+        
+        // Get the hospital, marketers and case_type based on the accession_ids from modified data
         const caseDataArray = await this.lisService.getCaseByAccessionId(query);
 
         let mergedArray: any = [];
         if (caseDataArray.length) {
+            // Merging the hospitals, marketers and case_type based the accession_id which is from LIS, merging with modified data
             mergedArray = this.mergeArrays(caseDataArray, modifiedData)
         }
 
@@ -205,6 +211,7 @@ export class RevenueStatsHelpers {
                     processedData[entry.date_of_service] = {};
                 }
 
+                // Seperating the values based on the marketers
                 const forMarketerResp = this.forMarketersAndCountsSeperation(processedData, entry, marketer);
 
                 processedData = forMarketerResp.processedData;
@@ -216,7 +223,7 @@ export class RevenueStatsHelpers {
                 processedData = caseTypeWiseResp.processedData;
                 entry = caseTypeWiseResp.entry;
 
-                // Initialize counts for hospital-wise case_types
+                // Initialize counts for hospital-wise-case_type counts
                 const hospitalId = entry.hospital;
                 const hospitalData = processedData[entry.date_of_service][marketer].hospital_wise_counts.find(hospital => hospital.hospital === hospitalId);
 
@@ -227,6 +234,7 @@ export class RevenueStatsHelpers {
             });
         });
 
+        // Re assigin the above prepared data based on marketer_id and date
         const result = [];
         for (const date in processedData) {
             for (const marketerId in processedData[date]) {
@@ -392,7 +400,7 @@ export class RevenueStatsHelpers {
 
 
     async checkAlreadyExisted(modifiedData) {
-
+        // Get the accession_id and date_of_service from midified data
         const someData = modifiedData.map(obj => {
             // Using object destructuring to extract only the specified fields
             const { accession_id, date_of_service, case_types } = obj;
@@ -409,11 +417,16 @@ export class RevenueStatsHelpers {
                 ]
             }))
         }
+
+        // Find the existed raw stats from our raw collection in our db
         const existedData = await this.revenueStatsService.getRevenueRawData(queryString);
 
+        // Based on our db eisted raw stats, seperating the modified data into matched and not-matched
         const { matchedObjects, notMatchedObjects } = await this.seperateExistedAndNotExistedData(modifiedData, existedData);
 
         if (existedData.length > 0) {
+            // When the stat is already eisted in our collection 
+            // but that stat is uploaded once again then we need to prepare the differences of amounts
             this.checkDifference(matchedObjects, existedData);
         }
 
@@ -423,12 +436,15 @@ export class RevenueStatsHelpers {
 
     checkDifference(matchedObjects, existedData) {
         for (const finalData of matchedObjects) {
+
+            // Finding the matched or existed index from our DB
             const matchingExistedDataIndex = existedData.findIndex(
                 (existedData) =>
                     existedData.accession_id === finalData.accession_id &&
                     new Date(existedData.date_of_service).toISOString() === new Date(finalData.date_of_service).toISOString()
             );
 
+            // Based on the above finded index finding the differences[total_amount_difference, paid_amount_difference, pending_amount_difference]
             if (matchingExistedDataIndex !== -1) {
                 const matchingExistedData = existedData[matchingExistedDataIndex];
 
@@ -475,6 +491,152 @@ export class RevenueStatsHelpers {
         });
 
         return { matchedObjects, notMatchedObjects };
+    }
+
+    async toInsertStats(notMatchedObjects) {
+        if (notMatchedObjects.length > 0) {
+            await this.revenueStatsService.insertStats(notMatchedObjects);
+        }
+    }
+
+    async toUpdateStats(matchedObjects, revenueStatsData) {
+        if (matchedObjects.length > 0) {
+
+            // Function for findning the matched obj
+            const findMatch = (arr, marketerId, date) => {
+                return arr.find(obj =>
+                    obj.marketer_id === marketerId && new Date(obj.date).toISOString() === new Date(date).toISOString()
+                );
+            };
+
+
+            matchedObjects.forEach(objeData => {
+                const matchingObj = findMatch(revenueStatsData, objeData.marketer_id, objeData.date);
+
+                if (matchingObj) {
+                    // Need to merge the new stats and already existed stats
+                    this.mergeNewStatsAndExistedStatsAmounts(matchingObj, objeData);
+                }
+            });
+
+            // Update the existed revenue stats
+            this.updateExistedStats(matchedObjects);
+        }
+    }
+
+
+    async mergeNewStatsAndExistedStatsAmounts(matchingObj, objeData) {
+        // for Hospital Wise Counts merge
+        this.mergeForHospitalWiseCounts(matchingObj, objeData);
+
+        // For case type wise counts merge
+        this.mergeForCaseTypeWiseCounts(matchingObj, objeData);
+
+        // for final totals
+        objeData.total_amount += matchingObj.total_amount;
+        objeData.paid_amount += matchingObj.paid_amount;
+        objeData.pending_amount += matchingObj.pending_amount;
+
+    }
+
+    async mergeForHospitalWiseCounts(matchingObj, objeData) {
+        matchingObj.hospital_wise_counts.forEach((matchingItem) => {
+            // Check if the hospital is not present in arrayOne
+            const existingHospital = objeData.hospital_wise_counts.find((item) => item.hospital === matchingItem.hospital);
+
+            if (!existingHospital) {
+                // If the hospital is not present, push the matchingObj.hospital_wise_counts into objeData.hospital_wise_counts
+                objeData.hospital_wise_counts.push(matchingItem);
+            } else {
+                // If the hospital is present, combine values
+                existingHospital.total_amount += matchingItem.total_amount;
+                existingHospital.paid_amount += matchingItem.paid_amount;
+                existingHospital.pending_amount += matchingItem.pending_amount;
+
+                // Iterate through case_type_wise_counts and combine values
+                existingHospital.case_type_wise_counts.forEach((existingCase, index) => {
+                    existingCase.total_amount += matchingItem.case_type_wise_counts[index].total_amount;
+                    existingCase.paid_amount += matchingItem.case_type_wise_counts[index].paid_amount;
+                    existingCase.pending_amount += matchingItem.case_type_wise_counts[index].pending_amount;
+                });
+            }
+        });
+    }
+
+    async mergeForCaseTypeWiseCounts(matchingObj, objeData) {
+        objeData.case_type_wise_counts.forEach(obje => {
+            // Find the matching object in matchingObj
+            const matchingObject = matchingObj.case_type_wise_counts.find(matching => matching.case_type === obje.case_type);
+
+            // If a matching object is found, update the values in objeData
+            if (matchingObject) {
+                obje.total_amount += matchingObject.total_amount;
+                obje.paid_amount += matchingObject.paid_amount;
+                obje.pending_amount += matchingObject.pending_amount;
+            }
+        });
+    }
+
+    async updateExistedStats(matchedObjects) {
+
+        // Need to prepeare the SQl raw query to bulk update revenue stats based on the marketer_id and date
+        const convertedData = matchedObjects.map(entry => {
+            const formattedDate = new Date(entry.date).toISOString();
+            return `(
+                    '${entry.marketer_id}',
+                    '${formattedDate}'::timestamp,
+                    ${entry.total_amount},
+                    ${entry.paid_amount},
+                    ${entry.pending_amount},
+                    ARRAY[${entry.case_type_wise_counts.map(item => `'{"case_type":"${item.case_type}","total_amount":${item.total_amount},"paid_amount":${item.paid_amount},"pending_amount":${item.pending_amount}}'`)}]::jsonb[],  
+                    ARRAY[${entry.hospital_wise_counts.map(item => `
+                      jsonb_build_object(
+                        'hospital', '${item.hospital}',
+                        'total_amount', ${item.total_amount},
+                        'paid_amount', ${item.paid_amount},
+                        'pending_amount', ${item.pending_amount},
+                        'case_type_wise_counts', ARRAY[${item.case_type_wise_counts.map(e => `
+                          jsonb_build_object(
+                            'case_type', '${e.case_type}',
+                            'total_amount', ${e.total_amount},
+                            'paid_amount', ${e.paid_amount},
+                            'pending_amount', ${e.pending_amount}
+                          )::jsonb`)}]
+                      )::jsonb`
+            )}]
+                  )`;
+        });
+        const finalString = convertedData.join(',');
+
+        await this.revenueStatsService.updateManyStats(finalString);
+    }
+
+    async updateRawStats(matchedObjects) {
+        if (matchedObjects.length > 0) {
+
+            // Preparing the SQL raw query for bulk updating the raw stats based on the accession_id and date_of_service
+            const convertedData = matchedObjects.map(entry => {
+                const formattedCptCodes = entry.cpt_codes.map(code => `('${code}'::jsonb)`).join(', ');
+                const formattedLineItemTotal = entry.line_item_total.map(total => `'${total}'::jsonb`).join(', ');
+                const formattedInsurancePaymentAmount = entry.insurance_payment_amount.map(total => `'${total}'::jsonb`).join(', ');
+                const formattedInsuranceAdjustmentAmount = entry.insurance_adjustment_amount.map(total => `'${total}'::jsonb`).join(', ');
+                const formattedInsuranceWriteOfAmount = entry.insurance_write_of_amount.map(total => `'${total}'::jsonb`).join(', ');
+                const formattedPatientPaymentAmount = entry.patient_payment_amount.map(total => `'${total}'::jsonb`).join(', ');
+                const formattedPatientAdjustmentAmount = entry.patient_adjustment_amount.map(total => `'${total}'::jsonb`).join(', ');
+                const formattedPatientWriteOfAmount = entry.patient_write_of_amount.map(total => `'${total}'::jsonb`).join(', ');
+                const formattedLineItemBalance = entry.line_item_balance.map(total => `'${total}'::jsonb`).join(', ');
+
+                const formattedDate = new Date(entry.date_of_service).toISOString();
+                const formattedMarketers = entry.hospital_marketers.map(m => `('${JSON.stringify(m)}'::jsonb)`).join(', ');
+
+                return `('${entry.case_id}', '${entry.hospital}', '${entry.accession_id}', ARRAY[${formattedCptCodes}]::jsonb[], ARRAY[${formattedLineItemTotal}]::jsonb[], ARRAY[${formattedInsurancePaymentAmount}]::jsonb[], ARRAY[${formattedInsuranceAdjustmentAmount}]::jsonb[], ARRAY[${formattedInsuranceWriteOfAmount}]::jsonb[], ARRAY[${formattedPatientPaymentAmount}]::jsonb[], ARRAY[${formattedPatientAdjustmentAmount}]::jsonb[], ARRAY[${formattedPatientWriteOfAmount}]::jsonb[], ARRAY[${formattedLineItemBalance}]::jsonb[], '${entry.insurance_name}', ${entry.total_amount}, ${entry.paid_amount}, ${entry.pending_amount}, '{"total_amount_difference":${entry.difference_values.total_amount_difference},"paid_amount_difference":${entry.difference_values.paid_amount_difference},"pending_amount_difference":${entry.difference_values.pending_amount_difference}}'::jsonb, ${entry.values_changed}, '${entry.process_status}', '${entry.payment_status}', '${formattedDate}'::timestamp, ARRAY[${formattedMarketers}]::jsonb[])`;
+
+            });
+
+            const finalString = convertedData.join(',');
+
+            await this.revenueStatsService.updateManyRaw(finalString);
+        }
     }
 
 }
