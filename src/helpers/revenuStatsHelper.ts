@@ -5,6 +5,7 @@ import { Injectable } from "@nestjs/common";
 import { LisService } from "src/lis/lis.service";
 import { RevenueStatsService } from "src/revenue-stats/revenue-stats.service";
 import { SortHelper } from "./sortHelper";
+import { caseTypes } from "src/constants/statsConstants";
 
 
 @Injectable()
@@ -264,7 +265,7 @@ export class RevenueStatsHelpers {
             };
 
             // Initialize counts for all case_types
-            ["COVID", "RESPIRATORY_PATHOGEN_PANEL", "TOXICOLOGY", "CLINICAL_CHEMISTRY", "UTI", "URINALYSIS", "PGX", "WOUND", "NAIL", "COVID_FLU", "CGX", "CARDIAC", "DIABETES", "GASTRO", "PAD", "PULMONARY", "GTI_STI", "GTI_WOMENS_HEALTH"].forEach(caseType => {
+            caseTypes.forEach(caseType => {
                 processedData[entry.date_of_service][marketer].case_type_wise_counts.push({
                     case_type: caseType.toLowerCase(),
                     total_amount: 0,
@@ -325,7 +326,7 @@ export class RevenueStatsHelpers {
             });
 
             // Initialize counts for all case_types within hospital
-            ["COVID", "RESPIRATORY_PATHOGEN_PANEL", "TOXICOLOGY", "CLINICAL_CHEMISTRY", "UTI", "URINALYSIS", "PGX", "WOUND", "NAIL", "COVID_FLU", "CGX", "CARDIAC", "DIABETES", "GASTRO", "PAD", "PULMONARY", "GTI_STI", "GTI_WOMENS_HEALTH"].forEach(caseType => {
+            caseTypes.forEach(caseType => {
                 processedData[entry.date_of_service][marketer].hospital_wise_counts.find(hospital => hospital.hospital === hospitalId).case_type_wise_counts.push({
                     case_type: caseType.toLowerCase(),
                     total_amount: 0,

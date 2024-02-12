@@ -8,7 +8,7 @@ export const marketerIds = [
 ]
 
 
-export const caseTypes = ["COVID", "RESPIRATORY_PATHOGEN_PANEL", "TOXICOLOGY", "CLINICAL_CHEMISTRY", "UTI", "URINALYSIS", "PGX", "WOUND", "NAIL", "COVID_FLU", "CGX", "CARDIAC", "DIABETES", "GASTRO", "PAD", "PULMONARY"]
+export const caseTypes = ["COVID", "RESPIRATORY_PATHOGEN_PANEL", "TOXICOLOGY", "CLINICAL_CHEMISTRY", "UTI", "URINALYSIS", "PGX", "WOUND", "NAIL", "COVID_FLU", "CGX", "CARDIAC", "DIABETES", "GASTRO", "PAD", "PULMONARY", "GTI_STI", "GTI_WOMENS_HEALTH"]
 
 export const COVID = {
     "pending": 0,

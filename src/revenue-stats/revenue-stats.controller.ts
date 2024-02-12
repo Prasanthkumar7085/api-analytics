@@ -2,7 +2,7 @@ import { StatsHelper } from 'src/helpers/statsHelper';
 import { Body, Controller, Delete, Get, Param, Patch, Post, Req, Res, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
-import { DELETE_REVENUE_RAW, FILE_UPLOAD, NOT_LESSER, PROCESS_SUCCESS, REVENUE_MODIFIED_DATA, REVENUE_STATS, REVENUE_STAT_SINGLE, SOMETHING_WENT_WRONG, SUCCESS_MARKETERS } from 'src/constants/messageConstants';
+import { COMPLETED, DELETE_REVENUE_RAW, FILE_UPLOAD, NOT_LESSER, PENDING, PENDING_DATA, PROCESS_SUCCESS, REVENUE_MODIFIED_DATA, REVENUE_STATS, REVENUE_STAT_SINGLE, SOMETHING_WENT_WRONG, SUCCESS_MARKETERS } from 'src/constants/messageConstants';
 import { FilterHelper } from 'src/helpers/filterHelper';
 import { PaginationHelper } from 'src/helpers/paginationHelper';
 import { RevenueStatsHelpers } from 'src/helpers/revenuStatsHelper';
@@ -75,7 +75,7 @@ export class RevenueStatsController {
     try {
       const query = {
         process_status: {
-          equals: "PENDING"
+          equals: PENDING
         }
       }
 
@@ -83,7 +83,7 @@ export class RevenueStatsController {
       const pendingRawData = await this.revenueStatsService.getRevenueRawData(query);
 
       if (!pendingRawData.length) {
-        throw new CustomError(404, "Pending Data is Not Found!");
+        throw new CustomError(404, PENDING_DATA);
       }
 
       // Need to change the raw data into stats data format based marketer_id
@@ -104,7 +104,7 @@ export class RevenueStatsController {
 
       // To update the process status
       const updateData = {
-        process_status: "COMPLETED"
+        process_status: COMPLETED
       }
       await this.revenueStatsService.updateRevenueRawProcessStatus(finalProcessedIds, updateData);
 
