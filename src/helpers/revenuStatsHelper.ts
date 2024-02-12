@@ -397,10 +397,10 @@ export class RevenueStatsHelpers {
 
         dataArray = this.sortHelper.hospitalWise(orderBy, orderType, dataArray);
         // // Remove case_type_wise_counts property from each object
-        // dataArray = dataArray.map((item) => {
-        //     const { case_type_wise_counts, ...itemWithoutCounts }: any = item;
-        //     return itemWithoutCounts;
-        // });
+        dataArray = dataArray.map((item) => {
+            const { case_type_wise_counts, ...itemWithoutCounts }: any = item;
+            return itemWithoutCounts;
+        });
         return dataArray;
     }
 

@@ -106,18 +106,12 @@ export class RevenueStatsService {
 
   async findAll(query) {
 
-    if (query.marketer_id && query.marketer_id.in) {
-      query.marketer_id.in = query.marketer_id.in.map(id => `"${id}"`);
-    }
     return await this.prisma.revenue_stats.findMany({
       where: query
     })
   }
 
   async marketers(query, sort) {
-    if (query.marketer_id && query.marketer_id.in) {
-      query.marketer_id.in = query.marketer_id.in.map(id => `"${id}"`);
-    }
 
     let data: any = await this.prisma.revenue_stats.groupBy({
       by: ['marketer_id'],
