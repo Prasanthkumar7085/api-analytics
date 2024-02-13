@@ -221,7 +221,6 @@ export class StatsHelper {
             finalArray = [managerId];
 
         };
-
         return finalArray;
     }
 

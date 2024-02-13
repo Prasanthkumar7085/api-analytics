@@ -661,4 +661,26 @@ export class RevenueStatsHelpers {
         }
         return lowercaseCaseType
     }
+
+    async getUsersData(managerId, projection = {}) {
+
+        let query = {
+            hospital_marketing_manager: { $in: [managerId] },
+            user_type: "MARKETER"
+        }
+        let marketersData = await this.lisService.getUsers(query)
+
+        let finalArray = [];
+
+        if (marketersData.length) {
+            const marketersIdsArray = marketersData.map((e: any) => e._id.toString());
+            finalArray = [...marketersIdsArray];
+            // finalArray = [...marketersIdsArray, managerId];
+
+        } else {
+            finalArray = [managerId];
+
+        };
+        return finalArray;
+    }
 }
