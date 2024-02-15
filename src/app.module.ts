@@ -1,39 +1,47 @@
 import { MiddlewareConsumer, Module, NestModule, RequestMethod } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
+import { MongooseModule } from '@nestjs/mongoose';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { StatsModule } from './stats/stats.module';
 import configuration from './config/configuration';
-import { ConfigModule } from '@nestjs/config';
-import { PrismaModule } from './prisma/prisma.module';
-import { ExpiredTokenMiddleware } from './middlewares/token.verify.middleware';
+import { LisModule } from './lis/lis.module';
 import { QueueBodyMiddleware } from './middlewares/queueBody.middleware';
-import { StatsController } from './stats/stats.controller';
+import { ExpiredTokenMiddleware } from './middlewares/token.verify.middleware';
+import { PrismaModule } from './prisma/prisma.module';
+import { RevenueStatsModule } from './revenue-stats/revenue-stats.module';
+import { UserSchema } from './schemas/userSchema';
+import { StatsModule } from './stats/stats.module';
+
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       load: [configuration],
     }),
-    StatsModule, PrismaModule],
+    MongooseModule.forFeature([{ name: 'UserSchema', schema: UserSchema }]),
+    MongooseModule.forRoot(process.env.LIS_DB_URL + '?authSource=admin'),
+    StatsModule, PrismaModule, LisModule, RevenueStatsModule],
   controllers: [AppController],
   providers: [AppService],
 })
+
+
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer.apply(ExpiredTokenMiddleware).forRoutes('*');
     consumer.apply(QueueBodyMiddleware)
-    .forRoutes(
-      {
-      path: 'v1.0/marketers-stats/case/pending',
-      method: RequestMethod.POST,
-    },
-    {
-      path: 'v1.0/marketers-stats/case/complete/conform',
-      method: RequestMethod.POST,
-    },
-    {
-      path: 'v1.0/marketers-stats/case/complete/retrieve',
-      method: RequestMethod.POST,
-    })
+      .forRoutes(
+        {
+          path: 'v1.0/marketers-stats/case/pending',
+          method: RequestMethod.POST,
+        },
+        {
+          path: 'v1.0/marketers-stats/case/complete/conform',
+          method: RequestMethod.POST,
+        },
+        {
+          path: 'v1.0/marketers-stats/case/complete/retrieve',
+          method: RequestMethod.POST,
+        })
   }
 }

@@ -4,9 +4,9 @@ export class FilterHelper {
     stats(query, fromDate, toDate) {
         const pendingCases = query.pending_cases;
         const completedCases = query.completed_cases;
-        const marketer = query.marketer_id;
         const totalCases = query.total_cases;
         const hospitalsCount = query.hospitals_count;
+        const hospitalMarketers = query.hospital_marketers;
 
         let filter: any = {}
         if (pendingCases) {
@@ -18,12 +18,6 @@ export class FilterHelper {
         if (completedCases) {
             filter.completed_cases = {
                 equals: parseInt(completedCases)
-            }
-        }
-
-        if (marketer) {
-            filter.marketer_id = {
-                equals: marketer
             }
         }
 
@@ -44,6 +38,10 @@ export class FilterHelper {
             filter.hospitals_count = {
                 equals: parseInt(hospitalsCount)
             }
+        }
+
+        if (hospitalMarketers.length) {
+            filter.marketer_id = { in: hospitalMarketers }
         }
 
 
@@ -71,7 +69,6 @@ export class FilterHelper {
         }
 
         if (caseType) {
-            console.log(123);
             filter.case_type_wise_counts = {
                 path: ['case_type'],
                 equals: 'Claudine',
@@ -81,7 +78,7 @@ export class FilterHelper {
         return filter;
     }
 
-    hospitalWiseMarketers(fromDate, toDate, marketer) {
+    hospitalWiseMarketers(fromDate, toDate, marketer, marketerIdsArray = []) {
         let filter: any = {}
 
         if (fromDate && toDate) {
@@ -97,6 +94,78 @@ export class FilterHelper {
             }
         }
 
+        if (marketerIdsArray.length) {
+            filter.marketer_id = {
+                in: marketerIdsArray
+            }
+        }
+
         return filter;
     }
+
+
+    marketerPaymentWiseCounts(query) {
+        let filter: any = {}
+
+        let fromDate = query.from_date
+        let toDate = query.to_date
+        let marketer = query.marketer_id
+
+        if (fromDate && toDate) {
+            filter.date = {
+                gte: fromDate,
+                lte: toDate
+            }
+        }
+
+        if (marketer) {
+            filter.marketer_id = {
+                equals: marketer
+            }
+        }
+
+        return filter
+    }
+
+
+    revenueStats(query, fromDate, toDate) {
+        const pendingAmount = query.pending_amount;
+        const paidAmount = query.paid_amount;
+        const totalAmount = query.totla_amount;
+        const hospitalMarketers = query.hospital_marketers;
+
+        let filter: any = {}
+        if (pendingAmount) {
+            filter.pending_amount = {
+                equals: parseInt(pendingAmount)
+            }
+        }
+
+        if (totalAmount) {
+            filter.totla_amount = {
+                equals: parseInt(totalAmount)
+            }
+        }
+
+        if (paidAmount) {
+            filter.paid_amount = {
+                equals: parseInt(paidAmount)
+            }
+        }
+
+        if (fromDate && toDate) {
+            filter.date = {
+                gte: fromDate,
+                lte: toDate
+            }
+        }
+
+        if (hospitalMarketers.length) {
+            filter.marketer_id = { in: hospitalMarketers }
+        }
+
+
+        return filter;
+    }
+
 }

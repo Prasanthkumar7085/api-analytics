@@ -9,7 +9,9 @@ export class QueueBodyMiddleware implements NestMiddleware {
     use(req: Request, res: Response, next: NextFunction) {
 
         let reqBody = req.body;
-        console.log({reqBody});
+        // console.log({reqBody});
+
+        console.log({ reqBody });
 
         if (reqBody["Message"]) {
             const validJsonString = reqBody["Message"].replace(/'/g, '"');
