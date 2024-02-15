@@ -319,7 +319,7 @@ export class RevenueStatsController {
 
       let statsQuery;
       if (managerId && marketerIds.length == 0) {
-        const marketersIdsArray = await this.revenueStatsHelpers.getUsersData(managerId);
+        const marketersIdsArray = await this.statsHelper.getUsersData(managerId);
 
         statsQuery = {
           hospital_marketers: marketersIdsArray

@@ -30,7 +30,6 @@ export class RevenueStatsHelpers {
 
             // Get the data from CSV
             const csvFileData = await this.fileUploadDataServiceProvider.processCsv(file);
-
             // modify raw data from csvFileData
             const modifiedData = await this.modifyRawData(csvFileData)
 
@@ -55,7 +54,8 @@ export class RevenueStatsHelpers {
             patient_adjustment_amount: e['Patient Adjustment Amount'],
             patient_write_of_amount: e['Patient Write-Off Amount'],
             line_item_balance: e['Line Item Balance'],
-            insurance_name: e['Primary Insurance']
+            insurance_name: e['Primary Insurance'],
+            patient_id: e['Patient Id']
         }))
 
         // Need to Group the Raw Data
@@ -98,7 +98,6 @@ export class RevenueStatsHelpers {
                 existingEntry.patient_adjustment_amount.push(item.patient_adjustment_amount);
                 existingEntry.patient_write_of_amount.push(item.patient_write_of_amount);
                 existingEntry.line_item_balance.push(item.line_item_balance);
-
             } else {
                 // Entry doesn't exist, create a new one
                 const newEntry = {
@@ -115,7 +114,8 @@ export class RevenueStatsHelpers {
                     patient_adjustment_amount: [item.patient_adjustment_amount],
                     patient_write_of_amount: [item.patient_write_of_amount],
                     line_item_balance: [item.line_item_balance],
-                    insurance_name: item.insurance_name
+                    insurance_name: item.insurance_name,
+                    patient_id: item.patient_id
                 };
                 acc.push(newEntry);
             }
@@ -662,25 +662,4 @@ export class RevenueStatsHelpers {
         return lowercaseCaseType
     }
 
-    async getUsersData(managerId, projection = {}) {
-
-        let query = {
-            hospital_marketing_manager: { $in: [managerId] },
-            user_type: "MARKETER"
-        }
-        let marketersData = await this.lisService.getUsers(query)
-
-        let finalArray = [];
-
-        if (marketersData.length) {
-            const marketersIdsArray = marketersData.map((e: any) => e._id.toString());
-            finalArray = [...marketersIdsArray];
-            // finalArray = [...marketersIdsArray, managerId];
-
-        } else {
-            finalArray = [managerId];
-
-        };
-        return finalArray;
-    }
 }

@@ -51,6 +51,7 @@ model revenue_marketers_schema {
   process_status                            String
   values_changed                            Boolean           @default(false)
   difference_values                         Json?
+  patient_id                                String
 }
 
 
