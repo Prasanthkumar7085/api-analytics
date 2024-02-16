@@ -149,4 +149,30 @@ export class StatsService {
 
     return combinedData;
   }
+
+
+  async getCaseTypeWise(query) {
+    const startDate = query.date.gte;
+    const endDate = query.date.lte;
+
+    const rawQueryData = this.prisma.$queryRaw`
+    SELECT
+        TO_CHAR(DATE_TRUNC('month', date), 'YYYY Mon') as month,
+        SUM(total_cases)::text as total_cases,
+        SUM(pending_cases)::text as pending_cases,
+        SUM(completed_cases)::text as completed_cases,
+        SUM(hospitals_count)::text as hospitals_count,
+    FROM
+        marketer_stats,
+        
+    WHERE
+        date BETWEEN CAST(${startDate} AS timestamp) AND CAST(${endDate} AS timestamp)
+    GROUP BY
+        month;
+`;
+
+    const combinedData: any = await rawQueryData;
+
+    return combinedData;
+  }
 }
