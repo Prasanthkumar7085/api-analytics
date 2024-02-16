@@ -49,6 +49,7 @@ model patient_payments {
   process_status              String
   values_changed              Boolean   @default(false)
   difference_values           Json?
+  patient_id                  String
 }
 
 model revenue_stats {

@@ -33,6 +33,7 @@ CREATE TABLE "patient_payments" (
     "process_status" TEXT NOT NULL,
     "values_changed" BOOLEAN NOT NULL DEFAULT false,
     "difference_values" JSONB,
+    "patient_id" TEXT NOT NULL,
 
     CONSTRAINT "patient_payments_pkey" PRIMARY KEY ("id")
 );
