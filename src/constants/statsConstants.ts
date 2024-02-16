@@ -140,3 +140,6 @@ export const prepareHospitalWiseCounts = {
     "gti_sti": 0,
     "gti_womens_health": 0
 }
+
+export const total_amount = "total_amount"
+export const total_cases = "total_cases"

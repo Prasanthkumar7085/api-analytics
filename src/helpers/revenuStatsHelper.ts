@@ -662,4 +662,20 @@ export class RevenueStatsHelpers {
         return lowercaseCaseType
     }
 
+    mergedStatsData(revenueStatsData, volumeStatsData) {
+        // Merge the arrays based on marketer_id
+        const mergedStats = volumeStatsData.map(volumeStat => {
+            const matchingRevenueStat = revenueStatsData.find(revenueStat => revenueStat.marketer_id === volumeStat.marketer_id);
+
+            if (matchingRevenueStat) {
+                return {
+                    _sum: { ...volumeStat._sum, ...matchingRevenueStat._sum },
+                    marketer_id: volumeStat.marketer_id
+                };
+            } else {
+                return volumeStat;
+            }
+        });
+        return mergedStats
+    }
 }
