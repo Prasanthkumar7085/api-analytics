@@ -663,8 +663,11 @@ export class RevenueStatsHelpers {
     }
 
     mergedStatsData(revenueStatsData, volumeStatsData) {
+
+        let mergedStats = [];
+
         // Merge the arrays based on marketer_id
-        const mergedStats = volumeStatsData.map(volumeStat => {
+        mergedStats = volumeStatsData.map(volumeStat => {
             const matchingRevenueStat = revenueStatsData.find(revenueStat => revenueStat.marketer_id === volumeStat.marketer_id);
 
             if (matchingRevenueStat) {
@@ -676,6 +679,15 @@ export class RevenueStatsHelpers {
                 return volumeStat;
             }
         });
-        return mergedStats
+
+        // Check for unmatched revenueStatsData and add them to the mergedStats
+        revenueStatsData.forEach(revenueStat => {
+            const existingStat = mergedStats.find(mergedStat => mergedStat.marketer_id === revenueStat.marketer_id);
+            if (!existingStat) {
+                mergedStats.push(revenueStat);
+            }
+        });
+
+        return mergedStats;
     }
 }
