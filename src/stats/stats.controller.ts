@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, Param, Post, Req, Res } from '@nestjs/common';
-import { NOT_LESSER, SOMETHING_WENT_WRONG, SUCCESS_COMPLETE, SUCCESS_DELETE, SUCCESS_MARKETERS, SUCCESS_PENDING, SUCCESS_RETREIVE } from 'src/constants/messageConstants';
+import { NOT_LESSER, SOMETHING_WENT_WRONG, MONTHLY_STATS_SUCCESS, SUCCESS_COMPLETE, SUCCESS_DELETE, SUCCESS_MARKETERS, SUCCESS_PENDING, SUCCESS_RETREIVE } from 'src/constants/messageConstants';
 import { FilterHelper } from 'src/helpers/filterHelper';
 import { PaginationHelper } from 'src/helpers/paginationHelper';
 import { SortHelper } from 'src/helpers/sortHelper';
@@ -406,25 +406,10 @@ export class StatsController {
 
       let statsData = await this.statsService.marketersMonthWise(finalStatsQuery);
 
-      // Further aggregate the data to combine by marketer_id
-      let statsDataForGraph = statsData.reduce((acc, entry) => {
-        const { month, total_cases, pending_cases, completed_cases, hospitals_count } = entry;
-
-          acc.push({
-            month,
-            total_cases: parseInt(total_cases),
-            pending_cases: parseInt(pending_cases),
-            completed_cases: parseInt(completed_cases),
-            hospitals_count: parseInt(hospitals_count),
-          });
-
-        return acc;
-      }, []);
-
       return res.status(200).json({
         success: true,
-        message: "Success",
-        statsDataForGraph
+        message: MONTHLY_STATS_SUCCESS,
+        data: statsData
       })
     } catch (err) {
       console.log({ err });

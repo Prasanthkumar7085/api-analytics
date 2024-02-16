@@ -2,7 +2,7 @@ import { StatsHelper } from 'src/helpers/statsHelper';
 import { Body, Controller, Delete, Get, Param, Patch, Post, Req, Res, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
-import { COMPLETED, DELETE_REVENUE_RAW, FILE_UPLOAD, NOT_LESSER, PENDING, PENDING_DATA, PROCESS_SUCCESS, REVENUE_MODIFIED_DATA, REVENUE_STATS, REVENUE_STAT_SINGLE, SOMETHING_WENT_WRONG, SUCCESS_MARKETERS } from 'src/constants/messageConstants';
+import { COMPLETED, DELETE_REVENUE_RAW, FILE_UPLOAD, NOT_LESSER, PENDING, PENDING_DATA, PROCESS_SUCCESS, REVENUE_MODIFIED_DATA, REVENUE_STATS, REVENUE_STAT_SINGLE, SOMETHING_WENT_WRONG, MONTHLY_STATS_SUCCESS, SUCCESS_MARKETERS } from 'src/constants/messageConstants';
 import { FilterHelper } from 'src/helpers/filterHelper';
 import { PaginationHelper } from 'src/helpers/paginationHelper';
 import { RevenueStatsHelpers } from 'src/helpers/revenuStatsHelper';
@@ -451,7 +451,7 @@ export class RevenueStatsController {
 
       return res.status(200).json({
         success: true,
-        message: SUCCESS_MARKETERS,
+        message: MONTHLY_STATS_SUCCESS,
         data: statsData
       });
     } catch (err) {
