@@ -371,4 +371,81 @@ export class StatsController {
   }
 
 
+  @Post("month-graph")
+  async monthWiseGraph(
+    @Body() reqBody: ManagerCombinedDto,
+    @Res() res: any
+  ) {
+    try {
+
+      const orderBy = reqBody.order_by || "total_cases";
+      const orderType = reqBody.order_type || "desc";
+      const managerId = reqBody.manager_id;
+      const fromDate = reqBody.from_date;
+      const toDate = reqBody.to_date;
+      const marketerIds = reqBody.marketer_ids || [];
+
+      if (toDate < fromDate) {
+        return res.status(400).json({
+          success: false,
+          message: NOT_LESSER
+        })
+      };
+
+      let statsQuery;
+      if (managerId && marketerIds.length == 0) {
+        const marketersIdsArray = await this.statsHelper.getUsersData(managerId);
+
+        statsQuery = {
+          hospital_marketers: marketersIdsArray
+        };
+
+      } else {
+        statsQuery = {
+          hospital_marketers: marketerIds
+        };
+      };
+      let finalStatsQuery: any = this.filterHelper.stats(statsQuery, fromDate, toDate);
+
+      let statsData = await this.statsService.marketersMonthWise(finalStatsQuery);
+
+      // Further aggregate the data to combine by marketer_id
+      let statsDataForGraph = statsData.reduce((acc, entry) => {
+        const { marketer_id, month, total_cases, pending_cases, completed_cases, hospitals_count } = entry;
+        const existingEntry = acc.find((item) => item.marketer_id === marketer_id);
+
+        if (existingEntry) {
+          existingEntry.total_cases += parseInt(total_cases);
+          existingEntry.pending_cases += parseInt(pending_cases);
+          existingEntry.completed_cases += parseInt(completed_cases);
+          existingEntry.hospitals_count += parseInt(hospitals_count);
+        } else {
+          acc.push({
+            marketer_id,
+            month,
+            total_cases: parseInt(total_cases),
+            pending_cases: parseInt(pending_cases),
+            completed_cases: parseInt(completed_cases),
+            hospitals_count: parseInt(hospitals_count),
+          });
+        }
+
+        return acc;
+      }, []);
+
+      return res.status(200).json({
+        success: true,
+        message: "Success",
+        statsDataForGraph
+      })
+    } catch (err) {
+      console.log({ err });
+      return res.status(500).json({
+        success: false,
+        message: err.message || SOMETHING_WENT_WRONG
+      })
+    }
+  }
+
+
 }
