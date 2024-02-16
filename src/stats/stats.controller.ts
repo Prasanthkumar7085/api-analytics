@@ -371,15 +371,12 @@ export class StatsController {
   }
 
 
-  @Post("month-graph")
+  @Post("monthly-graph")
   async monthWiseGraph(
     @Body() reqBody: ManagerCombinedDto,
     @Res() res: any
   ) {
     try {
-
-      const orderBy = reqBody.order_by || "total_cases";
-      const orderType = reqBody.order_type || "desc";
       const managerId = reqBody.manager_id;
       const fromDate = reqBody.from_date;
       const toDate = reqBody.to_date;
@@ -411,24 +408,15 @@ export class StatsController {
 
       // Further aggregate the data to combine by marketer_id
       let statsDataForGraph = statsData.reduce((acc, entry) => {
-        const { marketer_id, month, total_cases, pending_cases, completed_cases, hospitals_count } = entry;
-        const existingEntry = acc.find((item) => item.marketer_id === marketer_id);
+        const { month, total_cases, pending_cases, completed_cases, hospitals_count } = entry;
 
-        if (existingEntry) {
-          existingEntry.total_cases += parseInt(total_cases);
-          existingEntry.pending_cases += parseInt(pending_cases);
-          existingEntry.completed_cases += parseInt(completed_cases);
-          existingEntry.hospitals_count += parseInt(hospitals_count);
-        } else {
           acc.push({
-            marketer_id,
             month,
             total_cases: parseInt(total_cases),
             pending_cases: parseInt(pending_cases),
             completed_cases: parseInt(completed_cases),
             hospitals_count: parseInt(hospitals_count),
           });
-        }
 
         return acc;
       }, []);

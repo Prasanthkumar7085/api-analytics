@@ -124,7 +124,7 @@ export class StatsService {
           marketer_stats
         WHERE
           date BETWEEN CAST(${startDate} AS timestamp) AND CAST(${endDate} AS timestamp)
-          AND marketer_id IN (${marketerIds.map(id => `'${id}'`).join(',')})  -- Convert IDs to strings and join
+          AND marketer_id = ANY (${marketerIds}::text[])
         GROUP BY
           month
         `;

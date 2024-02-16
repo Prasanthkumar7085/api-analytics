@@ -151,4 +151,46 @@ export class RevenueStatsService {
     return this.prisma.$executeRawUnsafe(rawQuery);
 
   }
+
+  async marketersMonthWise(query) {
+    const startDate = query.date.gte;
+    const endDate = query.date.lte;
+    const marketerIds = query.marketer_id?.in;
+
+    let rawQueryData;
+    if (marketerIds && marketerIds.length) {
+      rawQueryData = this.prisma.$queryRaw`
+        SELECT
+          TO_CHAR(DATE_TRUNC('month', date), 'YYYY Mon') as month,
+          SUM(total_amount)::text as total_amount,
+          SUM(paid_amount)::text as paid_amount,
+          SUM(pending_amount)::text as pending_amount
+        FROM
+          revenue_stats
+        WHERE
+          date BETWEEN CAST(${startDate} AS timestamp) AND CAST(${endDate} AS timestamp)
+          AND marketer_id = ANY (${marketerIds}::text[])
+        GROUP BY
+          month
+        `;
+    } else {
+      rawQueryData = this.prisma.$queryRaw`
+        SELECT
+          TO_CHAR(DATE_TRUNC('month', date), 'YYYY Mon') as month,
+          SUM(total_amount)::text as total_amount,
+          SUM(paid_amount)::text as paid_amount,
+          SUM(pending_amount)::text as pending_amount
+        FROM
+          revenue_stats
+        WHERE
+          date BETWEEN CAST(${startDate} AS timestamp) AND CAST(${endDate} AS timestamp)
+        GROUP BY
+          month
+        `;
+    }
+
+    const combinedData: any = await rawQueryData;
+
+    return combinedData;
+  }
 }
