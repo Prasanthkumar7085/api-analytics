@@ -7,17 +7,17 @@ export class RevenueStatsService {
 
   // Revenue Raw Status
   async saveDataInDb(revenueData) {
-    return this.prisma.revenue_marketers_schema.createMany({ data: revenueData });
+    return this.prisma.patient_payments.createMany({ data: revenueData });
   }
 
   async getRevenueRawData(query) {
-    return this.prisma.revenue_marketers_schema.findMany({
+    return this.prisma.patient_payments.findMany({
       where: query
     });
   }
 
   async updateRevenueRawProcessStatus(ids, updateData) {
-    return this.prisma.revenue_marketers_schema.updateMany({
+    return this.prisma.patient_payments.updateMany({
       where: {
         id: {
           in: ids
@@ -28,7 +28,7 @@ export class RevenueStatsService {
   }
 
   async deleteRevenueRawData(id) {
-    return this.prisma.revenue_marketers_schema.deleteMany({
+    return this.prisma.patient_payments.deleteMany({
       where: {
         id: id
       }
