@@ -10,6 +10,8 @@ import { RevenueStatsService } from './revenue-stats.service';
 import { CustomError } from 'src/middlewares/customValidationMiddleware';
 import { ManagerCombinedDto } from 'src/stats/dto/manager-combined.dto';
 import { SortHelper } from 'src/helpers/sortHelper';
+import { StatsService } from 'src/stats/stats.service';
+import { total_amount, total_cases } from 'src/constants/statsConstants';
 
 @Controller({
   version: '1.0',
@@ -23,6 +25,7 @@ export class RevenueStatsController {
     private readonly paginationHelper: PaginationHelper,
     private readonly statsHelper: StatsHelper,
     private readonly sortHelper: SortHelper,
+    private readonly statsServive: StatsService
   ) { }
 
 
@@ -352,6 +355,77 @@ export class RevenueStatsController {
     };
   };
 
+  @Post('volume-stats/combined')
+  async revenueAndVolumeStatsCombined(
+    @Body() reqBody: ManagerCombinedDto,
+    @Res() res: any) {
+    try {
+
+
+
+
+      let orderBy = reqBody.order_by || total_amount;
+      const orderType = reqBody.order_type || "desc";
+      const managerId = reqBody.manager_id;
+      const fromDate = reqBody.from_date;
+      const toDate = reqBody.to_date;
+      const marketerIds = reqBody.marketer_ids || [];
+
+      if (toDate < fromDate) {
+        return res.status(400).json({
+          success: false,
+          message: NOT_LESSER
+        })
+      };
+
+
+      let statsQuery;
+      if (managerId && marketerIds.length == 0) {
+        const marketersIdsArray = await this.statsHelper.getUsersData(managerId);
+
+        statsQuery = {
+          hospital_marketers: marketersIdsArray
+        };
+      } else {
+        statsQuery = {
+          hospital_marketers: marketerIds
+        };
+      };
+
+      let finalRevenueStatsQuery: any = this.filterHelper.revenueStats(statsQuery, fromDate, toDate);
+
+      let finalVolumeStatsQuery: any = this.filterHelper.stats(statsQuery, fromDate, toDate);
+
+      let sort = {};
+      if (orderBy && orderType) {
+        sort = this.sortHelper.stats(orderBy, orderType);
+
+      }
+
+      let revenueStatsData = await this.revenueStatsService.marketers(finalRevenueStatsQuery, sort);
+
+      if (orderBy && orderType) {
+        orderBy = total_cases;
+        sort = this.sortHelper.stats(orderBy, orderType);
+      }
+
+      let volumeStatsData = await this.statsServive.marketers(finalVolumeStatsQuery, sort);
+
+      let mergedStats = this.revenueStatsHelpers.mergedStatsData(revenueStatsData, volumeStatsData)
+
+      return res.status(200).json({
+        success: true,
+        message: SUCCESS_MARKETERS,
+        data: mergedStats
+      });
+    } catch (err) {
+      console.log({ err });
+      return res.status(500).json({
+        success: false,
+        message: err.message || SOMETHING_WENT_WRONG
+      });
+    };
+  };
 
   async prepareRawData(processedData) {
 
