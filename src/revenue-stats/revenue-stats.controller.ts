@@ -353,6 +353,8 @@ export class RevenueStatsController {
   };
 
 
+
+  // REVIEW: Move helper methods to after APIs
   async prepareRawData(processedData) {
 
     const finalProcessedData = processedData.map(obj => {
@@ -498,6 +500,8 @@ export class RevenueStatsController {
       let finalStatsQuery: any = this.filterHelper.revenueStats(statsQuery, fromDate, toDate);
 
       let statsData: any = await this.revenueStatsService.findAll(finalStatsQuery);
+
+      // REVIEW: Remove grouping in Controller and move this to helper
 
       const groupedData = statsData.reduce((result, item) => {
         // Increment the total_cases for each case_type_wise_counts

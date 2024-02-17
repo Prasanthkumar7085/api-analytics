@@ -432,6 +432,8 @@ export class StatsController {
       const toDate = reqBody.to_date;
       const marketerIds = reqBody.marketer_ids || [];
 
+
+      // REVIEW: Remove query buildin in Controller and move this to helper 
       if (toDate < fromDate) {
         return res.status(400).json({
           success: false,
@@ -457,31 +459,33 @@ export class StatsController {
       let rawData: any = await this.statsService.findMany(finalStatsQuery);
 
 
+      // REVIEW: Remove grouping in Controller and move this to helper
+
       const groupedData = rawData.reduce((result, item) => {
         // Increment the total_cases for each case_type_wise_counts
         item.case_type_wise_counts.forEach((caseType) => {
-            const { pending, completed, case_type } = caseType;
-    
-            // If the case_type doesn't exist in the result object, create a new entry
-            if (!result[case_type]) {
-                result[case_type] = {
-                    case_type: case_type,
-                    pending: 0,
-                    completed: 0,
-                    total_cases: 0,
-                };
-            }
-    
-            // Increment the counts for the specific case_type
-            result[case_type].pending += pending;
-            result[case_type].completed += completed;
-            result[case_type].total_cases += pending + completed;
+          const { pending, completed, case_type } = caseType;
+
+          // If the case_type doesn't exist in the result object, create a new entry
+          if (!result[case_type]) {
+            result[case_type] = {
+              case_type: case_type,
+              pending: 0,
+              completed: 0,
+              total_cases: 0,
+            };
+          }
+
+          // Increment the counts for the specific case_type
+          result[case_type].pending += pending;
+          result[case_type].completed += completed;
+          result[case_type].total_cases += pending + completed;
         });
-    
+
         return result;
-    }, {});
-    
-      
+      }, {});
+
+
       // Convert the groupedData object back to an array
       const groupedArray = Object.values(groupedData);
 
