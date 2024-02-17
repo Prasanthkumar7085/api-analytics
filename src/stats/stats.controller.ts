@@ -432,62 +432,13 @@ export class StatsController {
       const toDate = reqBody.to_date;
       const marketerIds = reqBody.marketer_ids || [];
 
+      const statsQuery = this.statsHelper.statsQueryBuilder(toDate, fromDate, res, managerId, marketerIds);
 
-      // REVIEW: Remove query buildin in Controller and move this to helper 
-      if (toDate < fromDate) {
-        return res.status(400).json({
-          success: false,
-          message: NOT_LESSER
-        })
-      };
-
-      let statsQuery;
-      if (managerId && marketerIds.length == 0) {
-        const marketersIdsArray = await this.statsHelper.getUsersData(managerId);
-
-        statsQuery = {
-          hospital_marketers: marketersIdsArray
-        };
-
-      } else {
-        statsQuery = {
-          hospital_marketers: marketerIds
-        };
-      };
       let finalStatsQuery: any = this.filterHelper.stats(statsQuery, fromDate, toDate);
 
       let rawData: any = await this.statsService.findMany(finalStatsQuery);
 
-
-      // REVIEW: Remove grouping in Controller and move this to helper
-
-      const groupedData = rawData.reduce((result, item) => {
-        // Increment the total_cases for each case_type_wise_counts
-        item.case_type_wise_counts.forEach((caseType) => {
-          const { pending, completed, case_type } = caseType;
-
-          // If the case_type doesn't exist in the result object, create a new entry
-          if (!result[case_type]) {
-            result[case_type] = {
-              case_type: case_type,
-              pending: 0,
-              completed: 0,
-              total_cases: 0,
-            };
-          }
-
-          // Increment the counts for the specific case_type
-          result[case_type].pending += pending;
-          result[case_type].completed += completed;
-          result[case_type].total_cases += pending + completed;
-        });
-
-        return result;
-      }, {});
-
-
-      // Convert the groupedData object back to an array
-      const groupedArray = Object.values(groupedData);
+      const groupedArray = await this.statsHelper.groupStatsData(rawData);
 
       return res.status(200).json({
         success: true,

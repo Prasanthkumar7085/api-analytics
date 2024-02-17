@@ -371,36 +371,53 @@ export class RevenueStatsHelpers {
 
     async forHospitalWiseData(orderBy, orderType, statsQuery) {
         let revenueStatsData: any = await this.revenueStatsService.findAll(statsQuery)
-
         const result = {};
 
         revenueStatsData.forEach((entry) => {
+            const marketerId = entry.marketer_id;
 
+            // Iterate over hospital wise counts for each entry
             entry.hospital_wise_counts.forEach((hospitalData) => {
                 const hospitalId = hospitalData.hospital;
 
+                // If the hospital entry does not exist in result, initialize it
                 if (!result[hospitalId]) {
-                    // Initialize if not exists
-                    result[hospitalId] = { hospital: hospitalId, ...hospitalData };
-                } else {
-                    // Sum values
-                    Object.keys(hospitalData).forEach((key) => {
-                        if (key !== 'hospital') {
-                            result[hospitalId][key] += hospitalData[key];
-                        }
-                    });
+                    result[hospitalId] = {
+                        marketer_id: marketerId,
+                        hospital: hospitalId,
+                        paid_amount: 0,
+                        total_amount: 0,
+                        pending_amount: 0,
+                        case_type_wise_counts: {} // Initialize case_type_wise_counts
+                    };
                 }
+
+                // Sum values for paid_amount, total_amount, and pending_amount
+                result[hospitalId].paid_amount += hospitalData.paid_amount;
+                result[hospitalId].total_amount += hospitalData.total_amount;
+                result[hospitalId].pending_amount += hospitalData.pending_amount;
+
+                // Sum values for case_type_wise_counts
+                hospitalData.case_type_wise_counts.forEach((caseTypeData) => {
+                    const caseType = caseTypeData.case_type;
+                    if (!result[hospitalId].case_type_wise_counts[caseType]) {
+                        result[hospitalId].case_type_wise_counts[caseType] = {
+                            paid_amount: 0,
+                            total_amount: 0,
+                            pending_amount: 0
+                        };
+                    }
+                    result[hospitalId].case_type_wise_counts[caseType].paid_amount += caseTypeData.paid_amount;
+                    result[hospitalId].case_type_wise_counts[caseType].total_amount += caseTypeData.total_amount;
+                    result[hospitalId].case_type_wise_counts[caseType].pending_amount += caseTypeData.pending_amount;
+                });
             });
         });
+
 
         let dataArray = Object.values(result);
 
         dataArray = this.sortHelper.hospitalWise(orderBy, orderType, dataArray);
-        // // Remove case_type_wise_counts property from each object
-        dataArray = dataArray.map((item) => {
-            const { case_type_wise_counts, ...itemWithoutCounts }: any = item;
-            return itemWithoutCounts;
-        });
         return dataArray;
     }
 
@@ -689,5 +706,62 @@ export class RevenueStatsHelpers {
         });
 
         return mergedStats;
+    }
+
+
+    async groupRevenueStatsData(statsData) {
+        const groupedData = statsData.reduce((result, item) => {
+            // Increment the total_cases for each case_type_wise_counts
+            item.case_type_wise_counts.forEach((caseType) => {
+                const { case_type, paid_amount, total_amount, pending_amount } = caseType;
+
+                // If the case_type doesn't exist in the result object, create a new entry
+                if (!result[case_type]) {
+                    result[case_type] = {
+                        case_type: case_type,
+                        paid_amount: 0,
+                        pending_amount: 0,
+                        total_amount: 0,
+                    };
+                }
+
+                // Increment the counts for the specific case_type
+                result[case_type].pending_amount += pending_amount;
+                result[case_type].paid_amount += paid_amount;
+                result[case_type].total_amount += total_amount;
+            });
+
+            return result;
+        }, {});
+
+
+        // Convert the groupedData object back to an array
+        const groupedArray = Object.values(groupedData);
+
+        return groupedArray;
+    }
+
+    mergeIndividualVolumeAndRevenueStats(revenueStatsData, volumeStatsData){
+        const mergedData = revenueStatsData.map(revenueItem => {
+            const matchingVolumeItem = volumeStatsData.find(volumeItem => 
+                volumeItem.marketer_id === revenueItem.marketer_id && volumeItem.hospital === revenueItem.hospital
+            );
+        
+            return {
+                marketer_id: revenueItem.marketer_id,
+                hospital: revenueItem.hospital,
+                revenue_stats: {
+                    paid_amount: revenueItem.paid_amount,
+                    total_amount: revenueItem.total_amount,
+                    pending_amount: revenueItem.pending_amount,
+                    case_type_wise_counts: { ...revenueItem.case_type_wise_counts }
+                },
+                volume_stats: { ...matchingVolumeItem }
+            };
+        
+        });
+        
+
+        return mergedData;
     }
 }

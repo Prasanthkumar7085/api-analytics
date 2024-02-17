@@ -12,6 +12,7 @@ import { ManagerCombinedDto } from 'src/stats/dto/manager-combined.dto';
 import { SortHelper } from 'src/helpers/sortHelper';
 import { StatsService } from 'src/stats/stats.service';
 import { total_amount, total_cases } from 'src/constants/statsConstants';
+import { ManagerIndividualDto } from 'src/stats/dto/manager-individual';
 
 @Controller({
   version: '1.0',
@@ -258,7 +259,7 @@ export class RevenueStatsController {
 
   @Post('individual')
   async getMarketerRevenueByManeger(
-    @Body() reqBody: ManagerCombinedDto,
+    @Body() reqBody: ManagerIndividualDto,
     @Res() res: any
   ) {
     try {
@@ -360,10 +361,6 @@ export class RevenueStatsController {
     @Body() reqBody: ManagerCombinedDto,
     @Res() res: any) {
     try {
-
-
-
-
       let orderBy = reqBody.order_by || total_amount;
       const orderType = reqBody.order_type || "desc";
       const managerId = reqBody.manager_id;
@@ -392,9 +389,9 @@ export class RevenueStatsController {
         };
       };
 
-      let finalRevenueStatsQuery: any = this.filterHelper.revenueStats(statsQuery, fromDate, toDate);
+      const finalRevenueStatsQuery: any = this.filterHelper.revenueStats(statsQuery, fromDate, toDate);
 
-      let finalVolumeStatsQuery: any = this.filterHelper.stats(statsQuery, fromDate, toDate);
+      const finalVolumeStatsQuery: any = this.filterHelper.stats(statsQuery, fromDate, toDate);
 
       let sort = {};
       if (orderBy && orderType) {
@@ -402,16 +399,16 @@ export class RevenueStatsController {
 
       }
 
-      let revenueStatsData = await this.revenueStatsService.marketers(finalRevenueStatsQuery, sort);
+      const revenueStatsData = await this.revenueStatsService.marketers(finalRevenueStatsQuery, sort);
 
       if (orderBy && orderType) {
         orderBy = total_cases;
         sort = this.sortHelper.stats(orderBy, orderType);
       }
 
-      let volumeStatsData = await this.statsServive.marketers(finalVolumeStatsQuery, sort);
+      const volumeStatsData = await this.statsServive.marketers(finalVolumeStatsQuery, sort);
 
-      let mergedStats = this.revenueStatsHelpers.mergedStatsData(revenueStatsData, volumeStatsData)
+      const mergedStats = this.revenueStatsHelpers.mergedStatsData(revenueStatsData, volumeStatsData)
 
       return res.status(200).json({
         success: true,
@@ -426,66 +423,6 @@ export class RevenueStatsController {
       });
     };
   };
-
-
-  // REVIEW: Move helper methods to after APIs
-  async prepareRawData(processedData) {
-
-    const finalProcessedData = processedData.map(obj => {
-      // Using destructuring to create a new object without the specified key
-      const { ["raw_id"]: deletedKey, ...newObject } = obj;
-      return newObject;
-    });
-
-    // get the revenue stats data based on the marketer_id and date
-    const revenueStatsData = await this.getAlreadyExistedData(finalProcessedData);
-
-    // Separating the existed and not existed revenue stats based on the abode revenueStatsData
-    let { matchedObjects, notMatchedObjects } = await this.seperateExistedAndNotExistedData(finalProcessedData, revenueStatsData);
-
-    return { matchedObjects, notMatchedObjects, revenueStatsData };
-  }
-
-
-  async getAlreadyExistedData(finalProcessedData) {
-    const someData = finalProcessedData.map(obj => {
-      // Using object destructuring to extract only the specified fields
-      const { marketer_id, date } = obj;
-      return { marketer_id, date };
-    })
-
-    const queryString: any = {
-      OR: someData.map(item => ({
-        AND: [
-          { marketer_id: item.marketer_id },
-          { date: new Date(item.date) }, // Assuming 'date' is stored as a Date in the database
-        ]
-      }))
-    }
-
-    const revenueStatsData = await this.revenueStatsService.getRevenueStats(queryString);
-
-    return revenueStatsData;
-  }
-
-  async seperateExistedAndNotExistedData(finalProcessedData, revenueStatsData) {
-    const matchedObjects = [];
-    const notMatchedObjects = finalProcessedData.filter(objOne => {
-      const matchingObj = revenueStatsData.find(objTwo =>
-        objOne.marketer_id === objTwo.marketer_id &&
-        new Date(objOne.date).toISOString() === new Date(objTwo.date).toISOString()
-      );
-
-      if (matchingObj) {
-        matchedObjects.push({ ...objOne, id: matchingObj.id });
-        return false; // Filter out the matched object
-      } else {
-        return true; // Keep the not matched object
-      }
-    });
-
-    return { matchedObjects, notMatchedObjects };
-  }
 
   @Post('monthly-graph')
   async monthWiseGraph(
@@ -550,60 +487,13 @@ export class RevenueStatsController {
       const toDate = reqBody.to_date;
       const marketerIds = reqBody.marketer_ids || [];
 
-      if (toDate < fromDate) {
-        return res.status(400).json({
-          success: false,
-          message: NOT_LESSER
-        })
-      };
-
-
-      let statsQuery;
-      if (managerId && marketerIds.length == 0) {
-        const marketersIdsArray = await this.statsHelper.getUsersData(managerId);
-
-        statsQuery = {
-          hospital_marketers: marketersIdsArray
-        };
-      } else {
-        statsQuery = {
-          hospital_marketers: marketerIds
-        };
-      };
+      const statsQuery = this.statsHelper.statsQueryBuilder(toDate, fromDate, res, managerId, marketerIds);
 
       let finalStatsQuery: any = this.filterHelper.revenueStats(statsQuery, fromDate, toDate);
 
       let statsData: any = await this.revenueStatsService.findAll(finalStatsQuery);
 
-      // REVIEW: Remove grouping in Controller and move this to helper
-
-      const groupedData = statsData.reduce((result, item) => {
-        // Increment the total_cases for each case_type_wise_counts
-        item.case_type_wise_counts.forEach((caseType) => {
-          const { case_type, paid_amount, total_amount, pending_amount } = caseType;
-
-          // If the case_type doesn't exist in the result object, create a new entry
-          if (!result[case_type]) {
-            result[case_type] = {
-              case_type: case_type,
-              paid_amount: 0,
-              pending_amount: 0,
-              total_amount: 0,
-            };
-          }
-
-          // Increment the counts for the specific case_type
-          result[case_type].pending_amount += pending_amount;
-          result[case_type].paid_amount += paid_amount;
-          result[case_type].total_amount += total_amount;
-        });
-
-        return result;
-      }, {});
-
-
-      // Convert the groupedData object back to an array
-      const groupedArray = Object.values(groupedData);
+      const groupedArray = await this.revenueStatsHelpers.groupRevenueStatsData(statsData);
 
       return res.status(200).json({
         success: true,
@@ -618,4 +508,164 @@ export class RevenueStatsController {
       });
     };
   };
+
+
+
+  @Post('volume-stats/individual')
+  async revenueAndVolumeStatsIndividual(
+    @Body() reqBody: ManagerIndividualDto,
+    @Res() res: any
+  ) {
+    try {
+      const orderBy = reqBody.order_by || "total_amount";
+      const orderType = reqBody.order_type || "desc";
+      const managerId = reqBody.manager_id;
+      const fromDate = reqBody.from_date;
+      const toDate = reqBody.to_date;
+      const marketerIds = reqBody.marketer_ids || [];
+
+      if (toDate < fromDate) {
+        return res.status(400).json({
+          success: false,
+          message: NOT_LESSER
+        })
+      };
+
+      let marketersIdsArray = [];
+      if (!marketerIds.length) {
+        marketersIdsArray = await this.statsHelper.getUsersData(managerId);
+      } else {
+        marketersIdsArray = marketerIds;
+      };
+      const revenueStatsQuery = this.filterHelper.hospitalWiseMarketers(fromDate, toDate, marketerIds, marketersIdsArray)
+      const revenueStatsData = await this.revenueStatsHelpers.forHospitalWiseData(orderBy, orderType, revenueStatsQuery);
+
+      const volumeStatsQuery = this.filterHelper.hospitalWiseMarketers(fromDate, toDate, marketerIds, marketersIdsArray)
+
+      const volumeStatsData = await this.statsHelper.forHospitalWiseData(orderBy, orderType, volumeStatsQuery);
+
+      const mergedStats = this.revenueStatsHelpers.mergeIndividualVolumeAndRevenueStats(revenueStatsData, volumeStatsData)
+
+      return res.status(200).json({
+        success: true,
+        message: SUCCESS_MARKETERS,
+        mergedStats
+      })
+    } catch (err) {
+      console.log({ err });
+      return res.status(500).json({
+        success: false,
+        message: err.message || SOMETHING_WENT_WRONG
+      });
+    }
+  }
+
+
+  @Post('test-wise')
+  async testWiseVolumeAndRevenueStats(
+    @Body() reqBody: ManagerCombinedDto,
+    @Res() res: any
+  ) {
+    try {
+      const orderBy = reqBody.order_by || "total_amount";
+      const orderType = reqBody.order_type || "desc";
+      const managerId = reqBody.manager_id;
+      const fromDate = reqBody.from_date;
+      const toDate = reqBody.to_date;
+      const marketerIds = reqBody.marketer_ids || [];
+
+      if (toDate < fromDate) {
+        return res.status(400).json({
+          success: false,
+          message: NOT_LESSER
+        })
+      };
+
+      let marketersIdsArray = [];
+      if (managerId && marketerIds.length == 0) {
+        marketersIdsArray = await this.statsHelper.getUsersData(managerId);
+      } else {
+        marketersIdsArray = marketerIds;
+      };
+
+      const revenueStatsQuery = this.filterHelper.hospitalWiseMarketers(fromDate, toDate, marketerIds, marketersIdsArray)
+      const revenueStatsData = await this.revenueStatsHelpers.forHospitalWiseData(orderBy, orderType, revenueStatsQuery);
+
+      const volumeStatsQuery = this.filterHelper.hospitalWiseMarketers(fromDate, toDate, marketerIds, marketersIdsArray)
+
+      const volumeStatsData = await this.statsHelper.forHospitalWiseData(orderBy, orderType, volumeStatsQuery);
+
+      const mergedStats = this.revenueStatsHelpers.mergeIndividualVolumeAndRevenueStats(revenueStatsData, volumeStatsData)
+
+      return res.status(200).json({
+        success: true,
+        message: SUCCESS_MARKETERS,
+        mergedStats
+      })
+    } catch (err) {
+      console.log({ err });
+      return res.status(500).json({
+        success: false,
+        message: err.message || SOMETHING_WENT_WRONG
+      });
+    }
+  }
+
+  async prepareRawData(processedData) {
+
+    const finalProcessedData = processedData.map(obj => {
+      // Using destructuring to create a new object without the specified key
+      const { ["raw_id"]: deletedKey, ...newObject } = obj;
+      return newObject;
+    });
+
+    // get the revenue stats data based on the marketer_id and date
+    const revenueStatsData = await this.getAlreadyExistedData(finalProcessedData);
+
+    // Separating the existed and not existed revenue stats based on the abode revenueStatsData
+    let { matchedObjects, notMatchedObjects } = await this.seperateExistedAndNotExistedData(finalProcessedData, revenueStatsData);
+
+    return { matchedObjects, notMatchedObjects, revenueStatsData };
+  }
+
+
+  async getAlreadyExistedData(finalProcessedData) {
+    const someData = finalProcessedData.map(obj => {
+      // Using object destructuring to extract only the specified fields
+      const { marketer_id, date } = obj;
+      return { marketer_id, date };
+    })
+
+    const queryString: any = {
+      OR: someData.map(item => ({
+        AND: [
+          { marketer_id: item.marketer_id },
+          { date: new Date(item.date) }, // Assuming 'date' is stored as a Date in the database
+        ]
+      }))
+    }
+
+    const revenueStatsData = await this.revenueStatsService.getRevenueStats(queryString);
+
+    return revenueStatsData;
+  }
+
+  async seperateExistedAndNotExistedData(finalProcessedData, revenueStatsData) {
+    const matchedObjects = [];
+    const notMatchedObjects = finalProcessedData.filter(objOne => {
+      const matchingObj = revenueStatsData.find(objTwo =>
+        objOne.marketer_id === objTwo.marketer_id &&
+        new Date(objOne.date).toISOString() === new Date(objTwo.date).toISOString()
+      );
+
+      if (matchingObj) {
+        matchedObjects.push({ ...objOne, id: matchingObj.id });
+        return false; // Filter out the matched object
+      } else {
+        return true; // Keep the not matched object
+      }
+    });
+
+    return { matchedObjects, notMatchedObjects };
+  }
 }

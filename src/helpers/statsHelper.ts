@@ -4,6 +4,7 @@ import { LisService } from "src/lis/lis.service";
 import { StatsService } from "src/stats/stats.service";
 import { FilterHelper } from "./filterHelper";
 import { SortHelper } from "./sortHelper";
+import { NOT_LESSER } from "src/constants/messageConstants";
 
 
 @Injectable()
@@ -228,17 +229,15 @@ export class StatsHelper {
     async forHospitalWiseData(orderBy, orderType, statsQuery) {
 
         let statsData: any = await this.statsService.findAll(statsQuery);
-
         const result = {};
 
         statsData.forEach((entry) => {
-
             entry.hospital_case_type_wise_counts.forEach((hospitalData) => {
                 const hospitalId = hospitalData.hospital;
 
                 if (!result[hospitalId]) {
                     // Initialize if not exists
-                    result[hospitalId] = { hospital: hospitalId, ...hospitalData };
+                    result[hospitalId] = { marketer_id: entry.marketer_id, hospital: hospitalId, ...hospitalData };
                 } else {
                     // Sum values
                     Object.keys(hospitalData).forEach((key) => {
@@ -255,6 +254,66 @@ export class StatsHelper {
         dataArray = this.sortHelper.hospitalWise(orderBy, orderType, dataArray);
 
         return dataArray;
+    }
+
+
+    async groupStatsData(rawData) {
+
+        const groupedData = rawData.reduce((result, item) => {
+            // Increment the total_cases for each case_type_wise_counts
+            item.case_type_wise_counts.forEach((caseType) => {
+                const { pending, completed, case_type } = caseType;
+
+                // If the case_type doesn't exist in the result object, create a new entry
+                if (!result[case_type]) {
+                    result[case_type] = {
+                        case_type: case_type,
+                        pending: 0,
+                        completed: 0,
+                        total_cases: 0,
+                    };
+                }
+
+                // Increment the counts for the specific case_type
+                result[case_type].pending += pending;
+                result[case_type].completed += completed;
+                result[case_type].total_cases += pending + completed;
+            });
+
+            return result;
+        }, {});
+
+
+        // Convert the groupedData object back to an array
+        const groupedArray = Object.values(groupedData);
+
+        return groupedArray;
+    }
+
+
+    async statsQueryBuilder(toDate, fromDate, res, managerId, marketerIds) {
+        if (toDate < fromDate) {
+            return res.status(400).json({
+                success: false,
+                message: NOT_LESSER
+            })
+        };
+
+
+        let statsQuery;
+        if (managerId && marketerIds.length == 0) {
+            const marketersIdsArray = await this.getUsersData(managerId);
+
+            statsQuery = {
+                hospital_marketers: marketersIdsArray
+            };
+        } else {
+            statsQuery = {
+                hospital_marketers: marketerIds
+            };
+        };
+
+        return statsQuery;
     }
 
 }

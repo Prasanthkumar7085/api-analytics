@@ -88,13 +88,7 @@ export class FilterHelper {
             }
         }
 
-        if (marketer) {
-            filter.marketer_id = {
-                equals: marketer
-            }
-        }
-
-        if (marketerIdsArray.length) {
+        if (marketerIdsArray.length > 0) {
             filter.marketer_id = {
                 in: marketerIdsArray
             }
