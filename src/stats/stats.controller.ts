@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, Param, Post, Req, Res } from '@nestjs/common';
-import { NOT_LESSER, SOMETHING_WENT_WRONG, SUCCESS_COMPLETE, SUCCESS_DELETE, SUCCESS_MARKETERS, SUCCESS_PENDING, SUCCESS_RETREIVE } from 'src/constants/messageConstants';
+import { NOT_LESSER, SOMETHING_WENT_WRONG, MONTHLY_STATS_SUCCESS, SUCCESS_COMPLETE, SUCCESS_DELETE, SUCCESS_MARKETERS, SUCCESS_PENDING, SUCCESS_RETREIVE, CASE_STATS_SUCCESS } from 'src/constants/messageConstants';
 import { FilterHelper } from 'src/helpers/filterHelper';
 import { PaginationHelper } from 'src/helpers/paginationHelper';
 import { SortHelper } from 'src/helpers/sortHelper';
@@ -360,6 +360,139 @@ export class StatsController {
         success: true,
         message: SUCCESS_MARKETERS,
         data: dataArray
+      })
+    } catch (err) {
+      console.log({ err });
+      return res.status(500).json({
+        success: false,
+        message: err.message || SOMETHING_WENT_WRONG
+      })
+    }
+  }
+
+
+  @Post("monthly-graph")
+  async monthWiseGraph(
+    @Body() reqBody: ManagerCombinedDto,
+    @Res() res: any
+  ) {
+    try {
+      const managerId = reqBody.manager_id;
+      const fromDate = reqBody.from_date;
+      const toDate = reqBody.to_date;
+      const marketerIds = reqBody.marketer_ids || [];
+
+      if (toDate < fromDate) {
+        return res.status(400).json({
+          success: false,
+          message: NOT_LESSER
+        })
+      };
+
+      let statsQuery;
+      if (managerId && marketerIds.length == 0) {
+        const marketersIdsArray = await this.statsHelper.getUsersData(managerId);
+
+        statsQuery = {
+          hospital_marketers: marketersIdsArray
+        };
+
+      } else {
+        statsQuery = {
+          hospital_marketers: marketerIds
+        };
+      };
+      let finalStatsQuery: any = this.filterHelper.stats(statsQuery, fromDate, toDate);
+
+      let statsData = await this.statsService.marketersMonthWise(finalStatsQuery);
+
+      return res.status(200).json({
+        success: true,
+        message: MONTHLY_STATS_SUCCESS,
+        data: statsData
+      })
+    } catch (err) {
+      console.log({ err });
+      return res.status(500).json({
+        success: false,
+        message: err.message || SOMETHING_WENT_WRONG
+      })
+    }
+  }
+
+
+  @Post("case-type-graph")
+  async caseTypeWiseGraph(
+    @Body() reqBody: ManagerCombinedDto,
+    @Res() res: any
+  ) {
+    try {
+      const managerId = reqBody.manager_id;
+      const fromDate = reqBody.from_date;
+      const toDate = reqBody.to_date;
+      const marketerIds = reqBody.marketer_ids || [];
+
+
+      // REVIEW: Remove query buildin in Controller and move this to helper 
+      if (toDate < fromDate) {
+        return res.status(400).json({
+          success: false,
+          message: NOT_LESSER
+        })
+      };
+
+      let statsQuery;
+      if (managerId && marketerIds.length == 0) {
+        const marketersIdsArray = await this.statsHelper.getUsersData(managerId);
+
+        statsQuery = {
+          hospital_marketers: marketersIdsArray
+        };
+
+      } else {
+        statsQuery = {
+          hospital_marketers: marketerIds
+        };
+      };
+      let finalStatsQuery: any = this.filterHelper.stats(statsQuery, fromDate, toDate);
+
+      let rawData: any = await this.statsService.findMany(finalStatsQuery);
+
+
+      // REVIEW: Remove grouping in Controller and move this to helper
+
+      const groupedData = rawData.reduce((result, item) => {
+        // Increment the total_cases for each case_type_wise_counts
+        item.case_type_wise_counts.forEach((caseType) => {
+          const { pending, completed, case_type } = caseType;
+
+          // If the case_type doesn't exist in the result object, create a new entry
+          if (!result[case_type]) {
+            result[case_type] = {
+              case_type: case_type,
+              pending: 0,
+              completed: 0,
+              total_cases: 0,
+            };
+          }
+
+          // Increment the counts for the specific case_type
+          result[case_type].pending += pending;
+          result[case_type].completed += completed;
+          result[case_type].total_cases += pending + completed;
+        });
+
+        return result;
+      }, {});
+
+
+      // Convert the groupedData object back to an array
+      const groupedArray = Object.values(groupedData);
+
+      return res.status(200).json({
+        success: true,
+        message: CASE_STATS_SUCCESS,
+        data: groupedArray
       })
     } catch (err) {
       console.log({ err });

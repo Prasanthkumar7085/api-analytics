@@ -2,7 +2,7 @@ import { StatsHelper } from 'src/helpers/statsHelper';
 import { Body, Controller, Delete, Get, Param, Patch, Post, Req, Res, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
-import { COMPLETED, DELETE_REVENUE_RAW, FILE_UPLOAD, NOT_LESSER, PENDING, PENDING_DATA, PROCESS_SUCCESS, REVENUE_MODIFIED_DATA, REVENUE_STATS, REVENUE_STAT_SINGLE, SOMETHING_WENT_WRONG, SUCCESS_MARKETERS } from 'src/constants/messageConstants';
+import { COMPLETED, DELETE_REVENUE_RAW, FILE_UPLOAD, NOT_LESSER, PENDING, PENDING_DATA, PROCESS_SUCCESS, REVENUE_MODIFIED_DATA, REVENUE_STATS, REVENUE_STAT_SINGLE, SOMETHING_WENT_WRONG, MONTHLY_STATS_SUCCESS, SUCCESS_MARKETERS, CASE_STATS_SUCCESS } from 'src/constants/messageConstants';
 import { FilterHelper } from 'src/helpers/filterHelper';
 import { PaginationHelper } from 'src/helpers/paginationHelper';
 import { RevenueStatsHelpers } from 'src/helpers/revenuStatsHelper';
@@ -427,6 +427,8 @@ export class RevenueStatsController {
     };
   };
 
+
+  // REVIEW: Move helper methods to after APIs
   async prepareRawData(processedData) {
 
     const finalProcessedData = processedData.map(obj => {
@@ -484,4 +486,136 @@ export class RevenueStatsController {
 
     return { matchedObjects, notMatchedObjects };
   }
+
+  @Post('monthly-graph')
+  async monthWiseGraph(
+    @Body() reqBody: ManagerCombinedDto,
+    @Res() res: any) {
+    try {
+
+      const orderBy = reqBody.order_by || "total_amount";
+      const orderType = reqBody.order_type || "desc";
+      const managerId = reqBody.manager_id;
+      const fromDate = reqBody.from_date;
+      const toDate = reqBody.to_date;
+      const marketerIds = reqBody.marketer_ids || [];
+
+      if (toDate < fromDate) {
+        return res.status(400).json({
+          success: false,
+          message: NOT_LESSER
+        })
+      };
+
+
+      let statsQuery;
+      if (managerId && marketerIds.length == 0) {
+        const marketersIdsArray = await this.statsHelper.getUsersData(managerId);
+
+        statsQuery = {
+          hospital_marketers: marketersIdsArray
+        };
+      } else {
+        statsQuery = {
+          hospital_marketers: marketerIds
+        };
+      };
+
+      let finalStatsQuery: any = this.filterHelper.revenueStats(statsQuery, fromDate, toDate);
+
+      let statsData = await this.revenueStatsService.marketersMonthWise(finalStatsQuery);
+
+      return res.status(200).json({
+        success: true,
+        message: MONTHLY_STATS_SUCCESS,
+        data: statsData
+      });
+    } catch (err) {
+      console.log({ err });
+      return res.status(500).json({
+        success: false,
+        message: err.message || SOMETHING_WENT_WRONG
+      });
+    };
+  };
+
+
+  @Post('case-type-graph')
+  async caseTypeWiseGraph(
+    @Body() reqBody: ManagerCombinedDto,
+    @Res() res: any) {
+    try {
+      const managerId = reqBody.manager_id;
+      const fromDate = reqBody.from_date;
+      const toDate = reqBody.to_date;
+      const marketerIds = reqBody.marketer_ids || [];
+
+      if (toDate < fromDate) {
+        return res.status(400).json({
+          success: false,
+          message: NOT_LESSER
+        })
+      };
+
+
+      let statsQuery;
+      if (managerId && marketerIds.length == 0) {
+        const marketersIdsArray = await this.statsHelper.getUsersData(managerId);
+
+        statsQuery = {
+          hospital_marketers: marketersIdsArray
+        };
+      } else {
+        statsQuery = {
+          hospital_marketers: marketerIds
+        };
+      };
+
+      let finalStatsQuery: any = this.filterHelper.revenueStats(statsQuery, fromDate, toDate);
+
+      let statsData: any = await this.revenueStatsService.findAll(finalStatsQuery);
+
+      // REVIEW: Remove grouping in Controller and move this to helper
+
+      const groupedData = statsData.reduce((result, item) => {
+        // Increment the total_cases for each case_type_wise_counts
+        item.case_type_wise_counts.forEach((caseType) => {
+          const { case_type, paid_amount, total_amount, pending_amount } = caseType;
+
+          // If the case_type doesn't exist in the result object, create a new entry
+          if (!result[case_type]) {
+            result[case_type] = {
+              case_type: case_type,
+              paid_amount: 0,
+              pending_amount: 0,
+              total_amount: 0,
+            };
+          }
+
+          // Increment the counts for the specific case_type
+          result[case_type].pending_amount += pending_amount;
+          result[case_type].paid_amount += paid_amount;
+          result[case_type].total_amount += total_amount;
+        });
+
+        return result;
+      }, {});
+
+
+      // Convert the groupedData object back to an array
+      const groupedArray = Object.values(groupedData);
+
+      return res.status(200).json({
+        success: true,
+        message: CASE_STATS_SUCCESS,
+        data: groupedArray
+      });
+    } catch (err) {
+      console.log({ err });
+      return res.status(500).json({
+        success: false,
+        message: err.message || SOMETHING_WENT_WRONG
+      });
+    };
+  };
 }
