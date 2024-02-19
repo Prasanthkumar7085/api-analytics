@@ -432,7 +432,7 @@ export class StatsController {
       const toDate = reqBody.to_date;
       const marketerIds = reqBody.marketer_ids || [];
 
-      const statsQuery = this.statsHelper.statsQueryBuilder(toDate, fromDate, res, managerId, marketerIds);
+      const statsQuery = await this.statsHelper.statsQueryBuilder(toDate, fromDate, res, managerId, marketerIds);
 
       let finalStatsQuery: any = this.filterHelper.stats(statsQuery, fromDate, toDate);
 
