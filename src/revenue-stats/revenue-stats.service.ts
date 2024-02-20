@@ -38,7 +38,7 @@ export class RevenueStatsService {
 
   async updateManyRaw(queryString) {
     const rawQuery = `
-    UPDATE revenue_marketers_schema AS t
+    UPDATE patient_payments AS t
     SET
       case_id = u.case_id,
       hospital = u.hospital,

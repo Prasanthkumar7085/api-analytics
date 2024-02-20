@@ -44,6 +44,7 @@ export class RevenueStatsController {
       // Need to get the Data from LIS based on the above modified data
       const finalModifiedData = await this.revenueStatsHelpers.getDataFromLis(modifiedData);
 
+
       // Need to seperate the existed raw stats and not existed raw stats
       const { matchedObjects, notMatchedObjects } = await this.revenueStatsHelpers.checkAlreadyExisted(finalModifiedData);
 
@@ -57,7 +58,8 @@ export class RevenueStatsController {
 
       return res.status(200).json({
         success: true,
-        message: FILE_UPLOAD
+        message: FILE_UPLOAD,
+        finalModifiedData
 
       });
     } catch (err) {

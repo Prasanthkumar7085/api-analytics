@@ -54,8 +54,7 @@ export class RevenueStatsHelpers {
             patient_adjustment_amount: e['Patient Adjustment Amount'],
             patient_write_of_amount: e['Patient Write-Off Amount'],
             line_item_balance: e['Line Item Balance'],
-            insurance_name: e['Primary Insurance'],
-            patient_id: e['Patient Id']
+            insurance_name: e['Primary Insurance']
         }))
 
         // Need to Group the Raw Data
@@ -186,6 +185,8 @@ export class RevenueStatsHelpers {
     mergeArrays(caseDataArray, modifiedData) {
         // Merge arrays based on hospital_marketer and date
         const mergedArrays = caseDataArray.map(objA => {
+            const patientId = objA.patient_info ? objA.patient_info._id.toString() : null;
+
             const matchingObjB = modifiedData.find(objB => objB.accession_id === objA.accession_id);
             return {
                 case_id: objA._id,
@@ -193,9 +194,11 @@ export class RevenueStatsHelpers {
                 hospital: objA.hospital,
                 hospital_marketers: objA.hospital_marketers,
                 process_status: "PENDING",
-                ...matchingObjB
+                ...matchingObjB,
+                patient_id: patientId
             };
         });
+
         return mergedArrays;
 
     }
