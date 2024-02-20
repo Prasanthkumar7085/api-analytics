@@ -30,7 +30,7 @@ export class RevenueStatsService {
   async deleteRevenueRawData(id) {
     return this.prisma.patient_payments.deleteMany({
       where: {
-        id: id
+        // id: id
       }
     })
   }
@@ -61,12 +61,13 @@ export class RevenueStatsService {
       process_status = u.process_status,
       payment_status = u.payment_status,
       date_of_service = u.date_of_service,
-      hospital_marketers = u.hospital_marketers
+      hospital_marketers = u.hospital_marketers,
+      patient_id = u.patient_id
     FROM(
       VALUES
 
     ${queryString}
-    ) as u(case_id, hospital, accession_id, cpt_codes, line_item_total, insurance_payment_amount, insurance_adjustment_amount, insurance_write_of_amount, patient_payment_amount, patient_adjustment_amount, patient_write_of_amount, line_item_balance, insurance_name, total_amount, paid_amount, pending_amount, difference_values, values_changed, process_status, payment_status, date_of_service, hospital_marketers)
+    ) as u(case_id, hospital, accession_id, cpt_codes, line_item_total, insurance_payment_amount, insurance_adjustment_amount, insurance_write_of_amount, patient_payment_amount, patient_adjustment_amount, patient_write_of_amount, line_item_balance, insurance_name, total_amount, paid_amount, pending_amount, difference_values, values_changed, process_status, payment_status, date_of_service, hospital_marketers, patient_id)
     WHERE t.accession_id = u.accession_id AND t.date_of_service = u.date_of_service`
 
     return this.prisma.$executeRawUnsafe(rawQuery);

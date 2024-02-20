@@ -30,6 +30,7 @@ export class RevenueStatsHelpers {
 
             // Get the data from CSV
             const csvFileData = await this.fileUploadDataServiceProvider.processCsv(file);
+
             // modify raw data from csvFileData
             const modifiedData = await this.modifyRawData(csvFileData)
 
@@ -40,7 +41,7 @@ export class RevenueStatsHelpers {
     }
 
 
-    modifyRawData(csvFileData) {
+    async modifyRawData(csvFileData) {
         let rawData = csvFileData.map((e) => ({
             accession_id: e['Chart #'],
             date_of_service: e['Service Date'] ? this.modifyDate(e['Service Date']) : null,
@@ -56,9 +57,9 @@ export class RevenueStatsHelpers {
             line_item_balance: e['Line Item Balance'],
             insurance_name: e['Primary Insurance']
         }))
-
         // Need to Group the Raw Data
         const modifiedData = this.groupingKeys(rawData);
+
         return modifiedData;
     }
 
@@ -114,7 +115,6 @@ export class RevenueStatsHelpers {
                     patient_write_of_amount: [item.patient_write_of_amount],
                     line_item_balance: [item.line_item_balance],
                     insurance_name: item.insurance_name,
-                    patient_id: item.patient_id
                 };
                 acc.push(newEntry);
             }
@@ -656,8 +656,8 @@ export class RevenueStatsHelpers {
                 const formattedDate = new Date(entry.date_of_service).toISOString();
                 const formattedMarketers = entry.hospital_marketers.map(m => `('${JSON.stringify(m)}'::jsonb)`).join(', ');
 
-                return `('${entry.case_id}', '${entry.hospital}', '${entry.accession_id}', ARRAY[${formattedCptCodes}]::jsonb[], ARRAY[${formattedLineItemTotal}]::jsonb[], ARRAY[${formattedInsurancePaymentAmount}]::jsonb[], ARRAY[${formattedInsuranceAdjustmentAmount}]::jsonb[], ARRAY[${formattedInsuranceWriteOfAmount}]::jsonb[], ARRAY[${formattedPatientPaymentAmount}]::jsonb[], ARRAY[${formattedPatientAdjustmentAmount}]::jsonb[], ARRAY[${formattedPatientWriteOfAmount}]::jsonb[], ARRAY[${formattedLineItemBalance}]::jsonb[], '${entry.insurance_name}', ${entry.total_amount}, ${entry.paid_amount}, ${entry.pending_amount}, '{"total_amount_difference":${entry.difference_values.total_amount_difference},"paid_amount_difference":${entry.difference_values.paid_amount_difference},"pending_amount_difference":${entry.difference_values.pending_amount_difference}}'::jsonb, ${entry.values_changed}, '${entry.process_status}', '${entry.payment_status}', '${formattedDate}'::timestamp, ARRAY[${formattedMarketers}]::jsonb[])`;
-
+                const formattedQueryEntry = `('${entry.case_id}', '${entry.hospital}', '${entry.accession_id}', ARRAY[${formattedCptCodes}]::jsonb[], ARRAY[${formattedLineItemTotal}]::jsonb[], ARRAY[${formattedInsurancePaymentAmount}]::jsonb[], ARRAY[${formattedInsuranceAdjustmentAmount}]::jsonb[], ARRAY[${formattedInsuranceWriteOfAmount}]::jsonb[], ARRAY[${formattedPatientPaymentAmount}]::jsonb[], ARRAY[${formattedPatientAdjustmentAmount}]::jsonb[], ARRAY[${formattedPatientWriteOfAmount}]::jsonb[], ARRAY[${formattedLineItemBalance}]::jsonb[], '${entry.insurance_name}', ${entry.total_amount}, ${entry.paid_amount}, ${entry.pending_amount}, '{"total_amount_difference":${entry.difference_values.total_amount_difference},"paid_amount_difference":${entry.difference_values.paid_amount_difference},"pending_amount_difference":${entry.difference_values.pending_amount_difference}}'::jsonb, ${entry.values_changed}, '${entry.process_status}', '${entry.payment_status}', '${formattedDate}'::timestamp, ARRAY[${formattedMarketers}]::jsonb[], '${entry.patient_id}')`;
+                return formattedQueryEntry;
             });
 
             const finalString = convertedData.join(',');
@@ -744,12 +744,12 @@ export class RevenueStatsHelpers {
         return groupedArray;
     }
 
-    mergeIndividualVolumeAndRevenueStats(revenueStatsData, volumeStatsData){
+    mergeIndividualVolumeAndRevenueStats(revenueStatsData, volumeStatsData) {
         const mergedData = revenueStatsData.map(revenueItem => {
-            const matchingVolumeItem = volumeStatsData.find(volumeItem => 
+            const matchingVolumeItem = volumeStatsData.find(volumeItem =>
                 volumeItem.marketer_id === revenueItem.marketer_id && volumeItem.hospital === revenueItem.hospital
             );
-        
+
             return {
                 marketer_id: revenueItem.marketer_id,
                 hospital: revenueItem.hospital,
@@ -761,9 +761,9 @@ export class RevenueStatsHelpers {
                 },
                 volume_stats: { ...matchingVolumeItem }
             };
-        
+
         });
-        
+
 
         return mergedData;
     }

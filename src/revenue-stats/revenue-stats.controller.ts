@@ -54,6 +54,7 @@ export class RevenueStatsController {
 
       // Newly obtained stats will inserting into our db
       if (notMatchedObjects.length > 0) {
+
         await this.revenueStatsService.saveDataInDb(notMatchedObjects);
       }
 
