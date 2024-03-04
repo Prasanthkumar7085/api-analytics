@@ -1,5 +1,4 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { CreateSalesRepDto } from './dto/create-sales-rep.dto';
 import { UpdateSalesRepDto } from './dto/update-sales-rep.dto';
 import * as fs from 'fs';
 
@@ -8,9 +7,6 @@ import * as fs from 'fs';
 
 @Injectable()
 export class SalesRepService {
-  create(createSalesRepDto: CreateSalesRepDto) {
-    return 'This action adds a new salesRep';
-  }
 
   async findAll() {
     // from Volume

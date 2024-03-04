@@ -1,8 +1,8 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, Res, Query } from '@nestjs/common';
 import { SalesRepService } from './sales-rep.service';
-import { CreateSalesRepDto } from './dto/create-sales-rep.dto';
+import { SalesRepDto } from './dto/create-sales-rep.dto';
 import { UpdateSalesRepDto } from './dto/update-sales-rep.dto';
-import { SOMETHING_WENT_WRONG, SUCCESS_FETCHED_SALES_REP } from 'src/constants/messageConstants';
+import { SOMETHING_WENT_WRONG, SUCCESS_FETCHED_SALES_REP, SUCCESS_FETCHED_SALES_REP_COUNT_AND_VOLUME, SUCCESS_FETCHED_CASE_TYPES_REVENUE } from 'src/constants/messageConstants';
 import * as fs from 'fs';
 
 
@@ -34,20 +34,19 @@ export class SalesRepController {
   }
 
 
-  @Post('case-types/:id')
+  @Post('case-types')
   async getOneSalesRep(
-    @Param('id') id: any, @Res() res: any,
-    @Query('start_date') start_date: Date,
-    @Query('end_date') end_date: Date,
+    @Body() salesRepDto: SalesRepDto,
+    @Res() res: any,
   ) {
     try {
-
-      const { totalCounts, total } = await this.salesRepService.findOneVolume(id, start_date, end_date)
-      const revenueData = await this.salesRepService.findOneRevenue(id, start_date, end_date)
+      const { marketer_id, from_date, to_date } = salesRepDto
+      const { totalCounts, total } = await this.salesRepService.findOneVolume(marketer_id, from_date, to_date)
+      const revenueData = await this.salesRepService.findOneRevenue(marketer_id, from_date, to_date)
 
       return res.status(200).json({
         success: true,
-        message: 'case types wise count',
+        message: SUCCESS_FETCHED_SALES_REP_COUNT_AND_VOLUME,
         data: {
           volume_data: { total, count: totalCounts },
           revenue_data: { total: revenueData.total_amount, case_wise_revenue: revenueData.totalCaseTypeAmount }
@@ -65,29 +64,27 @@ export class SalesRepController {
 
 
 
-  @Post('case-types/revenue/:id')
+  @Post('case-types/revenue')
   async getOneSalesRepDuration(
-    @Param('id') id: string,
-    @Query('start_date') start_date: any, //lets assume its jan 1st 2023
-    @Query('end_date') end_date: any, //lets assume its dec 31st 2023
-    @Res() res: any) {
+    @Body() salesRepDto: SalesRepDto,
+    @Res() res: any,
+  ) {
     try {
+      const { marketer_id, from_date, to_date } = salesRepDto
 
-      const data = await this.salesRepService.getOneSalesRepDuration(id, new Date(start_date), new Date(end_date))
+      const data = await this.salesRepService.getOneSalesRepDuration(marketer_id, new Date(from_date), new Date(to_date))
 
       return res.status(200).json({
         success: true,
-        message: 'Successfully fetched data',
+        message: SUCCESS_FETCHED_CASE_TYPES_REVENUE,
         data: data
       })
 
     } catch (error) {
       return res.status(500).json({
         success: false,
-        message: error || SOMETHING_WENT_WRONG
+        message: error.message || SOMETHING_WENT_WRONG
       })
     }
   }
-
-
 }
