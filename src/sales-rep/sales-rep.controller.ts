@@ -2,8 +2,10 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, Res } from '@nestjs/
 import { SalesRepService } from './sales-rep.service';
 import { CreateSalesRepDto } from './dto/create-sales-rep.dto';
 import { UpdateSalesRepDto } from './dto/update-sales-rep.dto';
-import { SOMETHING_WENT_WRONG, SUCCESS_FETCHED_SALES_REP } from 'src/constants/messageConstants';
+import { SINGLE_REP_FACILITY_WISE, SOMETHING_WENT_WRONG, SUCCESS_FETCHED_SALES_REP, SUCCESS_MARKETER } from 'src/constants/messageConstants';
 import * as fs from 'fs';
+import { FacilityWiseDto } from './dto/facility-wise.dto';
+import { SalesRepDto } from './dto/sales-rep.dto';
 
 @Controller({
   version: '1.0',
@@ -12,14 +14,54 @@ import * as fs from 'fs';
 export class SalesRepController {
   constructor(private readonly salesRepService: SalesRepService) { }
 
+
+@Get(':marketer_id')
+async getMarketer(@Res() res: any, @Param() param: any){
+  try {
+    const marketerid = param.marketer_id;
+
+    const marketerDetails = await this.salesRepService.getMarketer(marketerid);
+    return res.status(200).json({
+      success: true,
+      message: SUCCESS_MARKETER,
+      data: marketerDetails
+    })
+  } catch(err){
+    console.log({err});
+    return res.status(500).json({
+      success: false,
+      message: err || SOMETHING_WENT_WRONG
+    })
+  }
+}
+
+
+
   @Post('')
-  async getAllSalesRep(@Res() res: any) {
+  async getAllSalesRep(@Res() res: any, @Body() body: SalesRepDto) {
     try {
+
+      const fromDate = body.from_date;
+      const toDate = body.to_date;
+
+
 
       // from Volume
       const volumeResponse = fs.readFileSync('./VolumeStatsData.json', "utf-8");
 
-      const finalVoumeResp = JSON.parse(volumeResponse);
+      let finalVoumeResp = JSON.parse(volumeResponse);
+
+
+      if (fromDate && toDate) {
+        const fromDateObj = new Date(fromDate);
+        const toDateObj = new Date(toDate);
+
+        // Filter the array based on the date range
+        finalVoumeResp = finalVoumeResp.filter(item => {
+          const itemDate = new Date(item.date);
+          return itemDate >= fromDateObj && itemDate <= toDateObj;
+        });
+      }
 
       const groupedVolumeData = finalVoumeResp.reduce((acc, item) => {
         const { marketer_id, total_cases, hospital_case_type_wise_counts } = item;
@@ -28,16 +70,21 @@ export class SalesRepController {
           acc[marketer_id] = {
             marketer_id,
             total_cases: 0,
-            hospitals_count: 0,
+            hospitals_count: 0
           };
         }
+
+        let uniqueHospitals = new Set();
 
         const uniqueHospitalIds = new Set(
           hospital_case_type_wise_counts.map((hospital) => hospital.hospital)
         );
 
-        acc[marketer_id].hospitals_count += uniqueHospitalIds.size;
+        uniqueHospitalIds.forEach((hospitalId) => {
+          uniqueHospitals.add(hospitalId);
+        });
 
+        acc[marketer_id].hospitals_count += uniqueHospitalIds.size;
         acc[marketer_id].total_cases += total_cases;
 
         return acc;
@@ -49,7 +96,19 @@ export class SalesRepController {
       // from revenue
       const revenueResponse = fs.readFileSync('./RevenueStatsData.json', "utf-8");
 
-      const finalRevenueResp = JSON.parse(revenueResponse);
+      let finalRevenueResp = JSON.parse(revenueResponse);
+
+      if (fromDate && toDate) {
+        const fromDateObj = new Date(fromDate);
+        const toDateObj = new Date(toDate);
+
+        // Filter the array based on the date range
+        finalRevenueResp = finalRevenueResp.filter(item => {
+          const itemDate = new Date(item.date);
+          return itemDate >= fromDateObj && itemDate <= toDateObj;
+        });
+      }
+
       const groupedRevenueData = finalRevenueResp.reduce((acc, item) => {
         const { marketer_id, total_amount, pending_amount, paid_amount } = item;
 
@@ -100,5 +159,164 @@ export class SalesRepController {
         message: err || SOMETHING_WENT_WRONG
       })
     }
+  }
+
+  @Post('facility-wise')
+  async getFacilityWiseForSingleRep(@Res() res: any, @Body() body: FacilityWiseDto) {
+    try {
+
+      const marketerId = body.marketer_id;
+      const fromDate = body.from_date;
+      const toDate = body.to_date;
+
+      // from volume
+      const volumeData = this.getsingleRepVolumeFacilityWise(marketerId, fromDate, toDate);
+
+
+      const revenueData = this.getsingleRepRevenueFacilityWise(marketerId, fromDate, toDate);
+
+      const combinedArray = revenueData.map(revenueEntry => {
+        const matchingVolumeEntry = volumeData.find(volumeEntry => volumeEntry.hospital === revenueEntry.hospital);
+
+        if (matchingVolumeEntry) {
+          return {
+            hospital: revenueEntry.hospital,
+            paid_amount: revenueEntry.paid_amount,
+            total_amount: revenueEntry.total_amount,
+            pending_amount: revenueEntry.pending_amount,
+            total_cases: matchingVolumeEntry.total_cases
+          };
+        } else {
+          return revenueEntry;
+        }
+      });
+
+      return res.status(200).json({
+        success: true,
+        message: SINGLE_REP_FACILITY_WISE,
+        combinedArray
+      })
+    } catch (err) {
+      console.log(err);
+      return res.status(500).json({
+        success: false,
+        message: err || SOMETHING_WENT_WRONG
+      })
+    }
+  }
+
+
+  getsingleRepVolumeFacilityWise(marketerId, fromDate, toDate) {
+    const volumeResponse = fs.readFileSync('./VolumeStatsData.json', "utf-8");
+    const finalVolumeResp = JSON.parse(volumeResponse);
+    let volumeData = finalVolumeResp.filter(item => item.marketer_id === marketerId);
+
+    if (fromDate && toDate) {
+      const fromDateObj = new Date(fromDate);
+      const toDateObj = new Date(toDate);
+
+      // Filter the array based on the date range
+      volumeData = volumeData.filter(item => {
+        const itemDate = new Date(item.date);
+        return itemDate >= fromDateObj && itemDate <= toDateObj;
+      });
+    }
+
+
+    const hospitalWiseData = {};
+
+    volumeData.forEach(item => {
+      item.hospital_case_type_wise_counts.forEach(hospitalEntry => {
+        const hospitalID = hospitalEntry.hospital;
+
+        if (!hospitalWiseData[hospitalID]) {
+          hospitalWiseData[hospitalID] = {
+            uti: 0,
+            nail: 0,
+            covid: 0,
+            wound: 0,
+            gastro: 0,
+            cardiac: 0,
+            gti_sti: 0,
+            diabetes: 0,
+            pgx_test: 0,
+            cgx_panel: 0,
+            covid_flu: 0,
+            toxicology: 0,
+            urinalysis: 0,
+            pad_alzheimers: 0,
+            pulmonary_panel: 0,
+            gti_womens_health: 0,
+            clinical_chemistry: 0,
+            respiratory_pathogen_panel: 0,
+          };
+        }
+
+        // Accumulate counts for each case type
+        Object.keys(hospitalEntry).forEach(caseType => {
+          if (caseType !== 'hospital') {
+            hospitalWiseData[hospitalID][caseType] += hospitalEntry[caseType];
+          }
+        });
+
+      });
+    });
+
+    const totalCasesPerHospital = Object.keys(hospitalWiseData).map(hospitalID => {
+      const totalCases = Object.values(hospitalWiseData[hospitalID]).reduce((sum: number, count: number) => sum + count, 0);
+      return {
+        hospital: hospitalID,
+        total_cases: totalCases,
+      };
+    });
+
+    return totalCasesPerHospital;
+  }
+
+
+  getsingleRepRevenueFacilityWise(marketerId, fromDate, toDate) {
+    const revenueResponse = fs.readFileSync('./RevenueStatsData.json', "utf-8");
+
+    let finalRevenueResp = JSON.parse(revenueResponse);
+
+    let revenueData = finalRevenueResp.filter(item => item.marketer_id === marketerId);
+
+    if (fromDate && toDate) {
+      const fromDateObj = new Date(fromDate);
+      const toDateObj = new Date(toDate);
+
+      // Filter the array based on the date range
+      revenueData = revenueData.filter(item => {
+        const itemDate = new Date(item.date);
+        return itemDate >= fromDateObj && itemDate <= toDateObj;
+      });
+    }
+
+    const aggregatedData = [];
+
+    revenueData.forEach(entry => {
+      entry.hospital_wise_counts.forEach(hospitalEntry => {
+        const hospitalId = hospitalEntry.hospital;
+
+        // Find existing entry in the aggregatedData array
+        const existingEntry = aggregatedData.find(item => item.hospital === hospitalId);
+
+        if (existingEntry) {
+          existingEntry.paid_amount += hospitalEntry.paid_amount;
+          existingEntry.total_amount += hospitalEntry.total_amount;
+          existingEntry.pending_amount += hospitalEntry.pending_amount;
+        } else {
+          // If the entry does not exist, create a new one
+          aggregatedData.push({
+            hospital: hospitalId,
+            paid_amount: hospitalEntry.paid_amount,
+            total_amount: hospitalEntry.total_amount,
+            pending_amount: hospitalEntry.pending_amount,
+          });
+        }
+      });
+    });
+
+    return aggregatedData;
   }
 }

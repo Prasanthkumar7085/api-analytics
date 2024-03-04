@@ -1,26 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { CreateSalesRepDto } from './dto/create-sales-rep.dto';
 import { UpdateSalesRepDto } from './dto/update-sales-rep.dto';
+import { UserModel } from 'src/schemas/userSchema';
+import { InjectModel } from '@nestjs/mongoose';
 
 @Injectable()
 export class SalesRepService {
-  create(createSalesRepDto: CreateSalesRepDto) {
-    return 'This action adds a new salesRep';
-  }
+  constructor(
+    @InjectModel('User') private userModel: typeof UserModel
+  ) { }
 
-  findAll() {
-    return `This action returns all salesRep`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} salesRep`;
-  }
-
-  update(id: number, updateSalesRepDto: UpdateSalesRepDto) {
-    return `This action updates a #${id} salesRep`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} salesRep`;
-  }
+  async getMarketer(id) {
+    return await this.userModel.findById(id);
+}
 }
