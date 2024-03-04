@@ -2,8 +2,8 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, Res } from '@nestjs/
 import { OverviewService } from './overview.service';
 import { CreateOverviewDto } from './dto/create-overview.dto';
 import { UpdateOverviewDto } from './dto/update-overview.dto';
-import * as fs from 'fs';
 import { SalesRepHelper } from 'src/helpers/salesRepHelper';
+import { SUCCESS_FETCHED_CASE_TYPE_VOLUME_AND_COUNT } from 'src/constants/messageConstants';
 
 
 @Controller({
@@ -22,14 +22,17 @@ export class OverviewController {
     try {
 
       const { from_date, to_date } = createOverviewDto
-      console.log(from_date)
-      console.log(to_date)
-      const data = await this.salesRepHelper.getOverviewCaseTypesData(from_date, to_date)
+
+      const volumeData = await this.salesRepHelper.getOverviewCaseTypesVolumeData(from_date, to_date)
+      const revenueData = await this.salesRepHelper.getOverviewCaseTypesRevenueData(from_date, to_date)
 
       return res.status(200).json({
         success: true,
-        message: 'Successfully fetched all case types data',
-        data: { total: data.total, case_type_wise_count: data.totalCounts }
+        message: SUCCESS_FETCHED_CASE_TYPE_VOLUME_AND_COUNT,
+        data: {
+          volume_data: { total: volumeData.total, case_type_wise_count: volumeData.totalCounts },
+          revenue_data: { total: revenueData.total_amount, case_type_wise_count: revenueData.totalCaseTypeAmount }
+        }
       })
     }
     catch (error) {
@@ -38,11 +41,6 @@ export class OverviewController {
         message: error.message
       })
     }
-
-
-
-
-
   }
 
   @Get()
