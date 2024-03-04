@@ -11,6 +11,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { RevenueStatsModule } from './revenue-stats/revenue-stats.module';
 import { UserSchema } from './schemas/userSchema';
 import { StatsModule } from './stats/stats.module';
+import { SalesRepModule } from './sales-rep/sales-rep.module';
 
 
 @Module({
@@ -20,7 +21,7 @@ import { StatsModule } from './stats/stats.module';
     }),
     MongooseModule.forFeature([{ name: 'UserSchema', schema: UserSchema }]),
     MongooseModule.forRoot(process.env.LIS_DB_URL + '?authSource=admin'),
-    StatsModule, PrismaModule, LisModule, RevenueStatsModule],
+    StatsModule, PrismaModule, LisModule, RevenueStatsModule, SalesRepModule],
   controllers: [AppController],
   providers: [AppService],
 })
