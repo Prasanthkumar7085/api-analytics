@@ -324,27 +324,53 @@ export class SalesRepHelper {
     }
 
 
-    async getOverviewCaseTypesData(from_date, to_date) {
+    async getOverviewCaseTypesVolumeData(from_date, to_date) {
         const volumeResponse = fs.readFileSync('./VolumeStatsData.json', "utf-8");
         const finalVolumeResp = JSON.parse(volumeResponse);
 
         let totalCounts = {};
-        let total: number;
+        let total: number = 0;
 
-        console.log(from_date)
-        console.log(to_date)
         for (const item of finalVolumeResp) {
             let date = item.date
             if (date >= from_date && date <= to_date) {
 
                 total += item.total_cases
+
                 item.case_type_wise_counts.forEach(caseType => {
                     const { case_type, pending, completed } = caseType;
                     totalCounts[case_type] = (totalCounts[case_type] || 0) + pending + completed
                 });
             }
         }
-
         return { totalCounts, total }
+    }
+
+
+    async getOverviewCaseTypesRevenueData(from_date, to_date) {
+        const revenueResponse = fs.readFileSync('./RevenueStatsData.json', "utf-8");
+        const revenue = JSON.parse(revenueResponse);
+
+
+
+        let totalCaseTypeAmount = {};
+        let total_amount: number = 0;
+
+
+        for (const item of revenue) {
+
+            if (item.date >= from_date && item.date <= to_date) {
+                total_amount += item.total_amount
+
+                item.case_type_wise_counts.forEach(caseType => {
+                    const { case_type, total_amount } = caseType;
+                    totalCaseTypeAmount[case_type] = (totalCaseTypeAmount[case_type] || 0) + total_amount
+                })
+            }
+
+        }
+        return { totalCaseTypeAmount, total_amount }
+
+
     }
 }
