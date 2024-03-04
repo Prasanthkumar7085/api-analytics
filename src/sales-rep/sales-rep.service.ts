@@ -29,28 +29,37 @@ export class SalesRepService {
 
 
 
-  async getRevenueSats(id:string){
+  async getRevenueSats(id:string, start_date:Date, end_date:Date){
 
     const RevenueStatsData = fs.readFileSync('RevenueStatsData.json',  "utf-8")
     const finalRevenueResp = JSON.parse(RevenueStatsData)
+
     let total_amount = 0;
     let paid_amount = 0;
     let pending_amount = 0;
 
     for (let i = 0; i < finalRevenueResp.length; i++){
-
-      if (finalRevenueResp[i].marketer_id==id){
-        total_amount = total_amount + finalRevenueResp[i].total_amount,
-        paid_amount = paid_amount+finalRevenueResp[i].paid_amount
-        pending_amount = pending_amount+finalRevenueResp[i].pending_amount
+      const date = new Date(finalRevenueResp[i].date)
+      
+      if (start_date < end_date) {
+      
+        if (date >= start_date && date <= end_date){
+          if (finalRevenueResp[i].marketer_id==id){
+            
+            total_amount = total_amount + finalRevenueResp[i].total_amount,
+            paid_amount = paid_amount+finalRevenueResp[i].paid_amount
+            pending_amount = pending_amount+finalRevenueResp[i].pending_amount
+          }
+        }
       }
+
     }
     return ({total_amount:total_amount,paid_amount:paid_amount,pending_amount:pending_amount})
   }
 
 
 
-  async getVolumeStats(id:string){
+  async getVolumeStats(id:string, start_date: Date, end_date:Date){
     const VolumeStatsData = fs.readFileSync('VolumeStatsData.json',  "utf-8")
     const finalVolumeResp = JSON.parse(VolumeStatsData)
 
@@ -59,11 +68,17 @@ export class SalesRepService {
     let pending_cases = 0;
 
     for (let i = 0; i < finalVolumeResp.length; i++){
-      if (finalVolumeResp[i].marketer_id==id){
-        total_cases = total_cases+finalVolumeResp[i].total_cases,
-        completed_cases = completed_cases+finalVolumeResp[i].completed_cases,
-        pending_cases = pending_cases+finalVolumeResp[i].pending_cases
-
+      const date = new Date(finalVolumeResp[i].date)
+      if (start_date < end_date){
+        if (date >= start_date && date <=  end_date){
+  
+          if (finalVolumeResp[i].marketer_id==id){
+            total_cases = total_cases+finalVolumeResp[i].total_cases,
+            completed_cases = completed_cases+finalVolumeResp[i].completed_cases,
+            pending_cases = pending_cases+finalVolumeResp[i].pending_cases
+    
+          }
+        }
       }
     }
     return ({total_cases : total_cases,completed_cases : completed_cases,pending_cases : pending_cases})

@@ -28,10 +28,14 @@ export class SalesRepController {
     }
   }
 
-  @Get('stats-revenue/:id')
-  async getRevenueStats(@Res() res:any, @Param('id') id:string) {
+  @Post('stats-revenue')
+  async getRevenueStats(@Res() res:any, @Body() salesrepDto:CreateSalesRepDto) {
     try{
-      const {total_amount,paid_amount,pending_amount} = await this.salesRepService.getRevenueSats(id)
+      const id=salesrepDto.marketer_id
+      const start_date = new Date(salesrepDto.from_date)
+      const end_date = new Date(salesrepDto.to_date)
+
+      const {total_amount,paid_amount,pending_amount} = await this.salesRepService.getRevenueSats(id, start_date, end_date)
       return res.status(200).json({
         success:true,
         marketer_id: id,
@@ -50,10 +54,13 @@ export class SalesRepController {
     }
   }
 
-  @Get('stats-volume/:id')
-  async getVolumeStats(@Res() res:any, @Param('id') id:string) {
+  @Post('stats-volume')
+  async getVolumeStats(@Res() res:any, @Body() saleRepDto:CreateSalesRepDto) {
     try {
-      const {total_cases,completed_cases,pending_cases} = await this.salesRepService.getVolumeStats(id)
+      const id = saleRepDto.marketer_id
+      const start_date = new Date(saleRepDto.from_date)
+      const end_date = new Date(saleRepDto.to_date)
+      const {total_cases,completed_cases,pending_cases} = await this.salesRepService.getVolumeStats(id,start_date, end_date)
       return res.status(200).json({
         success:true,
         marketer_id: id,
@@ -72,11 +79,12 @@ export class SalesRepController {
     } 
   }
 
-  @Get('cases-types/volume/:id')
-  async getCaseTypesVolumeMonthWise(@Res() res:any, @Param('id') id:string, @Query() query:string){
+  @Post('cases-types/volume')
+  async getCaseTypesVolumeMonthWise(@Res() res:any, @Body() salesRepDto: CreateSalesRepDto){
     try {
-      const start = new Date(query['start'])
-      const end = new Date(query['end'])
+      const id=salesRepDto.marketer_id
+      const start = new Date(salesRepDto.from_date)
+      const end = new Date(salesRepDto.to_date)
       const data = await this.salesRepService.getCaseTypesVolumeMonthWise(id, start, end)
 
       return res.status(200).json({
