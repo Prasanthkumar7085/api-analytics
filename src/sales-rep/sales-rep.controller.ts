@@ -1,14 +1,14 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Res } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Res, Query } from '@nestjs/common';
 import { SalesRepService } from './sales-rep.service';
 import { CreateSalesRepDto } from './dto/create-sales-rep.dto';
 import { UpdateSalesRepDto } from './dto/update-sales-rep.dto';
-import { SINGLE_REP_FACILITY_WISE, SOMETHING_WENT_WRONG, SUCCESS_FETCHED_SALES_REP, SUCCESS_MARKETER } from 'src/constants/messageConstants';
+import { SINGLE_REP_FACILITY_WISE, SOMETHING_WENT_WRONG, SUCCESS_FECTED_SALE_REP_REVENUE_STATS, SUCCESS_FECTED_SALE_REP_VOLUME_STATS, SUCCESS_FETCHED_SALES_REP, SUCCESS_FETCHED_SALE_VOLUME_MONTH_WISE, SUCCESS_MARKETER } from 'src/constants/messageConstants';
 import * as fs from 'fs';
 import { FacilityWiseDto } from './dto/facility-wise.dto';
 import { SalesRepDto } from './dto/sales-rep.dto';
 
 @Controller({
-  version: '1.0',
+  version: '2.0',
   path: 'sales-rep',
 })
 export class SalesRepController {
@@ -204,8 +204,81 @@ async getMarketer(@Res() res: any, @Param() param: any){
       })
     }
   }
+  
+  @Post('stats-revenue')
+  async getRevenueStats(@Res() res:any, @Body() salesrepDto:CreateSalesRepDto) {
+    try{
+      const id=salesrepDto.marketer_id
+      const start_date = new Date(salesrepDto.from_date)
+      const end_date = new Date(salesrepDto.to_date)
+
+      const {total_amount,paid_amount,pending_amount} = await this.getRevenueStatsData(id, start_date, end_date)
+      return res.status(200).json({
+        success:true,
+        marketer_id: id,
+        message: SUCCESS_FECTED_SALE_REP_REVENUE_STATS,
+        data : {
+          generated : total_amount,
+          collected : paid_amount,
+          pending : pending_amount,
+        }
+      })
+    } catch (err) {
+      return res.status(500).json({
+        success:false,
+        message: err
+      })
+    }
+  }
+
+  @Post('stats-volume')
+  async getVolumeStats(@Res() res:any, @Body() saleRepDto:CreateSalesRepDto) {
+    try {
+      const id = saleRepDto.marketer_id
+      const start_date = new Date(saleRepDto.from_date)
+      const end_date = new Date(saleRepDto.to_date)
+      const {total_cases,completed_cases,pending_cases} = await this.getVolumeStatsData(id,start_date, end_date)
+      return res.status(200).json({
+        success:true,
+        marketer_id: id,
+        message: SUCCESS_FECTED_SALE_REP_VOLUME_STATS,
+        data : {
+          total : total_cases,
+          completed:completed_cases,
+          pending:pending_cases
+        }
+      })
+    } catch (err) {
+      return res.status(500).json({
+        success:false,
+        message: err
+      })
+    } 
+  }
+
+  @Post('cases-types/volume')
+  async getCaseTypesVolumeMonthWise(@Res() res:any, @Body() salesRepDto: CreateSalesRepDto){
+    try {
+      const id=salesRepDto.marketer_id
+      const start = new Date(salesRepDto.from_date)
+      const end = new Date(salesRepDto.to_date)
+      const data = await this.caseTypesVolumeMonthWise(id, start, end)
+
+      return res.status(200).json({
+        success:true,
+        message:SUCCESS_FETCHED_SALE_VOLUME_MONTH_WISE,
+        data: data
+      })
+    } catch (err) {
+      return res.status(500).json({
+        success:false,
+        message: err
+      })
+    }
+  }
 
 
+  
   getsingleRepVolumeFacilityWise(marketerId, fromDate, toDate) {
     const volumeResponse = fs.readFileSync('./VolumeStatsData.json', "utf-8");
     const finalVolumeResp = JSON.parse(volumeResponse);
@@ -318,5 +391,100 @@ async getMarketer(@Res() res: any, @Param() param: any){
     });
 
     return aggregatedData;
+  }
+
+
+  
+  async getRevenueStatsData(id:string, start_date:Date, end_date:Date){
+
+    const RevenueStatsData = fs.readFileSync('RevenueStatsData.json',  "utf-8")
+    const finalRevenueResp = JSON.parse(RevenueStatsData)
+
+    let total_amount = 0;
+    let paid_amount = 0;
+    let pending_amount = 0;
+
+    for (let i = 0; i < finalRevenueResp.length; i++){
+      const date = new Date(finalRevenueResp[i].date)
+      
+      if (start_date < end_date) {
+      
+        if (date >= start_date && date <= end_date){
+          if (finalRevenueResp[i].marketer_id==id){
+            
+            total_amount = total_amount + finalRevenueResp[i].total_amount,
+            paid_amount = paid_amount+finalRevenueResp[i].paid_amount
+            pending_amount = pending_amount+finalRevenueResp[i].pending_amount
+          }
+        }
+      }
+
+    }
+    return ({total_amount:total_amount,paid_amount:paid_amount,pending_amount:pending_amount})
+  }
+
+
+
+  async getVolumeStatsData(id:string, start_date: Date, end_date:Date){
+    const VolumeStatsData = fs.readFileSync('VolumeStatsData.json',  "utf-8")
+    const finalVolumeResp = JSON.parse(VolumeStatsData)
+
+    let total_cases = 0;
+    let completed_cases = 0;
+    let pending_cases = 0;
+
+    for (let i = 0; i < finalVolumeResp.length; i++){
+      const date = new Date(finalVolumeResp[i].date)
+      if (start_date < end_date){
+        if (date >= start_date && date <=  end_date){
+  
+          if (finalVolumeResp[i].marketer_id==id){
+            total_cases = total_cases+finalVolumeResp[i].total_cases,
+            completed_cases = completed_cases+finalVolumeResp[i].completed_cases,
+            pending_cases = pending_cases+finalVolumeResp[i].pending_cases
+    
+          }
+        }
+      }
+    }
+    return ({total_cases : total_cases,completed_cases : completed_cases,pending_cases : pending_cases})
+  }
+
+
+
+  async caseTypesVolumeMonthWise(id, start, end) {
+    const VolumeStatsData = fs.readFileSync('VolumeStatsData.json', "utf-8");
+    const finalVolumeResp = JSON.parse(VolumeStatsData);
+
+    let totalCounts = {};
+    let count = 0
+
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+    while (startDate <= endDate) {
+        const monthYear = startDate.toLocaleString('default', { month: 'long', year: 'numeric' });
+
+        totalCounts[monthYear] = {count:0, case_type_wise_counts:{}};
+        startDate.setMonth(startDate.getMonth() + 1);
+    }
+
+    for (let i = 0; i < finalVolumeResp.length; i++) {
+        
+        if (finalVolumeResp[i].marketer_id == id) {
+      
+          let date = new Date(finalVolumeResp[i].date);
+            if (date >= start && date <= end) {
+                
+              const monthYear = date.toLocaleString('default', { month: 'long', year: 'numeric' });
+
+              finalVolumeResp[i].case_type_wise_counts.forEach(caseType => {
+                  const { case_type, pending, completed } = caseType;
+                  totalCounts[monthYear]['case_type_wise_counts'][case_type] = (totalCounts[monthYear]['case_type_wise_counts'][case_type] || 0) + pending + completed;
+                  totalCounts[monthYear]['count'] += (pending+completed);
+              });
+            }
+        }
+    }
+    return totalCounts;
   }
 }
