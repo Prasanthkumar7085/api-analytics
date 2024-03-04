@@ -322,4 +322,29 @@ export class SalesRepHelper {
         }
         return total_counts
     }
+
+
+    async getOverviewCaseTypesData(from_date, to_date) {
+        const volumeResponse = fs.readFileSync('./VolumeStatsData.json', "utf-8");
+        const finalVolumeResp = JSON.parse(volumeResponse);
+
+        let totalCounts = {};
+        let total: number;
+
+        console.log(from_date)
+        console.log(to_date)
+        for (const item of finalVolumeResp) {
+            let date = item.date
+            if (date >= from_date && date <= to_date) {
+
+                total += item.total_cases
+                item.case_type_wise_counts.forEach(caseType => {
+                    const { case_type, pending, completed } = caseType;
+                    totalCounts[case_type] = (totalCounts[case_type] || 0) + pending + completed
+                });
+            }
+        }
+
+        return { totalCounts, total }
+    }
 }
