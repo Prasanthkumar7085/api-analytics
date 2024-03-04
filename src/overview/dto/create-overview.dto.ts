@@ -1,12 +1,7 @@
-// export class CreateOverviewDto {}
-
-
-
 import { IsDateString, IsMongoId, IsNotEmpty, IsOptional, IsString } from "class-validator";
 
 
 export class CreateOverviewDto {
-
     // @IsMongoId({ each: true, message: "Invalid Marketer" })
     // @IsString({ message: "Invalid Marketer" })
     // @IsNotEmpty({ message: "Marketer is Required" })

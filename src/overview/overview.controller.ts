@@ -3,7 +3,8 @@ import { OverviewService } from './overview.service';
 import { CreateOverviewDto } from './dto/create-overview.dto';
 import { UpdateOverviewDto } from './dto/update-overview.dto';
 import { SalesRepHelper } from 'src/helpers/salesRepHelper';
-import { SUCCESS_FETCHED_CASE_TYPE_VOLUME_AND_COUNT } from 'src/constants/messageConstants';
+import { SUCCESS_FETCHED_OVERVIEW_REVENUE_STATS, SUCCESS_FETCHED_OVERVIEW_VOLUME_STATS, SUCCESS_FETCHED_OVERVIEW_REVENUE, SUCCESS_FETCHED_CASE_TYPE_VOLUME_AND_COUNT } from 'src/constants/messageConstants';
+
 
 
 @Controller({
@@ -17,7 +18,7 @@ export class OverviewController {
 
   ) { }
 
-  @Post()
+  @Post('case-types')
   async getOverViewCaseTypes(@Body() createOverviewDto: CreateOverviewDto, @Res() res: any) {
     try {
 
@@ -63,4 +64,70 @@ export class OverviewController {
     return this.overviewService.remove(+id);
   }
 
+  @Post('stats-revenue')
+  async getRevenueStats(@Res() res: any, @Body() overviewDto: CreateOverviewDto) {
+    try {
+      const start_date = new Date(overviewDto.from_date)
+      const end_date = new Date(overviewDto.to_date)
+
+      const { total_amount, paid_amount, pending_amount } = await this.salesRepHelper.getOverviewRevenueStatsData(start_date, end_date)
+      return res.status(200).json({
+        success: true,
+        message: SUCCESS_FETCHED_OVERVIEW_REVENUE_STATS,
+        data: {
+          generated: total_amount,
+          collected: paid_amount,
+          pending: pending_amount,
+        }
+      })
+    } catch (err) {
+      return res.status(500).json({
+        success: false,
+        message: err
+      })
+    }
+  }
+
+  @Post('stats-volume')
+  async getVolumeStats(@Res() res: any, @Body() overviewDto: CreateOverviewDto) {
+    try {
+      const start_date = new Date(overviewDto.from_date)
+      const end_date = new Date(overviewDto.to_date)
+      const { total_cases, completed_cases, pending_cases } = await this.salesRepHelper.getOverViewVolumeStatsData(start_date, end_date)
+      return res.status(200).json({
+        success: true,
+        message: SUCCESS_FETCHED_OVERVIEW_VOLUME_STATS,
+        data: {
+          total: total_cases,
+          completed: completed_cases,
+          pending: pending_cases
+        }
+      })
+    } catch (err) {
+      return res.status(500).json({
+        success: false,
+        message: err
+      })
+    }
+  }
+
+  @Post('revenue')
+  async revenuGraph(@Res() res: any, @Body() overviewDto: CreateOverviewDto) {
+    try {
+      const from_date = new Date(overviewDto.from_date)
+      const to_date = new Date(overviewDto.to_date)
+      const data = await this.salesRepHelper.getRevenueGraph(from_date, to_date)
+      return res.status(200).json({
+        success: true,
+        messgae: SUCCESS_FETCHED_OVERVIEW_REVENUE,
+        data: data
+      })
+    }
+    catch (err) {
+      return res.status(500).json({
+        success: false,
+        message: err
+      })
+    }
+  }
 }
