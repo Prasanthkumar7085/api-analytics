@@ -1,6 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { CreateFacilityDto } from './dto/create-facility.dto';
-import { UpdateFacilityDto } from './dto/update-facility.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { HospitalModel } from 'src/schemas/hospitalSchema';
 

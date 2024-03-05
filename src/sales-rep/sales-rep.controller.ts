@@ -314,7 +314,7 @@ export class SalesRepController {
     try {
       const { marketer_id, from_date, to_date } = salesRepDto
 
-      const data = await this.salesRepHelper.getOneSalesRepDurationData(marketer_id, new Date(from_date), new Date(to_date))
+      const data = await this.salesRepHelper.getCaseTypeRevenueMonthWise(marketer_id, new Date(from_date), new Date(to_date))
 
       return res.status(200).json({
         success: true,

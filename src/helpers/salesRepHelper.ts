@@ -327,14 +327,14 @@ export class SalesRepHelper {
         const finalVolumeResp = JSON.parse(volumeResponse);
 
         let totalCounts = {};
-        let total: number;
+        let total: number = 0;
 
         for (let i = 0; i < finalVolumeResp.length; i++) {
             if (finalVolumeResp[i].marketer_id == id) {
                 let date = finalVolumeResp[i].date
                 if (date >= start_date && date <= end_date) {
 
-                    total = finalVolumeResp[i].total_cases
+                    total += finalVolumeResp[i].total_cases
 
                     finalVolumeResp[i].case_type_wise_counts.forEach(caseType => {
                         const { case_type, pending, completed } = caseType;
@@ -358,7 +358,7 @@ export class SalesRepHelper {
         const revenue = JSON.parse(revenueResponse);
 
         let totalCaseTypeAmount = {};
-        let total_amount: number;
+        let total_amount: number = 0;
 
 
         for (const item of revenue) {
@@ -367,7 +367,7 @@ export class SalesRepHelper {
 
 
 
-                    total_amount = item.total_amount
+                    total_amount += item.total_amount
 
                     item.case_type_wise_counts.forEach(caseType => {
                         const { case_type, total_amount } = caseType;
@@ -382,7 +382,7 @@ export class SalesRepHelper {
 
 
 
-    async getOneSalesRepDurationData(id, start_date, end_date) {
+    async getCaseTypeRevenueMonthWise(id, start_date, end_date) {
         const revenueResponse = fs.readFileSync('./RevenueStatsData.json', "utf-8");
         const revenue = JSON.parse(revenueResponse);
 
@@ -396,7 +396,26 @@ export class SalesRepHelper {
 
             total_counts[monthYear] = {
                 total_revenue: 0,
-                case_type_wise: {}
+                case_type_wise: {
+                    "covid": 0,
+                    "respiratory_pathogen_panel": 0,
+                    "toxicology": 0,
+                    "clinical_chemistry": 0,
+                    "uti": 0,
+                    "urinalysis": 0,
+                    "pgx": 0,
+                    "wound": 0,
+                    "nail": 0,
+                    "covid_flu": 0,
+                    "cgx": 0,
+                    "cardiac": 0,
+                    "diabetes": 0,
+                    "gastro": 0,
+                    "pad": 0,
+                    "pulmonary": 0,
+                    "gti_sti": 0,
+                    "gti_womens_health": 0
+                }
             };
             startDate.setMonth(startDate.getMonth() + 1);
         }
