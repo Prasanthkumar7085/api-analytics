@@ -1,34 +1,63 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Res } from '@nestjs/common';
 import { FacilitiesService } from './facilities.service';
-import { CreateFacilityDto } from './dto/create-facility.dto';
-import { UpdateFacilityDto } from './dto/update-facility.dto';
+import { SOMETHING_WENT_WRONG, SUCCESS_FETCHED_FACILITIES } from 'src/constants/messageConstants';
+import { FacilitiesHelper } from 'src/helpers/facilitiesHelper';
+import { FacilitiesDto } from './dto/facilities.dto';
 
-@Controller('facilities')
+@Controller({
+  version: '2.0',
+  path: 'facilities',
+})
 export class FacilitiesController {
-  constructor(private readonly facilitiesService: FacilitiesService) {}
+  constructor(
+    private readonly facilitiesService: FacilitiesService,
+    private readonly facilitiesHelper: FacilitiesHelper
+  ) { }
+
 
   @Post()
-  create(@Body() createFacilityDto: CreateFacilityDto) {
-    return this.facilitiesService.create(createFacilityDto);
-  }
+  async getAllFacilities(@Res() res: any, @Body() body: FacilitiesDto) {
+    try {
 
-  @Get()
-  findAll() {
-    return this.facilitiesService.findAll();
-  }
+      const fromDate = body.from_date;
+      const toDate = body.to_date;
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.facilitiesService.findOne(+id);
-  }
+      // for volume facility wise
+      const volumeData = this.facilitiesHelper.forVolumeFacilityWise(fromDate, toDate);
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateFacilityDto: UpdateFacilityDto) {
-    return this.facilitiesService.update(+id, updateFacilityDto);
-  }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.facilitiesService.remove(+id);
+      // for revenue facility wise
+      const revenueData = this.facilitiesHelper.forRevenueFacilityWise(fromDate, toDate);
+
+      const combinedData = [];
+
+      revenueData.forEach((revenueEntry) => {
+        const volumeEntry = volumeData.find((v) => v.marketer_id === revenueEntry.marketer_id && v.hospital === revenueEntry.hospital);
+
+        if (volumeEntry) {
+          combinedData.push({
+            marketer_id: revenueEntry.marketer_id,
+            hospital: revenueEntry.hospital,
+            paid_amount: revenueEntry.paid_amount,
+            total_amount: revenueEntry.total_amount,
+            pending_amount: revenueEntry.pending_amount,
+            total_cases: volumeEntry.total_cases
+          });
+        }
+      });
+
+
+      return res.status(200).json({
+        success: true,
+        message: SUCCESS_FETCHED_FACILITIES,
+        combinedData
+      })
+    } catch (err) {
+      console.log({ err });
+      return res.status(500).json({
+        success: false,
+        message: err || SOMETHING_WENT_WRONG
+      })
+    }
   }
 }
