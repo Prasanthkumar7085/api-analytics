@@ -75,6 +75,74 @@ export class FacilitiesHelper {
         }
         return { case_type_wise_revenue, total_revenue }
     }
+
+
+
+    async findOneRevenueBasedOnFacilityMonthWise(id, from_date, to_date) {
+        const revenueResponse = fs.readFileSync('./RevenueStatsData.json', "utf-8");
+        const revenue = JSON.parse(revenueResponse);
+
+        let data = {};
+
+        const startDate = new Date(from_date)
+        const endDate = new Date(to_date)
+
+
+        while (startDate <= endDate) {
+            const monthYear = startDate.toLocaleString('default', { month: 'long', year: 'numeric' });
+
+            data[monthYear] = {
+                total_revenue: 0,
+                "case_type_wise_count": {
+                    "covid": 0,
+                    "respiratory_pathogen_panel": 0,
+                    "toxicology": 0,
+                    "clinical_chemistry": 0,
+                    "uti": 0,
+                    "urinalysis": 0,
+                    "pgx": 0,
+                    "wound": 0,
+                    "nail": 0,
+                    "covid_flu": 0,
+                    "cgx": 0,
+                    "cardiac": 0,
+                    "diabetes": 0,
+                    "gastro": 0,
+                    "pad": 0,
+                    "pulmonary": 0,
+                    "gti_sti": 0,
+                    "gti_womens_health": 0
+                }
+            };
+            startDate.setMonth(startDate.getMonth() + 1);
+        }
+
+        console.log(data);
+
+        for (const item of revenue) {
+            const itemDate = new Date(item.date);
+
+            if (itemDate >= new Date(from_date) && itemDate <= new Date(to_date)) {
+
+                for (const hospital of item.hospital_wise_counts) {
+                    if (hospital.hospital === id) {
+
+                        const monthYear = itemDate.toLocaleString('default', { month: 'long', year: 'numeric' })
+                        item.case_type_wise_counts.forEach(caseType => {
+                            const { case_type, total_amount } = caseType;
+
+                            data[monthYear]['case_type_wise_count'][case_type] = (data[monthYear]['case_type_wise_count'][case_type] || 0) + total_amount
+                            data[monthYear]['total_revenue'] += total_amount
+                        })
+                    }
+                }
+            }
+
+        }
+
+        return data;
+
+    }
 }
 
 

@@ -228,7 +228,7 @@ export class SalesRepHelper {
 
                 if (date >= start_date && date <= end_date) {
                     total_amount = total_amount + finalRevenueResp[i].total_amount,
-                    paid_amount = paid_amount + finalRevenueResp[i].paid_amount
+                        paid_amount = paid_amount + finalRevenueResp[i].paid_amount
                     pending_amount = pending_amount + finalRevenueResp[i].pending_amount
                 }
             }
@@ -240,29 +240,29 @@ export class SalesRepHelper {
     async getOverViewVolumeStatsData(start_date: Date, end_date: Date) {
         const VolumeStatsData = fs.readFileSync('VolumeStatsData.json', "utf-8")
         const finalVolumeResp = JSON.parse(VolumeStatsData)
-        
+
         let total_cases = 0;
         let completed_cases = 0;
         let pending_cases = 0;
-        
+
         for (let i = 0; i < finalVolumeResp.length; i++) {
             const date = new Date(finalVolumeResp[i].date)
             if (start_date < end_date) {
-            
+
                 if (date >= start_date && date <= end_date) {
                     total_cases = total_cases + finalVolumeResp[i].total_cases,
-                    completed_cases = completed_cases + finalVolumeResp[i].completed_cases,
-                    pending_cases = pending_cases + finalVolumeResp[i].pending_cases
+                        completed_cases = completed_cases + finalVolumeResp[i].completed_cases,
+                        pending_cases = pending_cases + finalVolumeResp[i].pending_cases
                 }
             }
         }
         return ({ total_cases: total_cases, completed_cases: completed_cases, pending_cases: pending_cases })
     }
 
-    async getRevenueGraph(from_date:Date, to_date: Date) {
+    async getRevenueGraph(from_date: Date, to_date: Date) {
         const RevenueStatsData = fs.readFileSync('RevenueStatsData.json', "utf-8")
         const finalRevenueResp = JSON.parse(RevenueStatsData)
-        
+
         let total_counts = {}
         const startDate = new Date(from_date)
         const endDate = new Date(to_date)
@@ -272,7 +272,7 @@ export class SalesRepHelper {
 
             total_counts[monthYear] = {
                 total_revenue_billed: 0,
-                total_revenue_collected:0,
+                total_revenue_collected: 0,
             };
             startDate.setMonth(startDate.getMonth() + 1);
         }
@@ -339,7 +339,7 @@ export class SalesRepHelper {
         const revenue = JSON.parse(revenueResponse);
 
         let totalCaseTypeAmount = {};
-        let total_amount: number;
+        let total_amount: number = 0;
 
 
         for (const item of revenue) {
@@ -348,7 +348,7 @@ export class SalesRepHelper {
 
 
 
-                    total_amount = item.total_amount
+                    total_amount += item.total_amount
 
                     item.case_type_wise_counts.forEach(caseType => {
                         const { case_type, total_amount } = caseType;
@@ -363,7 +363,7 @@ export class SalesRepHelper {
 
 
 
-    async getOneSalesRepDurationData(id, start_date, end_date) {
+    async getCaseTypeRevenueMonthWise(id, start_date, end_date) {
         const revenueResponse = fs.readFileSync('./RevenueStatsData.json', "utf-8");
         const revenue = JSON.parse(revenueResponse);
 
@@ -377,7 +377,26 @@ export class SalesRepHelper {
 
             total_counts[monthYear] = {
                 total_revenue: 0,
-                case_type_wise: {}
+                case_type_wise: {
+                    "covid": 0,
+                    "respiratory_pathogen_panel": 0,
+                    "toxicology": 0,
+                    "clinical_chemistry": 0,
+                    "uti": 0,
+                    "urinalysis": 0,
+                    "pgx": 0,
+                    "wound": 0,
+                    "nail": 0,
+                    "covid_flu": 0,
+                    "cgx": 0,
+                    "cardiac": 0,
+                    "diabetes": 0,
+                    "gastro": 0,
+                    "pad": 0,
+                    "pulmonary": 0,
+                    "gti_sti": 0,
+                    "gti_womens_health": 0
+                }
             };
             startDate.setMonth(startDate.getMonth() + 1);
         }
