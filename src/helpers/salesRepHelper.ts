@@ -308,14 +308,14 @@ export class SalesRepHelper {
         const finalVolumeResp = JSON.parse(volumeResponse);
 
         let totalCounts = {};
-        let total: number;
+        let total: number = 0;
 
         for (let i = 0; i < finalVolumeResp.length; i++) {
             if (finalVolumeResp[i].marketer_id == id) {
                 let date = finalVolumeResp[i].date
                 if (date >= start_date && date <= end_date) {
 
-                    total = finalVolumeResp[i].total_cases
+                    total += finalVolumeResp[i].total_cases
 
                     finalVolumeResp[i].case_type_wise_counts.forEach(caseType => {
                         const { case_type, pending, completed } = caseType;
