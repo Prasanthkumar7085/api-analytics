@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { CARDIAC, CGX, CLINICAL_CHEMISTRY, COVID, COVID_FLU, DIABETES, GASTRO, GTISTI, GTIWOMENSHEALTH, NAIL, PAD, PGX, PULMONARY, RESPIRATORY_PATHOGEN_PANEL, TOXICOLOGY, URINALYSIS, UTI, WOUND, prepareHospitalWiseCounts } from "src/constants/statsConstants";
+import { CARDIAC, CGX, CLINICAL_CHEMISTRY, COVID, COVID_FLU, DIABETES, GASTRO, GTISTI, GTIWOMENSHEALTH, NAIL, PAD, PGX, PULMONARY, RESPIRATORY_PATHOGEN_PANEL, TOXICOLOGY, URINALYSIS, UTI, WOUND, prepareHospitalWiseCounts } from "src/constants/lisConstants";
 import { LisService } from "src/lis/lis.service";
 import { StatsService } from "src/stats/stats.service";
 import { FilterHelper } from "./filterHelper";

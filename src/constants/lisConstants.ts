@@ -143,3 +143,10 @@ export const prepareHospitalWiseCounts = {
 
 export const total_amount = "total_amount"
 export const total_cases = "total_cases"
+
+
+export const ACTIVE = "ACTIVE"
+export const INACTIVE = "INACTIVE"
+export const ARCHIVED = "ARCHIVED"
+
+export const HOSPITAL_STATUS = [ACTIVE, INACTIVE, ARCHIVED]

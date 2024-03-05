@@ -1,26 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { CreateFacilityDto } from './dto/create-facility.dto';
 import { UpdateFacilityDto } from './dto/update-facility.dto';
+import { InjectModel } from '@nestjs/mongoose';
+import { HospitalModel } from 'src/schemas/hospitalSchema';
 
 @Injectable()
 export class FacilitiesService {
-  create(createFacilityDto: CreateFacilityDto) {
-    return 'This action adds a new facility';
-  }
+  constructor(
+    @InjectModel('Hospital') private hospitalModel: typeof HospitalModel
+  ) { }
 
-  findAll() {
-    return `This action returns all facilities`;
+  getHospital(hospitalId){
+    return this.hospitalModel.findById(hospitalId)
   }
-
-  findOne(id: number) {
-    return `This action returns a #${id} facility`;
-  }
-
-  update(id: number, updateFacilityDto: UpdateFacilityDto) {
-    return `This action updates a #${id} facility`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} facility`;
-  }
+  
 }
