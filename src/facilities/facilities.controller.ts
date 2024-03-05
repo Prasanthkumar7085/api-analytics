@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, Res } from '@nestjs/common';
 import { FacilitiesService } from './facilities.service';
-import { SOMETHING_WENT_WRONG, SUCCESS_FETCHED_FACILITIES, SUCCESS_FETCHED_FACILITY, SUCCESS_VOLUME_TREND, SUCCESS_FETCHED_FACILITIES_REVENUE_STATS, SUCCESS_FETCHED_FACILITIES_VOLUME_STATS, SUCCESSS_FETCHED_FACILITIES_CASES_TYPES_VOLUME, SUCCESS_FETCHED_CASE_TYPE_VOLUME_AND_COUNT, SUCCESS_FETCHED_CASE_TYPES_REVENUE, SUCCESS_FETCHED_REVENUE_MONTH_WISE_TRENDS } from 'src/constants/messageConstants';
+import { SOMETHING_WENT_WRONG, SUCCESS_FETCHED_FACILITIES, SUCCESS_FETCHED_FACILITY, SUCCESS_VOLUME_TREND, SUCCESS_FETCHED_FACILITIES_REVENUE_STATS, SUCCESS_FETCHED_FACILITIES_VOLUME_STATS, SUCCESSS_FETCHED_FACILITIES_CASES_TYPES_VOLUME, SUCCESS_FETCHED_CASE_TYPES_REVENUE, SUCCESS_FETCHED_REVENUE_MONTH_WISE_TRENDS, SUCCESS_FETCHED_FACILITY_CASE_TYPE_VOLUME_AND_REVENUE } from 'src/constants/messageConstants';
 import { FacilitiesHelper } from 'src/helpers/facilitiesHelper';
 import { FacilitiesDto } from './dto/facilities.dto';
 import { FacilityDto } from './dto/facility.dto';
@@ -196,7 +196,7 @@ export class FacilitiesController {
 
       return res.status(200).json({
         success: true,
-        message: SUCCESS_FETCHED_CASE_TYPE_VOLUME_AND_COUNT,
+        message: SUCCESS_FETCHED_FACILITY_CASE_TYPE_VOLUME_AND_REVENUE,
         data: {
           volume_data: {
             total_count: volumeData.total_count,
