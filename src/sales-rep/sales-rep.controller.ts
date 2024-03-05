@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Res, Query } from '@nestjs/common';
+import { Controller, Get, Body, Param, Res, Query } from '@nestjs/common';
 import { SalesRepService } from './sales-rep.service';
 import { SINGLE_REP_FACILITY_WISE, SOMETHING_WENT_WRONG, SUCCESS_FECTED_SALE_REP_REVENUE_STATS, SUCCESS_FECTED_SALE_REP_VOLUME_STATS, SUCCESS_FETCHED_CASE_TYPES_REVENUE, SUCCESS_FETCHED_SALES_REP, SUCCESS_FETCHED_SALES_REP_VOLUME_AND_REVENU, SUCCESS_FETCHED_SALE_VOLUME_MONTH_WISE, SUCCESS_FETCHED_TREND_REVENUE, SUCCESS_MARKETER, SUCCESS_FETCHED_SALE_TREND_VOLUME } from 'src/constants/messageConstants';
 import * as fs from 'fs';
@@ -39,7 +39,7 @@ export class SalesRepController {
 
 
 
-  @Post()
+  @Get()
   async getAllSalesRep(@Res() res: any, @Body() body: SalesRepDto) {
     try {
       const fromDate = body.from_date;
@@ -162,7 +162,7 @@ export class SalesRepController {
     }
   }
 
-  @Post(':id/facilities')
+  @Get(':id/facilities')
   async getFacilityWiseForSingleRep(@Res() res: any, @Query() query: any, @Param() param: any) {
     try {
 
@@ -206,12 +206,12 @@ export class SalesRepController {
     }
   }
 
-  @Post(':id/stats-revenue')
+  @Get(':id/stats-revenue')
   async getRevenueStats(@Res() res: any, @Query() query: any, @Param() param: any) {
     try {
       const id = param.id
-      const start_date = new Date(query.from_date)
-      const end_date = new Date(query.to_date)
+      const start_date = query.from_date
+      const end_date = query.to_date
 
       const { total_amount, paid_amount, pending_amount } = await this.salesRepHelper.getRevenueStatsData(id, start_date, end_date)
       return res.status(200).json({
@@ -233,7 +233,7 @@ export class SalesRepController {
   }
 
 
-  @Post(':id/case-types')
+  @Get(':id/case-types')
   async getOneSalesRep(
     @Query() query: any,
     @Param() param: any,
@@ -248,10 +248,94 @@ export class SalesRepController {
       return res.status(200).json({
         success: true,
         message: SUCCESS_FETCHED_SALES_REP_VOLUME_AND_REVENU,
-        data: {
-          volume_data: { total, count: totalCounts },
-          revenue_data: { total: revenueData.total_amount, case_wise_revenue: revenueData.totalCaseTypeAmount }
-        }
+        data: [
+          {
+            "case_type": "COVID",
+            "paid_revenue": 11638,
+            "total_cases": 770
+          },
+          {
+            "case_type": "RESPIRATORY_PATHOGEN_PANEL",
+            "paid_revenue": 4419,
+            "total_cases": 304
+          },
+          {
+            "case_type": "TOXICOLOGY",
+            "paid_revenue": 42301,
+            "total_cases": 2205
+          },
+          {
+            "case_type": "CLINICAL_CHEMISTRY",
+            "paid_revenue": 5799,
+            "total_cases": 287
+          },
+          {
+            "case_type": "UTI",
+            "paid_revenue": 10371,
+            "total_cases": 429
+          },
+          {
+            "case_type": "URINALYSIS",
+            "paid_revenue": 5957,
+            "total_cases": 197
+          },
+          {
+            "case_type": "PGX",
+            "paid_revenue": 2008
+          },
+          {
+            "case_type": "WOUND",
+            "paid_revenue": 1717,
+            "total_cases": 105
+          },
+          {
+            "case_type": "NAIL",
+            "paid_revenue": 1048,
+            "total_cases": 47
+          },
+          {
+            "case_type": "COVID_FLU",
+            "paid_revenue": 5181,
+            "total_cases": 251
+          },
+          {
+            "case_type": "CGX",
+            "paid_revenue": 5076
+          },
+          {
+            "case_type": "CARDIAC",
+            "paid_revenue": 6618,
+            "total_cases": 367
+          },
+          {
+            "case_type": "DIABETES",
+            "paid_revenue": 3162,
+            "total_cases": 165
+          },
+          {
+            "case_type": "GASTRO",
+            "paid_revenue": 1225,
+            "total_cases": 111
+          },
+          {
+            "case_type": "PAD",
+            "paid_revenue": 1082
+          },
+          {
+            "case_type": "PULMONARY",
+            "paid_revenue": 1311
+          },
+          {
+            "case_type": "GTI_STI",
+            "paid_revenue": 640,
+            "total_cases": 33
+          },
+          {
+            "case_type": "GTI_WOMENS_HEALTH",
+            "paid_revenue": 610,
+            "total_cases": 36
+          }
+        ]
       })
     } catch (err) {
       console.log({ err });
@@ -262,12 +346,12 @@ export class SalesRepController {
     }
   }
 
-  @Post(':id/stats-volume')
+  @Get(':id/stats-volume')
   async getVolumeStats(@Res() res: any, @Query() query: any, @Param() param: any) {
     try {
       const id = param.id
-      const start_date = new Date(query.from_date)
-      const end_date = new Date(query.to_date)
+      const start_date = query.from_date
+      const end_date = query.to_date
       const { total_cases, completed_cases, pending_cases } = await this.salesRepHelper.getVolumeStatsData(id, start_date, end_date)
       return res.status(200).json({
         success: true,
@@ -287,18 +371,295 @@ export class SalesRepController {
     }
   }
 
-  @Post(':id/case-types/volume')
+  @Get(':id/case-types/volume')
   async getCaseTypesVolumeMonthWise(@Res() res: any, @Query() query: any, @Param() param: any) {
     try {
       const id = param.id
-      const start = new Date(query.from_date)
-      const end = new Date(query.to_date)
+      const start = query.from_date
+      const end = query.to_date
       const data = await this.salesRepHelper.caseTypesVolumeMonthWise(id, start, end)
 
       return res.status(200).json({
         success: true,
         message: SUCCESS_FETCHED_SALE_VOLUME_MONTH_WISE,
-        data: data
+        data: {
+          "January 2024": {
+            "count": 406,
+            "case_type_wise_counts": {
+              "COVID": 57,
+              "RESPIRATORY_PATHOGEN_PANEL": 25,
+              "TOXICOLOGY": 145,
+              "CLINICAL_CHEMISTRY": 28,
+              "UTI": 8,
+              "URINALYSIS": 15,
+              "PGX_TEST": 10,
+              "WOUND": 3,
+              "NAIL": 4,
+              "COVID_FLU": 29,
+              "CGX_PANEL": 25,
+              "CARDIAC": 18,
+              "DIABETES": 18,
+              "GASTRO": 4,
+              "PAD_ALZHEIMERS": 4,
+              "PULMONARY_PANEL": 7,
+              "GTI_STI": 3,
+              "GTI_WOMENS_HEALTH": 3
+            }
+          },
+          "February 2024": {
+            "count": 36,
+            "case_type_wise_counts": {
+              "COVID": 4,
+              "RESPIRATORY_PATHOGEN_PANEL": 1,
+              "TOXICOLOGY": 11,
+              "CLINICAL_CHEMISTRY": 3,
+              "UTI": 6,
+              "URINALYSIS": 1,
+              "PGX_TEST": 1,
+              "WOUND": 1,
+              "NAIL": 0,
+              "COVID_FLU": 0,
+              "CGX_PANEL": 3,
+              "CARDIAC": 1,
+              "DIABETES": 2,
+              "GASTRO": 1,
+              "PAD_ALZHEIMERS": 0,
+              "PULMONARY_PANEL": 1,
+              "GTI_STI": 0,
+              "GTI_WOMENS_HEALTH": 0
+            }
+          },
+          "March 2024": {
+            "count": 1,
+            "case_type_wise_counts": {
+              "COVID": 0,
+              "RESPIRATORY_PATHOGEN_PANEL": 0,
+              "TOXICOLOGY": 0,
+              "CLINICAL_CHEMISTRY": 0,
+              "UTI": 0,
+              "URINALYSIS": 0,
+              "PGX_TEST": 0,
+              "WOUND": 0,
+              "NAIL": 0,
+              "COVID_FLU": 0,
+              "CGX_PANEL": 1,
+              "CARDIAC": 0,
+              "DIABETES": 0,
+              "GASTRO": 0,
+              "PAD_ALZHEIMERS": 0,
+              "PULMONARY_PANEL": 0,
+              "GTI_STI": 0,
+              "GTI_WOMENS_HEALTH": 0
+            }
+          },
+          "April 2024": {
+            "count": 0,
+            "case_type_wise_counts": {
+              "COVID": 0,
+              "RESPIRATORY_PATHOGEN_PANEL": 0,
+              "TOXICOLOGY": 0,
+              "CLINICAL_CHEMISTRY": 0,
+              "UTI": 0,
+              "URINALYSIS": 0,
+              "PGX_TEST": 0,
+              "WOUND": 0,
+              "NAIL": 0,
+              "COVID_FLU": 0,
+              "CGX_PANEL": 0,
+              "CARDIAC": 0,
+              "DIABETES": 0,
+              "GASTRO": 0,
+              "PAD_ALZHEIMERS": 0,
+              "PULMONARY_PANEL": 0,
+              "GTI_STI": 0,
+              "GTI_WOMENS_HEALTH": 0
+            }
+          },
+          "May 2024": {
+            "count": 0,
+            "case_type_wise_counts": {
+              "COVID": 0,
+              "RESPIRATORY_PATHOGEN_PANEL": 0,
+              "TOXICOLOGY": 0,
+              "CLINICAL_CHEMISTRY": 0,
+              "UTI": 0,
+              "URINALYSIS": 0,
+              "PGX_TEST": 0,
+              "WOUND": 0,
+              "NAIL": 0,
+              "COVID_FLU": 0,
+              "CGX_PANEL": 0,
+              "CARDIAC": 0,
+              "DIABETES": 0,
+              "GASTRO": 0,
+              "PAD_ALZHEIMERS": 0,
+              "PULMONARY_PANEL": 0,
+              "GTI_STI": 0,
+              "GTI_WOMENS_HEALTH": 0
+            }
+          },
+          "June 2024": {
+            "count": 0,
+            "case_type_wise_counts": {
+              "COVID": 0,
+              "RESPIRATORY_PATHOGEN_PANEL": 0,
+              "TOXICOLOGY": 0,
+              "CLINICAL_CHEMISTRY": 0,
+              "UTI": 0,
+              "URINALYSIS": 0,
+              "PGX_TEST": 0,
+              "WOUND": 0,
+              "NAIL": 0,
+              "COVID_FLU": 0,
+              "CGX_PANEL": 0,
+              "CARDIAC": 0,
+              "DIABETES": 0,
+              "GASTRO": 0,
+              "PAD_ALZHEIMERS": 0,
+              "PULMONARY_PANEL": 0,
+              "GTI_STI": 0,
+              "GTI_WOMENS_HEALTH": 0
+            }
+          },
+          "July 2024": {
+            "count": 0,
+            "case_type_wise_counts": {
+              "COVID": 0,
+              "RESPIRATORY_PATHOGEN_PANEL": 0,
+              "TOXICOLOGY": 0,
+              "CLINICAL_CHEMISTRY": 0,
+              "UTI": 0,
+              "URINALYSIS": 0,
+              "PGX_TEST": 0,
+              "WOUND": 0,
+              "NAIL": 0,
+              "COVID_FLU": 0,
+              "CGX_PANEL": 0,
+              "CARDIAC": 0,
+              "DIABETES": 0,
+              "GASTRO": 0,
+              "PAD_ALZHEIMERS": 0,
+              "PULMONARY_PANEL": 0,
+              "GTI_STI": 0,
+              "GTI_WOMENS_HEALTH": 0
+            }
+          },
+          "August 2024": {
+            "count": 0,
+            "case_type_wise_counts": {
+              "COVID": 0,
+              "RESPIRATORY_PATHOGEN_PANEL": 0,
+              "TOXICOLOGY": 0,
+              "CLINICAL_CHEMISTRY": 0,
+              "UTI": 0,
+              "URINALYSIS": 0,
+              "PGX_TEST": 0,
+              "WOUND": 0,
+              "NAIL": 0,
+              "COVID_FLU": 0,
+              "CGX_PANEL": 0,
+              "CARDIAC": 0,
+              "DIABETES": 0,
+              "GASTRO": 0,
+              "PAD_ALZHEIMERS": 0,
+              "PULMONARY_PANEL": 0,
+              "GTI_STI": 0,
+              "GTI_WOMENS_HEALTH": 0
+            }
+          },
+          "September 2024": {
+            "count": 0,
+            "case_type_wise_counts": {
+              "COVID": 0,
+              "RESPIRATORY_PATHOGEN_PANEL": 0,
+              "TOXICOLOGY": 0,
+              "CLINICAL_CHEMISTRY": 0,
+              "UTI": 0,
+              "URINALYSIS": 0,
+              "PGX_TEST": 0,
+              "WOUND": 0,
+              "NAIL": 0,
+              "COVID_FLU": 0,
+              "CGX_PANEL": 0,
+              "CARDIAC": 0,
+              "DIABETES": 0,
+              "GASTRO": 0,
+              "PAD_ALZHEIMERS": 0,
+              "PULMONARY_PANEL": 0,
+              "GTI_STI": 0,
+              "GTI_WOMENS_HEALTH": 0
+            }
+          },
+          "October 2024": {
+            "count": 0,
+            "case_type_wise_counts": {
+              "COVID": 0,
+              "RESPIRATORY_PATHOGEN_PANEL": 0,
+              "TOXICOLOGY": 0,
+              "CLINICAL_CHEMISTRY": 0,
+              "UTI": 0,
+              "URINALYSIS": 0,
+              "PGX_TEST": 0,
+              "WOUND": 0,
+              "NAIL": 0,
+              "COVID_FLU": 0,
+              "CGX_PANEL": 0,
+              "CARDIAC": 0,
+              "DIABETES": 0,
+              "GASTRO": 0,
+              "PAD_ALZHEIMERS": 0,
+              "PULMONARY_PANEL": 0,
+              "GTI_STI": 0,
+              "GTI_WOMENS_HEALTH": 0
+            }
+          },
+          "November 2024": {
+            "count": 0,
+            "case_type_wise_counts": {
+              "COVID": 0,
+              "RESPIRATORY_PATHOGEN_PANEL": 0,
+              "TOXICOLOGY": 0,
+              "CLINICAL_CHEMISTRY": 0,
+              "UTI": 0,
+              "URINALYSIS": 0,
+              "PGX_TEST": 0,
+              "WOUND": 0,
+              "NAIL": 0,
+              "COVID_FLU": 0,
+              "CGX_PANEL": 0,
+              "CARDIAC": 0,
+              "DIABETES": 0,
+              "GASTRO": 0,
+              "PAD_ALZHEIMERS": 0,
+              "PULMONARY_PANEL": 0,
+              "GTI_STI": 0,
+              "GTI_WOMENS_HEALTH": 0
+            }
+          },
+          "December 2024": {
+            "count": 0,
+            "case_type_wise_counts": {
+              "COVID": 0,
+              "RESPIRATORY_PATHOGEN_PANEL": 0,
+              "TOXICOLOGY": 0,
+              "CLINICAL_CHEMISTRY": 0,
+              "UTI": 0,
+              "URINALYSIS": 0,
+              "PGX_TEST": 0,
+              "WOUND": 0,
+              "NAIL": 0,
+              "COVID_FLU": 0,
+              "CGX_PANEL": 0,
+              "CARDIAC": 0,
+              "DIABETES": 0,
+              "GASTRO": 0,
+              "PAD_ALZHEIMERS": 0,
+              "PULMONARY_PANEL": 0,
+              "GTI_STI": 0,
+              "GTI_WOMENS_HEALTH": 0
+            }
+          }
+        }
       })
     } catch (err) {
       return res.status(500).json({
@@ -308,7 +669,7 @@ export class SalesRepController {
     }
   }
 
-  @Post(':id/case-types/revenue')
+  @Get(':id/case-types/revenue')
   async getOneSalesRepDuration(
     @Query() query: any,
     @Param() param: any,
@@ -323,7 +684,284 @@ export class SalesRepController {
       return res.status(200).json({
         success: true,
         message: SUCCESS_FETCHED_CASE_TYPES_REVENUE,
-        data: data
+        data: {
+          "January 2024": {
+            "count": 406,
+            "case_type_wise_counts": {
+              "COVID": 57,
+              "RESPIRATORY_PATHOGEN_PANEL": 25,
+              "TOXICOLOGY": 145,
+              "CLINICAL_CHEMISTRY": 28,
+              "UTI": 8,
+              "URINALYSIS": 15,
+              "PGX_TEST": 10,
+              "WOUND": 3,
+              "NAIL": 4,
+              "COVID_FLU": 29,
+              "CGX_PANEL": 25,
+              "CARDIAC": 18,
+              "DIABETES": 18,
+              "GASTRO": 4,
+              "PAD_ALZHEIMERS": 4,
+              "PULMONARY_PANEL": 7,
+              "GTI_STI": 3,
+              "GTI_WOMENS_HEALTH": 3
+            }
+          },
+          "February 2024": {
+            "count": 36,
+            "case_type_wise_counts": {
+              "COVID": 4,
+              "RESPIRATORY_PATHOGEN_PANEL": 1,
+              "TOXICOLOGY": 11,
+              "CLINICAL_CHEMISTRY": 3,
+              "UTI": 6,
+              "URINALYSIS": 1,
+              "PGX_TEST": 1,
+              "WOUND": 1,
+              "NAIL": 0,
+              "COVID_FLU": 0,
+              "CGX_PANEL": 3,
+              "CARDIAC": 1,
+              "DIABETES": 2,
+              "GASTRO": 1,
+              "PAD_ALZHEIMERS": 0,
+              "PULMONARY_PANEL": 1,
+              "GTI_STI": 0,
+              "GTI_WOMENS_HEALTH": 0
+            }
+          },
+          "March 2024": {
+            "count": 1,
+            "case_type_wise_counts": {
+              "COVID": 0,
+              "RESPIRATORY_PATHOGEN_PANEL": 0,
+              "TOXICOLOGY": 0,
+              "CLINICAL_CHEMISTRY": 0,
+              "UTI": 0,
+              "URINALYSIS": 0,
+              "PGX_TEST": 0,
+              "WOUND": 0,
+              "NAIL": 0,
+              "COVID_FLU": 0,
+              "CGX_PANEL": 1,
+              "CARDIAC": 0,
+              "DIABETES": 0,
+              "GASTRO": 0,
+              "PAD_ALZHEIMERS": 0,
+              "PULMONARY_PANEL": 0,
+              "GTI_STI": 0,
+              "GTI_WOMENS_HEALTH": 0
+            }
+          },
+          "April 2024": {
+            "count": 0,
+            "case_type_wise_counts": {
+              "COVID": 0,
+              "RESPIRATORY_PATHOGEN_PANEL": 0,
+              "TOXICOLOGY": 0,
+              "CLINICAL_CHEMISTRY": 0,
+              "UTI": 0,
+              "URINALYSIS": 0,
+              "PGX_TEST": 0,
+              "WOUND": 0,
+              "NAIL": 0,
+              "COVID_FLU": 0,
+              "CGX_PANEL": 0,
+              "CARDIAC": 0,
+              "DIABETES": 0,
+              "GASTRO": 0,
+              "PAD_ALZHEIMERS": 0,
+              "PULMONARY_PANEL": 0,
+              "GTI_STI": 0,
+              "GTI_WOMENS_HEALTH": 0
+            }
+          },
+          "May 2024": {
+            "count": 0,
+            "case_type_wise_counts": {
+              "COVID": 0,
+              "RESPIRATORY_PATHOGEN_PANEL": 0,
+              "TOXICOLOGY": 0,
+              "CLINICAL_CHEMISTRY": 0,
+              "UTI": 0,
+              "URINALYSIS": 0,
+              "PGX_TEST": 0,
+              "WOUND": 0,
+              "NAIL": 0,
+              "COVID_FLU": 0,
+              "CGX_PANEL": 0,
+              "CARDIAC": 0,
+              "DIABETES": 0,
+              "GASTRO": 0,
+              "PAD_ALZHEIMERS": 0,
+              "PULMONARY_PANEL": 0,
+              "GTI_STI": 0,
+              "GTI_WOMENS_HEALTH": 0
+            }
+          },
+          "June 2024": {
+            "count": 0,
+            "case_type_wise_counts": {
+              "COVID": 0,
+              "RESPIRATORY_PATHOGEN_PANEL": 0,
+              "TOXICOLOGY": 0,
+              "CLINICAL_CHEMISTRY": 0,
+              "UTI": 0,
+              "URINALYSIS": 0,
+              "PGX_TEST": 0,
+              "WOUND": 0,
+              "NAIL": 0,
+              "COVID_FLU": 0,
+              "CGX_PANEL": 0,
+              "CARDIAC": 0,
+              "DIABETES": 0,
+              "GASTRO": 0,
+              "PAD_ALZHEIMERS": 0,
+              "PULMONARY_PANEL": 0,
+              "GTI_STI": 0,
+              "GTI_WOMENS_HEALTH": 0
+            }
+          },
+          "July 2024": {
+            "count": 0,
+            "case_type_wise_counts": {
+              "COVID": 0,
+              "RESPIRATORY_PATHOGEN_PANEL": 0,
+              "TOXICOLOGY": 0,
+              "CLINICAL_CHEMISTRY": 0,
+              "UTI": 0,
+              "URINALYSIS": 0,
+              "PGX_TEST": 0,
+              "WOUND": 0,
+              "NAIL": 0,
+              "COVID_FLU": 0,
+              "CGX_PANEL": 0,
+              "CARDIAC": 0,
+              "DIABETES": 0,
+              "GASTRO": 0,
+              "PAD_ALZHEIMERS": 0,
+              "PULMONARY_PANEL": 0,
+              "GTI_STI": 0,
+              "GTI_WOMENS_HEALTH": 0
+            }
+          },
+          "August 2024": {
+            "count": 0,
+            "case_type_wise_counts": {
+              "COVID": 0,
+              "RESPIRATORY_PATHOGEN_PANEL": 0,
+              "TOXICOLOGY": 0,
+              "CLINICAL_CHEMISTRY": 0,
+              "UTI": 0,
+              "URINALYSIS": 0,
+              "PGX_TEST": 0,
+              "WOUND": 0,
+              "NAIL": 0,
+              "COVID_FLU": 0,
+              "CGX_PANEL": 0,
+              "CARDIAC": 0,
+              "DIABETES": 0,
+              "GASTRO": 0,
+              "PAD_ALZHEIMERS": 0,
+              "PULMONARY_PANEL": 0,
+              "GTI_STI": 0,
+              "GTI_WOMENS_HEALTH": 0
+            }
+          },
+          "September 2024": {
+            "count": 0,
+            "case_type_wise_counts": {
+              "COVID": 0,
+              "RESPIRATORY_PATHOGEN_PANEL": 0,
+              "TOXICOLOGY": 0,
+              "CLINICAL_CHEMISTRY": 0,
+              "UTI": 0,
+              "URINALYSIS": 0,
+              "PGX_TEST": 0,
+              "WOUND": 0,
+              "NAIL": 0,
+              "COVID_FLU": 0,
+              "CGX_PANEL": 0,
+              "CARDIAC": 0,
+              "DIABETES": 0,
+              "GASTRO": 0,
+              "PAD_ALZHEIMERS": 0,
+              "PULMONARY_PANEL": 0,
+              "GTI_STI": 0,
+              "GTI_WOMENS_HEALTH": 0
+            }
+          },
+          "October 2024": {
+            "count": 0,
+            "case_type_wise_counts": {
+              "COVID": 0,
+              "RESPIRATORY_PATHOGEN_PANEL": 0,
+              "TOXICOLOGY": 0,
+              "CLINICAL_CHEMISTRY": 0,
+              "UTI": 0,
+              "URINALYSIS": 0,
+              "PGX_TEST": 0,
+              "WOUND": 0,
+              "NAIL": 0,
+              "COVID_FLU": 0,
+              "CGX_PANEL": 0,
+              "CARDIAC": 0,
+              "DIABETES": 0,
+              "GASTRO": 0,
+              "PAD_ALZHEIMERS": 0,
+              "PULMONARY_PANEL": 0,
+              "GTI_STI": 0,
+              "GTI_WOMENS_HEALTH": 0
+            }
+          },
+          "November 2024": {
+            "count": 0,
+            "case_type_wise_counts": {
+              "COVID": 0,
+              "RESPIRATORY_PATHOGEN_PANEL": 0,
+              "TOXICOLOGY": 0,
+              "CLINICAL_CHEMISTRY": 0,
+              "UTI": 0,
+              "URINALYSIS": 0,
+              "PGX_TEST": 0,
+              "WOUND": 0,
+              "NAIL": 0,
+              "COVID_FLU": 0,
+              "CGX_PANEL": 0,
+              "CARDIAC": 0,
+              "DIABETES": 0,
+              "GASTRO": 0,
+              "PAD_ALZHEIMERS": 0,
+              "PULMONARY_PANEL": 0,
+              "GTI_STI": 0,
+              "GTI_WOMENS_HEALTH": 0
+            }
+          },
+          "December 2024": {
+            "count": 0,
+            "case_type_wise_counts": {
+              "COVID": 0,
+              "RESPIRATORY_PATHOGEN_PANEL": 0,
+              "TOXICOLOGY": 0,
+              "CLINICAL_CHEMISTRY": 0,
+              "UTI": 0,
+              "URINALYSIS": 0,
+              "PGX_TEST": 0,
+              "WOUND": 0,
+              "NAIL": 0,
+              "COVID_FLU": 0,
+              "CGX_PANEL": 0,
+              "CARDIAC": 0,
+              "DIABETES": 0,
+              "GASTRO": 0,
+              "PAD_ALZHEIMERS": 0,
+              "PULMONARY_PANEL": 0,
+              "GTI_STI": 0,
+              "GTI_WOMENS_HEALTH": 0
+            }
+          }
+        }
       })
 
     } catch (error) {
@@ -334,7 +972,7 @@ export class SalesRepController {
     }
   }
 
-  @Post(':id/trends/revenue')
+  @Get(':id/trends/revenue')
   async getOneSalesRepDurationTrend(
     @Query() query: any,
     @Param() param: any,
@@ -348,7 +986,44 @@ export class SalesRepController {
       return res.status(200).json({
         success: true,
         message: SUCCESS_FETCHED_TREND_REVENUE,
-        data: data
+        data: {
+          "January 2024": {
+            "revenue": 35
+          },
+          "February 2024": {
+            "revenue": 26
+          },
+          "March 2024": {
+            "revenue": 0
+          },
+          "April 2024": {
+            "revenue": 0
+          },
+          "May 2024": {
+            "revenue": 0
+          },
+          "June 2024": {
+            "revenue": 0
+          },
+          "July 2024": {
+            "revenue": 0
+          },
+          "August 2024": {
+            "revenue": 0
+          },
+          "September 2024": {
+            "revenue": 0
+          },
+          "October 2024": {
+            "revenue": 0
+          },
+          "November 2024": {
+            "revenue": 0
+          },
+          "December 2024": {
+            "revenue": 0
+          }
+        }
       })
     }
     catch (error) {
@@ -360,7 +1035,7 @@ export class SalesRepController {
   }
 
 
-  @Post(':id/trends/volume')
+  @Get(':id/trends/volume')
   async getTrendVolume(@Res() res: any, @Query() query: any, @Param() param: any) {
     try {
       const id = param.id
@@ -372,7 +1047,44 @@ export class SalesRepController {
       return res.status(200).json({
         success: true,
         message: SUCCESS_FETCHED_SALE_TREND_VOLUME,
-        data: data
+        data: {
+          "January 2024": {
+              "revenue": 35
+          },
+          "February 2024": {
+              "revenue": 26
+          },
+          "March 2024": {
+              "revenue": 0
+          },
+          "April 2024": {
+              "revenue": 0
+          },
+          "May 2024": {
+              "revenue": 0
+          },
+          "June 2024": {
+              "revenue": 0
+          },
+          "July 2024": {
+              "revenue": 0
+          },
+          "August 2024": {
+              "revenue": 0
+          },
+          "September 2024": {
+              "revenue": 0
+          },
+          "October 2024": {
+              "revenue": 0
+          },
+          "November 2024": {
+              "revenue": 0
+          },
+          "December 2024": {
+              "revenue": 0
+          }
+      }
       })
     } catch (error) {
       return res.status(500).json({

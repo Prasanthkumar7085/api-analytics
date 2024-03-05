@@ -210,7 +210,7 @@ export class FacilitiesHelper {
         return groupedArray;
     }
 
-    async getFacilityRevenueStats(id: string, from_date: Date, to_date: Date) {
+    async getFacilityRevenueStats(id: string, fromDate: Date, toDate: Date) {
         const facilitiesRevenueStats = fs.readFileSync('./RevenueStatsData.json', "utf-8");
         const finalRevenueStats = JSON.parse(facilitiesRevenueStats);
 
@@ -219,13 +219,41 @@ export class FacilitiesHelper {
         let pending_amount = 0;
 
         for (const data of finalRevenueStats) {
-            const date = new Date(data.date);
 
-            if (date >= from_date && date <= to_date) {
+            if (fromDate && toDate) {
+                const from_date = new Date(fromDate)
+                const to_date = new Date(toDate)
 
+
+                const date = new Date(data.date);
+
+                if (date >= from_date && date <= to_date) {
+
+                    for (const hospital of data.hospital_wise_counts) {
+                        if (id) {
+                            if (hospital.hospital === id) {
+
+                                total_amount += hospital.total_amount;
+                                paid_amount += hospital.paid_amount;
+                                pending_amount += hospital.pending_amount;
+                            }
+                        } else {
+                            total_amount += hospital.total_amount;
+                            paid_amount += hospital.paid_amount;
+                            pending_amount += hospital.pending_amount;
+                        }
+                    }
+                }
+            } else {
                 for (const hospital of data.hospital_wise_counts) {
-                    if (hospital.hospital === id) {
+                    if (id) {
+                        if (hospital.hospital === id) {
 
+                            total_amount += hospital.total_amount;
+                            paid_amount += hospital.paid_amount;
+                            pending_amount += hospital.pending_amount;
+                        }
+                    } else {
                         total_amount += hospital.total_amount;
                         paid_amount += hospital.paid_amount;
                         pending_amount += hospital.pending_amount;
@@ -237,7 +265,7 @@ export class FacilitiesHelper {
     }
 
 
-    async getFacilityVolumeStats(id, from_date, to_date) {
+    async getFacilityVolumeStats(id, fromDate, toDate) {
         const VolumeStatsData = fs.readFileSync('VolumeStatsData.json', "utf-8");
         const finalVolumeResp = JSON.parse(VolumeStatsData);
 
@@ -246,10 +274,25 @@ export class FacilitiesHelper {
         let pending_cases = 0;
 
         for (const data of finalVolumeResp) {
-            const date = new Date(data.date)
 
-            if (date >= from_date && date <= to_date) {
+            if (fromDate && toDate) {
+                const from_date = new Date(fromDate)
+                const to_date = new Date(toDate)
 
+                const date = new Date(data.date)
+
+                if (date >= from_date && date <= to_date) {
+
+                    for (const hospital of data.hospital_case_type_wise_counts) {
+                        if (hospital.hospital === id) {
+
+                            total_cases += data.total_cases
+                            completed_cases += data.completed_cases
+                            pending_cases += data.pending_cases
+                        }
+                    }
+                }
+            } else {
                 for (const hospital of data.hospital_case_type_wise_counts) {
                     if (hospital.hospital === id) {
 
@@ -259,6 +302,7 @@ export class FacilitiesHelper {
                     }
                 }
             }
+
         }
         return ({ total_cases: total_cases, completed_cases: completed_cases, pending_cases: pending_cases })
     }

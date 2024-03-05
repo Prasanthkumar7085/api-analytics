@@ -121,7 +121,7 @@ export class SalesRepHelper {
 
 
 
-    async getRevenueStatsData(id: string, start_date: Date, end_date: Date) {
+    async getRevenueStatsData(id: string, startDate: Date, endDate: Date) {
 
         const RevenueStatsData = fs.readFileSync('RevenueStatsData.json', "utf-8")
         const finalRevenueResp = JSON.parse(RevenueStatsData)
@@ -133,16 +133,25 @@ export class SalesRepHelper {
         for (let i = 0; i < finalRevenueResp.length; i++) {
             const date = new Date(finalRevenueResp[i].date)
 
-            if (start_date < end_date) {
+            if (startDate && endDate) {
+                if (startDate < endDate) {
 
-                if (date >= start_date && date <= end_date) {
-                    if (finalRevenueResp[i].marketer_id == id) {
+                    const start_date = new Date(startDate)
+                    const end_date = new Date(endDate)
 
-                        total_amount += finalRevenueResp[i].total_amount,
-                            paid_amount += finalRevenueResp[i].paid_amount
-                        pending_amount += finalRevenueResp[i].pending_amount
+                    if (date >= start_date && date <= end_date) {
+                        if (finalRevenueResp[i].marketer_id == id) {
+
+                            total_amount += finalRevenueResp[i].total_amount,
+                                paid_amount += finalRevenueResp[i].paid_amount
+                            pending_amount += finalRevenueResp[i].pending_amount
+                        }
                     }
                 }
+            } else {
+                total_amount += finalRevenueResp[i].total_amount,
+                    paid_amount += finalRevenueResp[i].paid_amount
+                pending_amount += finalRevenueResp[i].pending_amount
             }
 
         }
@@ -161,16 +170,27 @@ export class SalesRepHelper {
 
         for (let i = 0; i < finalVolumeResp.length; i++) {
             const date = new Date(finalVolumeResp[i].date)
-            if (start_date < end_date) {
-                if (date >= start_date && date <= end_date) {
+            if (start_date && end_date) {
+                const startDate = new Date(start_date)
+                const endDate = new Date(end_date)
+                if (startDate < endDate) {
 
-                    if (finalVolumeResp[i].marketer_id == id) {
-                        total_cases += finalVolumeResp[i].total_cases,
-                        completed_cases += finalVolumeResp[i].completed_cases,
-                        pending_cases += finalVolumeResp[i].pending_cases
+                    const start_date = new Date(startDate)
+                    const end_date = new Date(endDate)
+                    if (date >= start_date && date <= end_date) {
 
+                        if (finalVolumeResp[i].marketer_id == id) {
+                            total_cases += finalVolumeResp[i].total_cases,
+                                completed_cases += finalVolumeResp[i].completed_cases,
+                                pending_cases += finalVolumeResp[i].pending_cases
+
+                        }
                     }
                 }
+            } else {
+                total_cases += finalVolumeResp[i].total_cases,
+                    completed_cases += finalVolumeResp[i].completed_cases,
+                    pending_cases += finalVolumeResp[i].pending_cases
             }
         }
         return ({ total_cases: total_cases, completed_cases: completed_cases, pending_cases: pending_cases })
@@ -190,26 +210,28 @@ export class SalesRepHelper {
         while (startDate <= endDate) {
             const monthYear = startDate.toLocaleString('default', { month: 'long', year: 'numeric' });
 
-            totalCounts[monthYear] = { count: 0, case_type_wise_counts: {
-            "COVID": 0,
-            "RESPIRATORY_PATHOGEN_PANEL": 0,
-            "TOXICOLOGY": 0,
-            "CLINICAL_CHEMISTRY": 0,
-            "UTI": 0,
-            "URINALYSIS": 0,
-            "PGX_TEST": 0,
-            "WOUND": 0,
-            "NAIL": 0,
-            "COVID_FLU": 0,
-            "CGX_PANEL": 0,
-            "CARDIAC": 0,
-            "DIABETES": 0,
-            "GASTRO": 0,
-            "PAD_ALZHEIMERS": 0,
-            "PULMONARY_PANEL": 0,
-            "GTI_STI": 0,
-            "GTI_WOMENS_HEALTH": 0
-        }};
+            totalCounts[monthYear] = {
+                count: 0, case_type_wise_counts: {
+                    "COVID": 0,
+                    "RESPIRATORY_PATHOGEN_PANEL": 0,
+                    "TOXICOLOGY": 0,
+                    "CLINICAL_CHEMISTRY": 0,
+                    "UTI": 0,
+                    "URINALYSIS": 0,
+                    "PGX_TEST": 0,
+                    "WOUND": 0,
+                    "NAIL": 0,
+                    "COVID_FLU": 0,
+                    "CGX_PANEL": 0,
+                    "CARDIAC": 0,
+                    "DIABETES": 0,
+                    "GASTRO": 0,
+                    "PAD_ALZHEIMERS": 0,
+                    "PULMONARY_PANEL": 0,
+                    "GTI_STI": 0,
+                    "GTI_WOMENS_HEALTH": 0
+                }
+            };
             startDate.setMonth(startDate.getMonth() + 1);
         }
 
@@ -243,13 +265,19 @@ export class SalesRepHelper {
 
         for (let i = 0; i < finalRevenueResp.length; i++) {
             const date = new Date(finalRevenueResp[i].date)
-            if (start_date < end_date) {
+            if (start_date && end_date) {
+                if (start_date < end_date) {
 
-                if (date >= start_date && date <= end_date) {
-                    total_amount = total_amount + finalRevenueResp[i].total_amount,
-                        paid_amount = paid_amount + finalRevenueResp[i].paid_amount
-                    pending_amount = pending_amount + finalRevenueResp[i].pending_amount
+                    if (date >= start_date && date <= end_date) {
+                        total_amount = total_amount + finalRevenueResp[i].total_amount,
+                            paid_amount = paid_amount + finalRevenueResp[i].paid_amount
+                        pending_amount = pending_amount + finalRevenueResp[i].pending_amount
+                    }
                 }
+            } else {
+                total_amount = total_amount + finalRevenueResp[i].total_amount,
+                    paid_amount = paid_amount + finalRevenueResp[i].paid_amount
+                pending_amount = pending_amount + finalRevenueResp[i].pending_amount
             }
 
         }
@@ -266,14 +294,22 @@ export class SalesRepHelper {
 
         for (let i = 0; i < finalVolumeResp.length; i++) {
             const date = new Date(finalVolumeResp[i].date)
-            if (start_date < end_date) {
 
-                if (date >= start_date && date <= end_date) {
-                    total_cases = total_cases + finalVolumeResp[i].total_cases,
-                        completed_cases = completed_cases + finalVolumeResp[i].completed_cases,
-                        pending_cases = pending_cases + finalVolumeResp[i].pending_cases
+            if (start_date && end_date) {
+                if (start_date < end_date) {
+
+                    if (date >= start_date && date <= end_date) {
+                        total_cases = total_cases + finalVolumeResp[i].total_cases,
+                            completed_cases = completed_cases + finalVolumeResp[i].completed_cases,
+                            pending_cases = pending_cases + finalVolumeResp[i].pending_cases
+                    }
                 }
+            } else {
+                total_cases = total_cases + finalVolumeResp[i].total_cases,
+                    completed_cases = completed_cases + finalVolumeResp[i].completed_cases,
+                    pending_cases = pending_cases + finalVolumeResp[i].pending_cases
             }
+
         }
         return ({ total_cases: total_cases, completed_cases: completed_cases, pending_cases: pending_cases })
     }
@@ -286,19 +322,40 @@ export class SalesRepHelper {
         const startDate = new Date(from_date)
         const endDate = new Date(to_date)
 
-        while (startDate <= endDate) {
+        if (startDate && endDate) {
+            while (startDate <= endDate) {
+                const monthYear = startDate.toLocaleString('default', { month: 'long', year: 'numeric' });
+
+                total_counts[monthYear] = {
+                    total_revenue_billed: 0,
+                    total_revenue_collected: 0,
+                };
+                startDate.setMonth(startDate.getMonth() + 1);
+            }
+            for (const item of finalRevenueResp) {
+
+                let date = new Date(item.date);
+                if (date >= from_date && date <= to_date) {
+                    const monthYear = date.toLocaleString('default', { month: 'long', year: 'numeric' })
+                    item.case_type_wise_counts.forEach(caseType => {
+                        const { total_amount, paid_amount } = caseType;
+
+                        total_counts[monthYear]['total_revenue_billed'] += total_amount
+                        total_counts[monthYear]['total_revenue_collected'] += paid_amount
+                    })
+                }
+            }
+        } else {
             const monthYear = startDate.toLocaleString('default', { month: 'long', year: 'numeric' });
 
             total_counts[monthYear] = {
                 total_revenue_billed: 0,
                 total_revenue_collected: 0,
             };
-            startDate.setMonth(startDate.getMonth() + 1);
-        }
-        for (const item of finalRevenueResp) {
 
-            let date = new Date(item.date);
-            if (date >= from_date && date <= to_date) {
+            for (const item of finalRevenueResp) {
+
+                let date = new Date(item.date);
                 const monthYear = date.toLocaleString('default', { month: 'long', year: 'numeric' })
                 item.case_type_wise_counts.forEach(caseType => {
                     const { total_amount, paid_amount } = caseType;
@@ -306,8 +363,12 @@ export class SalesRepHelper {
                     total_counts[monthYear]['total_revenue_billed'] += total_amount
                     total_counts[monthYear]['total_revenue_collected'] += paid_amount
                 })
+
             }
+
+
         }
+
         return total_counts
     }
 
@@ -449,8 +510,18 @@ export class SalesRepHelper {
 
         for (const item of finalVolumeResp) {
             let date = item.date
-            if (date >= from_date && date <= to_date) {
+            if (from_date && to_date) {
+                if (date >= from_date && date <= to_date) {
 
+                    total += item.total_cases
+
+                    item.case_type_wise_counts.forEach(caseType => {
+                        const { case_type, pending, completed } = caseType;
+                        totalCounts[case_type] = (totalCounts[case_type] || 0) + pending + completed
+                    });
+                }
+            } else {
+                console.log(234);
                 total += item.total_cases
 
                 item.case_type_wise_counts.forEach(caseType => {
@@ -475,7 +546,14 @@ export class SalesRepHelper {
 
         for (const item of revenue) {
 
-            if (item.date >= from_date && item.date <= to_date) {
+            if (from_date && to_date) {
+                total_amount += item.total_amount
+
+                item.case_type_wise_counts.forEach(caseType => {
+                    const { case_type, total_amount } = caseType;
+                    totalCaseTypeAmount[case_type] = (totalCaseTypeAmount[case_type] || 0) + total_amount
+                })
+            } else {
                 total_amount += item.total_amount
 
                 item.case_type_wise_counts.forEach(caseType => {
@@ -548,5 +626,5 @@ export class SalesRepHelper {
             }
         }
         return totalCounts;
-    } 
+    }
 }
