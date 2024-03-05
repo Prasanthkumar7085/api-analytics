@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, Res } from '@nestjs/common';
 import { FacilitiesService } from './facilities.service';
-import { SOMETHING_WENT_WRONG, SUCCESS_FETCHED_FACILITIES, SUCCESS_FETCHED_FACILITY, SUCCESS_VOLUME_TREND } from 'src/constants/messageConstants';
+import { SOMETHING_WENT_WRONG, SUCCESS_FETCHED_FACILITIES, SUCCESS_FETCHED_FACILITY, SUCCESS_VOLUME_TREND, SUCCESS_FETCHED_FACILITIES_REVENUE_STATS, SUCCESS_FETCHED_FACILITIES_VOLUME_STATS, SUCCESSS_FETCHED_FACILITIES_CASES_TYPES_VOLUME } from 'src/constants/messageConstants';
 import { FacilitiesHelper } from 'src/helpers/facilitiesHelper';
 import { FacilitiesDto } from './dto/facilities.dto';
 import { FacilityDto } from './dto/facility.dto';
@@ -102,6 +102,81 @@ export class FacilitiesController {
       })
     } catch (err) {
       console.log({ err });
+      return res.status(500).json({
+        success: false,
+        message: err || SOMETHING_WENT_WRONG
+      })
+    }
+  }
+
+
+  @Post('stats-revenue')
+  async getRevenuestatsData(@Res() res:any, @Body() facilityDto: FacilityDto){
+    try {
+      const id = facilityDto.hospital_id
+      const from_date = new Date(facilityDto.from_date)
+      const to_date = new Date(facilityDto.to_date)
+
+      const {total_amount,paid_amount,pending_amount} = await this.facilitiesHelper.getFacilityRevenueStats(id,from_date,to_date)
+      return res.status(200).json({
+        success:true,
+        message:SUCCESS_FETCHED_FACILITIES_REVENUE_STATS,
+        data :{
+          billed:total_amount,
+          collected:paid_amount,
+          pending:pending_amount
+        }
+      })
+    } catch (err) {
+      console.log(err);
+      return res.status(500).json({
+        success: false,
+        message: err || SOMETHING_WENT_WRONG
+      })
+    }
+  }
+
+
+  @Post('stats-volume')
+  async getVolumeStatsData(@Res() res:any, @Body() faciliticesDto: FacilityDto){
+    try {
+      const id = faciliticesDto.hospital_id
+      const from_date = new Date(faciliticesDto.from_date)
+      const to_date = new Date(faciliticesDto.to_date)
+
+      const {total_cases,completed_cases,pending_cases} = await this.facilitiesHelper.getFacilityVolumeStats(id,from_date,to_date)
+      return res.status(200).json({
+        success:true,
+        message:SUCCESS_FETCHED_FACILITIES_VOLUME_STATS,
+        data:{
+          total:total_cases,
+          completed:completed_cases,
+          pending:pending_cases
+        }
+      })
+    } catch (err) {
+      console.log(err);
+      return res.status(500).json({
+        success: false,
+        message: err || SOMETHING_WENT_WRONG
+      })
+    }
+  }
+
+  @Post('case-types/volume')
+  async caseTypesVolumeMonthWise(@Res() res:any, @Body() faciliticesDto:  FacilityDto){
+    try {
+      const id = faciliticesDto.hospital_id;
+      const from_date = new Date(faciliticesDto.from_date);
+      const to_date = new Date(faciliticesDto.to_date);
+      const data = await this.facilitiesHelper.facilityCaseTypesVolumeMonthWise(id,from_date,to_date)
+      return res.status(200).json({
+        success:true,
+        message:SUCCESSS_FETCHED_FACILITIES_CASES_TYPES_VOLUME,
+        data:data
+      })
+    } catch (err) {
+      console.log(err);
       return res.status(500).json({
         success: false,
         message: err || SOMETHING_WENT_WRONG
