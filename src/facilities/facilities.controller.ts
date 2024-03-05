@@ -6,58 +6,67 @@ import { FacilitiesHelper } from 'src/helpers/facilitiesHelper';
 import { SOMETHING_WENT_WRONG } from 'src/constants/messageConstants';
 
 @Controller({
-  version: '2.0',
-  path: 'facilities'
+	version: '2.0',
+	path: 'facilities'
 })
 export class FacilitiesController {
-  constructor(
-    private readonly facilitiesService: FacilitiesService,
-    private readonly facilitiesHelper: FacilitiesHelper,
-  ) { }
+	constructor(
+		private readonly facilitiesService: FacilitiesService,
+		private readonly facilitiesHelper: FacilitiesHelper,
+	) { }
 
-  @Post('case-types')
-  async facilityCaseTypeWiseData(
-    @Body() createFacilityDto: CreateFacilityDto,
-    @Res() res: any
-  ) {
-    try {
-      const { facility_id, from_date, to_date } = createFacilityDto
-      const volumeData = await this.facilitiesHelper.findOneVolumeBasedOnFacility(facility_id, from_date, to_date)
-      // const revenueData = await this.facilitiesHelper.findOneRevenueBasedOnFacility(facility_id, from_date, to_date)
+	@Post('case-types')
+	async facilityCaseTypeWiseData(
+		@Body() createFacilityDto: CreateFacilityDto,
+		@Res() res: any
+	) {
+		try {
+			const { facility_id, from_date, to_date } = createFacilityDto
+			const volumeData = await this.facilitiesHelper.findOneVolumeBasedOnFacility(facility_id, from_date, to_date)
+			const revenueData = await this.facilitiesHelper.findOneRevenueBasedOnFacility(facility_id, from_date, to_date)
 
-      return res.status(200).json({
-        success: true,
-        message: 'Success',
-        data: volumeData
-      })
+			return res.status(200).json({
+				success: true,
+				message: 'Success',
+				data: {
+					volume_data: {
+						total_count: volumeData.total_count,
+						case_type_wise_count: volumeData.case_type_wise_counts
+					},
+					revenue_data: {
+						total_revenue: revenueData.total_revenue,
+						case_type_wise_revenue: revenueData.case_type_wise_revenue
+					}
+				}
+			})
 
-    } catch (error) {
-      console.log({ error });
-      return res.status(500).json({
-        success: false,
-        message: error || SOMETHING_WENT_WRONG
-      })
-    }
+		} catch (error) {
+			console.log({ error });
+			return res.status(500).json({
+				success: false,
+				message: error || SOMETHING_WENT_WRONG
+			})
+		}
 
-  }
+	}
 
-  @Get()
-  findAll() {
-    return this.facilitiesService.findAll();
-  }
+	@Get()
+	findAll() {
+		return this.facilitiesService.findAll();
+	}
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.facilitiesService.findOne(+id);
-  }
+	@Get(':id')
+	findOne(@Param('id') id: string) {
+		return this.facilitiesService.findOne(+id);
+	}
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateFacilityDto: UpdateFacilityDto) {
-    return this.facilitiesService.update(+id, updateFacilityDto);
-  }
+	@Patch(':id')
+	update(@Param('id') id: string, @Body() updateFacilityDto: UpdateFacilityDto) {
+		return this.facilitiesService.update(+id, updateFacilityDto);
+	}
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.facilitiesService.remove(+id);
-  }
+	@Delete(':id')
+	remove(@Param('id') id: string) {
+		return this.facilitiesService.remove(+id);
+	}
 }
