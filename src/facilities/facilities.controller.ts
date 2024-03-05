@@ -10,8 +10,10 @@ import { SOMETHING_WENT_WRONG, SUCCESS_FETCHED_FACILITIES_REVENUE_STATS, SUCCESS
   path: 'facilities',
 })
 export class FacilitiesController {
-  constructor(private readonly facilitiesService: FacilitiesService,
-    private readonly facilitiesHelper:FacilitiesHelper) {}
+  constructor(
+    private readonly facilitiesService: FacilitiesService,
+    private readonly facilitiesHelper:FacilitiesHelper
+    ) {}
 
   @Post()
   create(@Body() createFacilityDto: CreateFacilityDto) {
