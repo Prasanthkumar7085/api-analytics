@@ -134,4 +134,79 @@ export class FacilitiesHelper {
 
         return result
     }
+
+
+    getVolumeTrendData(hospitalId, fromDate, toDate) {
+        const volumeResponse = fs.readFileSync('./VolumeStatsData.json', "utf-8");
+        let volumeResp = JSON.parse(volumeResponse);
+
+
+        if (fromDate && toDate) {
+            const fromDateObj = new Date(fromDate);
+            const toDateObj = new Date(toDate);
+
+            // Filter the array based on the date range
+            volumeResp = volumeResp.filter(item => {
+                const itemDate = new Date(item.date);
+                return itemDate >= fromDateObj && itemDate <= toDateObj;
+            });
+        }
+
+        volumeResp = volumeResp.map(({ date, hospital_case_type_wise_counts }) => ({
+            date,
+            hospital_case_type_wise_counts
+        }));
+
+
+        const groupedData = volumeResp.reduce((acc, entry) => {
+            const date = new Date(entry.date);
+
+            const month = date.toLocaleString('en-US', { month: 'long' });
+            const year = date.getFullYear();
+
+            const formattedMonth = `${month.toUpperCase()} ${year}`;
+
+            const existingMonth = acc.find((groupedEntry) => groupedEntry.month === formattedMonth);
+
+            if (existingMonth) {
+                existingMonth.hospital_case_type_wise_counts.push(...entry.hospital_case_type_wise_counts);
+            } else {
+                acc.push({
+                    month: formattedMonth,
+                    hospital_case_type_wise_counts: [...entry.hospital_case_type_wise_counts]
+                });
+            }
+
+            return acc;
+        }, []);
+
+        let updatedData = [];
+        groupedData.forEach((entry) => {
+            entry.hospital_case_type_wise_counts.forEach((countEntry) => {
+                let totalCases = Object.values(countEntry).reduce((acc: any, val) => acc + (typeof val === 'number' ? val : 0), 0);
+                let updatedEntry = {
+                    "hospital": countEntry.hospital,
+                    "month": entry.month,
+                    "total_cases": totalCases
+                };
+                updatedData.push(updatedEntry);
+            });
+        });
+
+
+        updatedData = updatedData.filter(item => item.hospital === hospitalId);
+
+        const finalData = updatedData.reduce((result, entry) => {
+            const key = entry.month;
+            if (!result[key]) {
+                result[key] = { month: key, total_cases: 0, hospital: entry.hospital };
+            }
+            result[key].total_cases += entry.total_cases;
+            return result;
+        }, {});
+    
+        const groupedArray = Object.values(finalData);
+
+        return groupedArray;
+    }
 }

@@ -1,8 +1,9 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, Res } from '@nestjs/common';
 import { FacilitiesService } from './facilities.service';
-import { SOMETHING_WENT_WRONG, SUCCESS_FETCHED_FACILITIES, SUCCESS_FETCHED_FACILITY } from 'src/constants/messageConstants';
+import { SOMETHING_WENT_WRONG, SUCCESS_FETCHED_FACILITIES, SUCCESS_FETCHED_FACILITY, SUCCESS_VOLUME_TREND } from 'src/constants/messageConstants';
 import { FacilitiesHelper } from 'src/helpers/facilitiesHelper';
 import { FacilitiesDto } from './dto/facilities.dto';
+import { FacilityDto } from './dto/facility.dto';
 
 @Controller({
   version: '2.0',
@@ -16,7 +17,7 @@ export class FacilitiesController {
 
 
   @Get(':hospital_id')
-  async getHospitalDetails(@Res() res: any, @Param() param: any){
+  async getHospitalDetails(@Res() res: any, @Param() param: any) {
     try {
 
       const hospitalId = param.hospital_id;
@@ -28,8 +29,8 @@ export class FacilitiesController {
         message: SUCCESS_FETCHED_FACILITY,
         data: hospitalDetails
       })
-    } catch(err){
-      console.log({err});
+    } catch (err) {
+      console.log({ err });
       return res.status(500).json({
         success: false,
         message: err || SOMETHING_WENT_WRONG
@@ -74,6 +75,30 @@ export class FacilitiesController {
         success: true,
         message: SUCCESS_FETCHED_FACILITIES,
         combinedData
+      })
+    } catch (err) {
+      console.log({ err });
+      return res.status(500).json({
+        success: false,
+        message: err || SOMETHING_WENT_WRONG
+      })
+    }
+  }
+
+
+  @Post('volume-trend')
+  async getVolumeTrend(@Res() res: any, @Body() body: FacilityDto) {
+    try {
+      const hospitalId = body.hospital_id;
+      const fromDate = body.from_date;
+      const toDate = body.to_date;
+
+      const volumeData = this.facilitiesHelper.getVolumeTrendData(hospitalId, fromDate, toDate);
+
+      return res.status(200).json({
+        success: true,
+        message: SUCCESS_VOLUME_TREND,
+        volumeData
       })
     } catch (err) {
       console.log({ err });
