@@ -1,7 +1,5 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Res } from '@nestjs/common';
+import { Controller, Get, Res, Query } from '@nestjs/common';
 import { OverviewService } from './overview.service';
-import { CreateOverviewDto } from './dto/create-overview.dto';
-import { UpdateOverviewDto } from './dto/update-overview.dto';
 import { SalesRepHelper } from 'src/helpers/salesRepHelper';
 import { SUCCESS_FETCHED_OVERVIEW_REVENUE_STATS, SUCCESS_FETCHED_OVERVIEW_VOLUME_STATS, SUCCESS_FETCHED_OVERVIEW_REVENUE, SUCCESS_FETCHED_OVERVIEW_VOLUME_AND_REVENUE } from 'src/constants/messageConstants';
 
@@ -18,14 +16,14 @@ export class OverviewController {
 
   ) { }
 
-  @Post('case-types')
-  async getOverViewCaseTypes(@Body() createOverviewDto: CreateOverviewDto, @Res() res: any) {
+  @Get('case-types')
+  async getOverViewCaseTypes(@Query() query: any, @Res() res: any) {
     try {
 
-      const { from_date, to_date } = createOverviewDto
+      const { from_date, to_date } = query;
 
-      const volumeData = await this.salesRepHelper.getOverviewCaseTypesVolumeData(from_date, to_date)
-      const revenueData = await this.salesRepHelper.getOverviewCaseTypesRevenueData(from_date, to_date)
+      const volumeData = await this.salesRepHelper.getOverviewCaseTypesVolumeData(from_date, to_date);
+      const revenueData = await this.salesRepHelper.getOverviewCaseTypesRevenueData(from_date, to_date);
 
       return res.status(200).json({
         success: true,
@@ -34,43 +32,25 @@ export class OverviewController {
           volume_data: { total: volumeData.total, case_type_wise_count: volumeData.totalCounts },
           revenue_data: { total: revenueData.total_amount, case_type_wise_count: revenueData.totalCaseTypeAmount }
         }
-      })
+      });
     }
     catch (error) {
       return res.status(500).json({
         success: false,
         message: error.message
-      })
+      });
     }
   }
 
-  @Get()
-  findAll() {
-    return this.overviewService.findAll();
-  }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.overviewService.findOne(+id);
-  }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateOverviewDto: UpdateOverviewDto) {
-    return this.overviewService.update(+id, updateOverviewDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.overviewService.remove(+id);
-  }
-
-  @Post('stats-revenue')
-  async getRevenueStats(@Res() res: any, @Body() overviewDto: CreateOverviewDto) {
+  @Get('stats-revenue')
+  async getRevenueStats(@Res() res: any, @Query() query: any) {
     try {
-      const start_date = new Date(overviewDto.from_date)
-      const end_date = new Date(overviewDto.to_date)
+      const start_date = new Date(query.from_date);
+      const end_date = new Date(query.to_date);
 
-      const { total_amount, paid_amount, pending_amount } = await this.salesRepHelper.getOverviewRevenueStatsData(start_date, end_date)
+      const { total_amount, paid_amount, pending_amount } = await this.salesRepHelper.getOverviewRevenueStatsData(start_date, end_date);
       return res.status(200).json({
         success: true,
         message: SUCCESS_FETCHED_OVERVIEW_REVENUE_STATS,
@@ -79,7 +59,7 @@ export class OverviewController {
           collected: paid_amount,
           pending: pending_amount,
         }
-      })
+      });
     } catch (err) {
       return res.status(500).json({
         success: false,
@@ -88,12 +68,12 @@ export class OverviewController {
     }
   }
 
-  @Post('stats-volume')
-  async getVolumeStats(@Res() res: any, @Body() overviewDto: CreateOverviewDto) {
+  @Get('stats-volume')
+  async getVolumeStats(@Res() res: any, @Query() query: any) {
     try {
-      const start_date = new Date(overviewDto.from_date)
-      const end_date = new Date(overviewDto.to_date)
-      const { total_cases, completed_cases, pending_cases } = await this.salesRepHelper.getOverViewVolumeStatsData(start_date, end_date)
+      const start_date = new Date(query.from_date);
+      const end_date = new Date(query.to_date);
+      const { total_cases, completed_cases, pending_cases } = await this.salesRepHelper.getOverViewVolumeStatsData(start_date, end_date);
       return res.status(200).json({
         success: true,
         message: SUCCESS_FETCHED_OVERVIEW_VOLUME_STATS,
@@ -102,32 +82,32 @@ export class OverviewController {
           completed: completed_cases,
           pending: pending_cases
         }
-      })
+      });
     } catch (err) {
       return res.status(500).json({
         success: false,
         message: err
-      })
+      });
     }
   }
 
-  @Post('revenue')
-  async revenuGraph(@Res() res: any, @Body() overviewDto: CreateOverviewDto) {
+  @Get('revenue')
+  async revenuGraph(@Res() res: any, @Query() query: any) {
     try {
-      const from_date = new Date(overviewDto.from_date)
-      const to_date = new Date(overviewDto.to_date)
-      const data = await this.salesRepHelper.getRevenueGraph(from_date, to_date)
+      const from_date = new Date(query.from_date);
+      const to_date = new Date(query.to_date);
+      const data = await this.salesRepHelper.getRevenueGraph(from_date, to_date);
       return res.status(200).json({
         success: true,
         messgae: SUCCESS_FETCHED_OVERVIEW_REVENUE,
         data: data
-      })
+      });
     }
     catch (err) {
       return res.status(500).json({
         success: false,
         message: err
-      })
+      });
     }
   }
 }
