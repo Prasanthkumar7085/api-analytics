@@ -138,9 +138,9 @@ export class SalesRepHelper {
                 if (date >= start_date && date <= end_date) {
                     if (finalRevenueResp[i].marketer_id == id) {
 
-                        total_amount = total_amount + finalRevenueResp[i].total_amount,
-                            paid_amount = paid_amount + finalRevenueResp[i].paid_amount
-                        pending_amount = pending_amount + finalRevenueResp[i].pending_amount
+                        total_amount += finalRevenueResp[i].total_amount,
+                            paid_amount += finalRevenueResp[i].paid_amount
+                        pending_amount += finalRevenueResp[i].pending_amount
                     }
                 }
             }
@@ -165,9 +165,9 @@ export class SalesRepHelper {
                 if (date >= start_date && date <= end_date) {
 
                     if (finalVolumeResp[i].marketer_id == id) {
-                        total_cases = total_cases + finalVolumeResp[i].total_cases,
-                            completed_cases = completed_cases + finalVolumeResp[i].completed_cases,
-                            pending_cases = pending_cases + finalVolumeResp[i].pending_cases
+                        total_cases += finalVolumeResp[i].total_cases,
+                        completed_cases += finalVolumeResp[i].completed_cases,
+                        pending_cases += finalVolumeResp[i].pending_cases
 
                     }
                 }
