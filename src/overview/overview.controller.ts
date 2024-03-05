@@ -3,7 +3,7 @@ import { OverviewService } from './overview.service';
 import { CreateOverviewDto } from './dto/create-overview.dto';
 import { UpdateOverviewDto } from './dto/update-overview.dto';
 import { SalesRepHelper } from 'src/helpers/salesRepHelper';
-import { SUCCESS_FETCHED_OVERVIEW_REVENUE_STATS, SUCCESS_FETCHED_OVERVIEW_VOLUME_STATS, SUCCESS_FETCHED_OVERVIEW_REVENUE, SUCCESS_FETCHED_CASE_TYPE_VOLUME_AND_COUNT } from 'src/constants/messageConstants';
+import { SUCCESS_FETCHED_OVERVIEW_REVENUE_STATS, SUCCESS_FETCHED_OVERVIEW_VOLUME_STATS, SUCCESS_FETCHED_OVERVIEW_REVENUE, SUCCESS_FETCHED_OVERVIEW_VOLUME_AND_REVENUE } from 'src/constants/messageConstants';
 
 
 
@@ -29,7 +29,7 @@ export class OverviewController {
 
       return res.status(200).json({
         success: true,
-        message: SUCCESS_FETCHED_CASE_TYPE_VOLUME_AND_COUNT,
+        message: SUCCESS_FETCHED_OVERVIEW_VOLUME_AND_REVENUE,
         data: {
           volume_data: { total: volumeData.total, case_type_wise_count: volumeData.totalCounts },
           revenue_data: { total: revenueData.total_amount, case_type_wise_count: revenueData.totalCaseTypeAmount }
