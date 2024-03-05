@@ -1,9 +1,8 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Res } from '@nestjs/common';
+import { Controller, Get, Post, Param, Res, Query } from '@nestjs/common';
 import { FacilitiesService } from './facilities.service';
 import { SOMETHING_WENT_WRONG, SUCCESS_FETCHED_FACILITIES, SUCCESS_FETCHED_FACILITY, SUCCESS_VOLUME_TREND, SUCCESS_FETCHED_FACILITIES_REVENUE_STATS, SUCCESS_FETCHED_FACILITIES_VOLUME_STATS, SUCCESSS_FETCHED_FACILITIES_CASES_TYPES_VOLUME, SUCCESS_FETCHED_CASE_TYPES_REVENUE, SUCCESS_FETCHED_REVENUE_MONTH_WISE_TRENDS, SUCCESS_FETCHED_FACILITY_CASE_TYPE_VOLUME_AND_REVENUE } from 'src/constants/messageConstants';
 import { FacilitiesHelper } from 'src/helpers/facilitiesHelper';
-import { FacilitiesDto } from './dto/facilities.dto';
-import { FacilityDto } from './dto/facility.dto';
+
 
 @Controller({
   version: '2.0',
@@ -16,11 +15,11 @@ export class FacilitiesController {
   ) { }
 
 
-  @Get(':hospital_id')
+  @Get(':id')
   async getHospitalDetails(@Res() res: any, @Param() param: any) {
     try {
 
-      const hospitalId = param.hospital_id;
+      const hospitalId = param.id;
 
       const hospitalDetails = await this.facilitiesService.getHospital(hospitalId);
 
@@ -39,12 +38,15 @@ export class FacilitiesController {
   }
 
 
-  @Post()
-  async getAllFacilities(@Res() res: any, @Body() body: FacilitiesDto) {
+  @Get()
+  async getAllFacilities(
+    @Res() res: any,
+    @Query() query: any
+  ) {
     try {
 
-      const fromDate = body.from_date;
-      const toDate = body.to_date;
+      const fromDate = query.from_date;
+      const toDate = query.to_date;
 
       // for volume facility wise
       const volumeData = this.facilitiesHelper.forVolumeFacilityWise(fromDate, toDate);
@@ -86,12 +88,12 @@ export class FacilitiesController {
   }
 
 
-  @Post('volume-trend')
-  async getVolumeTrend(@Res() res: any, @Body() body: FacilityDto) {
+  @Get(':id/trends/volume')
+  async getVolumeTrend(@Res() res: any, @Param() param: any, @Query() query: any) {
     try {
-      const hospitalId = body.hospital_id;
-      const fromDate = body.from_date;
-      const toDate = body.to_date;
+      const hospitalId = param.id;
+      const fromDate = query.from_date;
+      const toDate = query.to_date;
 
       const volumeData = this.facilitiesHelper.getVolumeTrendData(hospitalId, fromDate, toDate);
 
@@ -110,12 +112,12 @@ export class FacilitiesController {
   }
 
 
-  @Post('stats-revenue')
-  async getRevenuestatsData(@Res() res: any, @Body() facilityDto: FacilityDto) {
+  @Get(':id/stats-revenue')
+  async getRevenuestatsData(@Res() res: any, @Param() param: any, @Query() query: any) {
     try {
-      const id = facilityDto.hospital_id
-      const from_date = new Date(facilityDto.from_date)
-      const to_date = new Date(facilityDto.to_date)
+      const id = param.id;
+      const from_date = new Date(query.from_date)
+      const to_date = new Date(query.to_date)
 
       const { total_amount, paid_amount, pending_amount } = await this.facilitiesHelper.getFacilityRevenueStats(id, from_date, to_date)
       return res.status(200).json({
@@ -137,12 +139,12 @@ export class FacilitiesController {
   }
 
 
-  @Post('stats-volume')
-  async getVolumeStatsData(@Res() res: any, @Body() faciliticesDto: FacilityDto) {
+  @Get(':id/stats-volume')
+  async getVolumeStatsData(@Res() res: any, @Param() param: any, @Query() query: any) {
     try {
-      const id = faciliticesDto.hospital_id
-      const from_date = new Date(faciliticesDto.from_date)
-      const to_date = new Date(faciliticesDto.to_date)
+      const id = param.id
+      const from_date = new Date(query.from_date)
+      const to_date = new Date(query.to_date)
 
       const { total_cases, completed_cases, pending_cases } = await this.facilitiesHelper.getFacilityVolumeStats(id, from_date, to_date)
       return res.status(200).json({
@@ -163,13 +165,13 @@ export class FacilitiesController {
     }
   }
 
-  @Post('case-types/volume')
-  async caseTypesVolumeMonthWise(@Res() res: any, @Body() faciliticesDto: FacilityDto) {
+  @Get(':id/case-types/volume')
+  async caseTypesVolumeMonthWise(@Res() res: any, @Param() param: any, @Query() query: any) {
     try {
-      const id = faciliticesDto.hospital_id;
-      const from_date = new Date(faciliticesDto.from_date);
-      const to_date = new Date(faciliticesDto.to_date);
-      const data = await this.facilitiesHelper.facilityCaseTypesVolumeMonthWise(id, from_date, to_date)
+      const id = param.id;
+      const from_date = new Date(query.from_date);
+      const to_date = new Date(query.to_date);
+      const data = await this.facilitiesHelper.facilityCaseTypesVolumeMonthWise(id, from_date, to_date);
       return res.status(200).json({
         success: true,
         message: SUCCESSS_FETCHED_FACILITIES_CASES_TYPES_VOLUME,
@@ -184,15 +186,17 @@ export class FacilitiesController {
     }
   }
 
-  @Post('case-types')
+  @Get(':id/case-types')
   async facilityCaseTypeWiseData(
-    @Body() createFacilityDto: FacilityDto,
+    @Query() query: any,
+    @Param() param: any,
     @Res() res: any
   ) {
     try {
-      const { hospital_id, from_date, to_date } = createFacilityDto
-      const volumeData = await this.facilitiesHelper.findOneVolumeBasedOnFacility(hospital_id, from_date, to_date)
-      const revenueData = await this.facilitiesHelper.findOneRevenueBasedOnFacility(hospital_id, from_date, to_date)
+      const { from_date, to_date } = query;
+      const hospital_id = param.id;
+      const volumeData = await this.facilitiesHelper.findOneVolumeBasedOnFacility(hospital_id, from_date, to_date);
+      const revenueData = await this.facilitiesHelper.findOneRevenueBasedOnFacility(hospital_id, from_date, to_date);
 
       return res.status(200).json({
         success: true,
@@ -218,13 +222,15 @@ export class FacilitiesController {
     }
   }
 
-  @Post('case-types/revenue')
+  @Get(':id/case-types/revenue')
   async facilityCaseTypeWiseRevenueData(
-    @Body() createFacilityDto: FacilityDto,
+    @Query() query: any,
+    @Param() param: any,
     @Res() res: any
   ) {
     try {
-      const { hospital_id, from_date, to_date } = createFacilityDto
+      const { from_date, to_date } = query;
+      const hospital_id = param.id
       const data = await this.facilitiesHelper.findOneRevenueBasedOnFacilityMonthWise(hospital_id, from_date, to_date)
 
       return res.status(200).json({
@@ -244,13 +250,15 @@ export class FacilitiesController {
   }
 
 
-  @Post('revenue-trends')
+  @Get(':id/trends/revenue')
   async getRevenueMonthWiseTrends(
-    @Body() createFacilityDto: FacilityDto,
+    @Query() query: any,
+    @Param() param: any,
     @Res() res: any
   ) {
     try {
-      const { hospital_id, from_date, to_date } = createFacilityDto
+      const { from_date, to_date } = query;
+      const hospital_id = param.id;
       const data = await this.facilitiesHelper.findRevenueMonthWiseStats(hospital_id, from_date, to_date)
 
       return res.status(200).json({
