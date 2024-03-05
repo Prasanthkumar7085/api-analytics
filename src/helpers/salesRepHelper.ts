@@ -451,4 +451,32 @@ export class SalesRepHelper {
 
 
     }
+
+    async getSalesTrendsVolumeData(id, start, end) {
+        const VolumeStatsData = fs.readFileSync('VolumeStatsData.json', "utf-8");
+        const finalVolumeResp = JSON.parse(VolumeStatsData);
+
+        let totalCounts = {};
+
+        const startDate = new Date(start);
+        const endDate = new Date(end);
+        while (startDate <= endDate) {
+            const monthYear = startDate.toLocaleString('default', { month: 'long', year: 'numeric' });
+
+            totalCounts[monthYear] = { count: 0 };
+            startDate.setMonth(startDate.getMonth() + 1);
+        }
+        for (let i = 0; i < finalVolumeResp.length; i++) {
+
+            if (finalVolumeResp[i].marketer_id == id) {
+                let date = new Date(finalVolumeResp[i].date);
+
+                if (date >= start && date <= end) {
+                    const monthYear = date.toLocaleString('default', { month: 'long', year: 'numeric' });
+                    totalCounts[monthYear]['count'] += finalVolumeResp[i].total_cases
+                }
+            }
+        }
+        return totalCounts;
+    } 
 }
