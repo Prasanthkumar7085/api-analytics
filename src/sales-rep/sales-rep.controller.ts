@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Body, Param, Res } from '@nestjs/common';
 import { SalesRepService } from './sales-rep.service';
 import { CreateSalesRepDto } from './dto/create-sales-rep.dto';
-import { SINGLE_REP_FACILITY_WISE, SOMETHING_WENT_WRONG, SUCCESS_FECTED_SALE_REP_REVENUE_STATS, SUCCESS_FECTED_SALE_REP_VOLUME_STATS, SUCCESS_FETCHED_CASE_TYPES_REVENUE, SUCCESS_FETCHED_SALES_REP, SUCCESS_FETCHED_SALES_REP_COUNT_AND_VOLUME, SUCCESS_FETCHED_SALE_VOLUME_MONTH_WISE, SUCCESS_MARKETER } from 'src/constants/messageConstants';
+import { SINGLE_REP_FACILITY_WISE, SOMETHING_WENT_WRONG, SUCCESS_FECTED_SALE_REP_REVENUE_STATS, SUCCESS_FECTED_SALE_REP_VOLUME_STATS, SUCCESS_FETCHED_CASE_TYPES_REVENUE, SUCCESS_FETCHED_SALES_REP, SUCCESS_FETCHED_SALES_REP_COUNT_AND_VOLUME, SUCCESS_FETCHED_SALE_VOLUME_MONTH_WISE, SUCCESS_MARKETER,SUCCESS_FETCHED_SALE_TREND_VOLUME } from 'src/constants/messageConstants';
 import * as fs from 'fs';
 import { FacilityWiseDto } from './dto/facility-wise.dto';
 import { SalesRepDto } from './dto/sales-rep.dto';
@@ -323,6 +323,28 @@ async getMarketer(@Res() res: any, @Param() param: any){
         data: data
       })
 
+    } catch (error) {
+      return res.status(500).json({
+        success: false,
+        message: error.message || SOMETHING_WENT_WRONG
+      })
+    }
+  }
+
+  @Post('trends/volume')
+  async getTrendVolume(@Res() res:any,@Body() salesRepDto:CreateSalesRepDto){
+    try {
+      const id = salesRepDto.marketer_id
+      const start_date = new Date(salesRepDto.from_date)
+      const end_date = new Date(salesRepDto.to_date)
+      
+      const data = await this.salesRepHelper.getSalesTrendsVolumeData(id,start_date,end_date)
+      
+      return res.status(200).json({
+        success: true,
+        message:SUCCESS_FETCHED_SALE_TREND_VOLUME,
+        data: data
+      })
     } catch (error) {
       return res.status(500).json({
         success: false,
