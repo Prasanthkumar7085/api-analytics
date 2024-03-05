@@ -139,8 +139,43 @@ export class FacilitiesHelper {
             }
 
         }
+        console.log('data', data);
 
         return data;
+
+    }
+
+
+
+    async findRevenueMonthWiseStats(id, from_date, to_date) {
+        const revenueResponse = fs.readFileSync('./RevenueStatsData.json', "utf-8");
+        const revenue = JSON.parse(revenueResponse);
+
+        let total_counts = {}
+        const startDate = new Date(from_date)
+        const endDate = new Date(to_date)
+
+
+        while (startDate <= endDate) {
+            const monthYear = startDate.toLocaleString('default', { month: 'long', year: 'numeric' });
+
+            total_counts[monthYear] = { total_revenue: 0 };
+            startDate.setMonth(startDate.getMonth() + 1);
+        }
+
+        for (const item of revenue) {
+            let itemDate = new Date(item.date);
+            if (itemDate >= new Date(from_date) && itemDate <= new Date(to_date)) {
+                for (const hospital of item.hospital_wise_counts) {
+                    if (hospital.hospital === id) {
+                        const monthYear = itemDate.toLocaleString('default', { month: 'long', year: 'numeric' })
+                        total_counts[monthYear]['total_revenue'] += item.total_amount
+                    }
+                }
+            }
+        }
+
+        return total_counts
 
     }
 }
