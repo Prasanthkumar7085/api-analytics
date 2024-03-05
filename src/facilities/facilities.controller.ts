@@ -27,7 +27,7 @@ export class FacilitiesController {
 
 			return res.status(200).json({
 				success: true,
-				message: 'Success',
+				message: 'Successfully feteched case-type wise data',
 				data: {
 					volume_data: {
 						total_count: volumeData.total_count,
@@ -38,6 +38,35 @@ export class FacilitiesController {
 						case_type_wise_revenue: revenueData.case_type_wise_revenue
 					}
 				}
+			})
+
+		} catch (error) {
+			console.log({ error });
+			return res.status(500).json({
+				success: false,
+				message: error || SOMETHING_WENT_WRONG
+			})
+		}
+	}
+
+
+
+
+
+
+	@Post('case-types/revenue')
+	async facilityCaseTypeWiseRevenueData(
+		@Body() createFacilityDto: CreateFacilityDto,
+		@Res() res: any
+	) {
+		try {
+			const { facility_id, from_date, to_date } = createFacilityDto
+			const data = await this.facilitiesHelper.findOneRevenueBasedOnFacilityMonthWise(facility_id, from_date, to_date)
+
+			return res.status(200).json({
+				success: true,
+				message: 'Successfully fetched case-type wise revenue data',
+				data: data
 			})
 
 		} catch (error) {
