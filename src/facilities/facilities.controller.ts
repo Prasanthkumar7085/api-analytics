@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, Res } from '@nestjs/common';
 import { FacilitiesService } from './facilities.service';
-import { SOMETHING_WENT_WRONG, SUCCESS_FETCHED_FACILITIES } from 'src/constants/messageConstants';
+import { SOMETHING_WENT_WRONG, SUCCESS_FETCHED_FACILITIES, SUCCESS_FETCHED_FACILITY } from 'src/constants/messageConstants';
 import { FacilitiesHelper } from 'src/helpers/facilitiesHelper';
 import { FacilitiesDto } from './dto/facilities.dto';
 
@@ -13,6 +13,24 @@ export class FacilitiesController {
     private readonly facilitiesService: FacilitiesService,
     private readonly facilitiesHelper: FacilitiesHelper
   ) { }
+
+
+  @Get(':hospital_id')
+  async getHospitalDetails(@Res() res: any){
+    try {
+
+      return res.status(200).json({
+        success: true,
+        message: SUCCESS_FETCHED_FACILITY
+      })
+    } catch(err){
+      console.log({err});
+      return res.status(500).json({
+        success: false,
+        message: err || SOMETHING_WENT_WRONG
+      })
+    }
+  }
 
 
   @Post()
