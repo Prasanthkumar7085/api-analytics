@@ -8,13 +8,13 @@ export class CreateSalesRepDto {
     marketer_id: string
 
     @IsDateString({}, { message: "Invalid From Date" })
-    // @IsNotEmpty({message: "From Date is Required"})
-    @IsOptional()
+    @IsNotEmpty({ message: "From Date is Required" })
+    // @IsOptional()
     from_date: Date;
 
     @IsDateString({}, { message: "Invalid To Date" })
-    // @IsNotEmpty({message: "To Date is Required"})
-    @IsOptional()
+    @IsNotEmpty({ message: "To Date is Required" })
+    // @IsOptional()
     to_date: Date;
 
     @IsString({ message: "Invalid Order By" })
