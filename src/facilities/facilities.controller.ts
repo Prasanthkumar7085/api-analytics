@@ -3,7 +3,7 @@ import { FacilitiesService } from './facilities.service';
 import { CreateFacilityDto } from './dto/create-facility.dto';
 import { UpdateFacilityDto } from './dto/update-facility.dto';
 import { FacilitiesHelper } from 'src/helpers/facilitiesHelper';
-import { SOMETHING_WENT_WRONG } from 'src/constants/messageConstants';
+import { SOMETHING_WENT_WRONG, SUCCESS_FETCHED_CASE_TYPES_REVENUE, SUCCESS_FETCHED_CASE_TYPE_VOLUME_AND_COUNT, SUCCESS_FETCHED_REVENUE_MONTH_WISE_TRENDS } from 'src/constants/messageConstants';
 
 @Controller({
 	version: '2.0',
@@ -27,7 +27,7 @@ export class FacilitiesController {
 
 			return res.status(200).json({
 				success: true,
-				message: 'Successfully feteched case-type wise data',
+				message: SUCCESS_FETCHED_CASE_TYPE_VOLUME_AND_COUNT,
 				data: {
 					volume_data: {
 						total_count: volumeData.total_count,
@@ -65,7 +65,7 @@ export class FacilitiesController {
 
 			return res.status(200).json({
 				success: true,
-				message: 'Successfully fetched case-type wise revenue data',
+				message: SUCCESS_FETCHED_CASE_TYPES_REVENUE,
 				data: data
 			})
 
@@ -78,6 +78,36 @@ export class FacilitiesController {
 		}
 
 	}
+
+
+	@Post('revenue-trends')
+	async getRevenueMonthWiseTrends(
+		@Body() createFacilityDto: CreateFacilityDto,
+		@Res() res: any
+	) {
+		try {
+			const { facility_id, from_date, to_date } = createFacilityDto
+			const data = await this.facilitiesHelper.findRevenueMonthWiseStats(facility_id, from_date, to_date)
+
+			return res.status(200).json({
+				success: true,
+				message: SUCCESS_FETCHED_REVENUE_MONTH_WISE_TRENDS,
+				data: data
+			})
+
+		} catch (error) {
+			console.log({ error });
+			return res.status(500).json({
+				success: false,
+				message: error || SOMETHING_WENT_WRONG
+			})
+		}
+	}
+
+
+
+
+
 
 	@Get()
 	findAll() {
