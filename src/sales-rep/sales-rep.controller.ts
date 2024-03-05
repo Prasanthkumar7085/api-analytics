@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Body, Param, Res } from '@nestjs/common';
 import { SalesRepService } from './sales-rep.service';
-import { SINGLE_REP_FACILITY_WISE, SOMETHING_WENT_WRONG, SUCCESS_FECTED_SALE_REP_REVENUE_STATS, SUCCESS_FECTED_SALE_REP_VOLUME_STATS, SUCCESS_FETCHED_CASE_TYPES_REVENUE, SUCCESS_FETCHED_SALES_REP, SUCCESS_FETCHED_SALES_REP_COUNT_AND_VOLUME, SUCCESS_FETCHED_SALE_VOLUME_MONTH_WISE, SUCCESS_FETCHED_TREND_REVENUE, SUCCESS_MARKETER, SUCCESS_FETCHED_SALE_TREND_VOLUME } from 'src/constants/messageConstants';
+import { SINGLE_REP_FACILITY_WISE, SOMETHING_WENT_WRONG, SUCCESS_FECTED_SALE_REP_REVENUE_STATS, SUCCESS_FECTED_SALE_REP_VOLUME_STATS, SUCCESS_FETCHED_CASE_TYPES_REVENUE, SUCCESS_FETCHED_SALES_REP, SUCCESS_FETCHED_SALES_REP_VOLUME_AND_REVENU, SUCCESS_FETCHED_SALE_VOLUME_MONTH_WISE, SUCCESS_FETCHED_TREND_REVENUE, SUCCESS_MARKETER, SUCCESS_FETCHED_SALE_TREND_VOLUME } from 'src/constants/messageConstants';
 import * as fs from 'fs';
 import { FacilityWiseDto } from './dto/facility-wise.dto';
 import { SalesRepDto } from './dto/sales-rep.dto';
@@ -245,7 +245,7 @@ export class SalesRepController {
 
       return res.status(200).json({
         success: true,
-        message: SUCCESS_FETCHED_SALES_REP_COUNT_AND_VOLUME,
+        message: SUCCESS_FETCHED_SALES_REP_VOLUME_AND_REVENU,
         data: {
           volume_data: { total, count: totalCounts },
           revenue_data: { total: revenueData.total_amount, case_wise_revenue: revenueData.totalCaseTypeAmount }
