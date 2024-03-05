@@ -1,7 +1,6 @@
 import { Controller, Get, Post, Body, Param, Res } from '@nestjs/common';
 import { SalesRepService } from './sales-rep.service';
-import { CreateSalesRepDto } from './dto/create-sales-rep.dto';
-import { SINGLE_REP_FACILITY_WISE, SOMETHING_WENT_WRONG, SUCCESS_FECTED_SALE_REP_REVENUE_STATS, SUCCESS_FECTED_SALE_REP_VOLUME_STATS, SUCCESS_FETCHED_CASE_TYPES_REVENUE, SUCCESS_FETCHED_SALES_REP, SUCCESS_FETCHED_SALES_REP_COUNT_AND_VOLUME, SUCCESS_FETCHED_SALE_VOLUME_MONTH_WISE, SUCCESS_FETCHED_TREND_REVENUE, SUCCESS_MARKETER } from 'src/constants/messageConstants';
+import { SINGLE_REP_FACILITY_WISE, SOMETHING_WENT_WRONG, SUCCESS_FECTED_SALE_REP_REVENUE_STATS, SUCCESS_FECTED_SALE_REP_VOLUME_STATS, SUCCESS_FETCHED_CASE_TYPES_REVENUE, SUCCESS_FETCHED_SALES_REP, SUCCESS_FETCHED_SALES_REP_COUNT_AND_VOLUME, SUCCESS_FETCHED_SALE_VOLUME_MONTH_WISE, SUCCESS_FETCHED_TREND_REVENUE, SUCCESS_MARKETER, SUCCESS_FETCHED_SALE_TREND_VOLUME } from 'src/constants/messageConstants';
 import * as fs from 'fs';
 import { FacilityWiseDto } from './dto/facility-wise.dto';
 import { SalesRepDto } from './dto/sales-rep.dto';
@@ -208,7 +207,7 @@ export class SalesRepController {
   }
 
   @Post('stats-revenue')
-  async getRevenueStats(@Res() res: any, @Body() salesrepDto: CreateSalesRepDto) {
+  async getRevenueStats(@Res() res: any, @Body() salesrepDto: FacilityWiseDto) {
     try {
       const id = salesrepDto.marketer_id
       const start_date = new Date(salesrepDto.from_date)
@@ -236,7 +235,7 @@ export class SalesRepController {
 
   @Post('case-types')
   async getOneSalesRep(
-    @Body() salesRepDto: CreateSalesRepDto,
+    @Body() salesRepDto: FacilityWiseDto,
     @Res() res: any,
   ) {
     try {
@@ -262,7 +261,7 @@ export class SalesRepController {
   }
 
   @Post('stats-volume')
-  async getVolumeStats(@Res() res: any, @Body() saleRepDto: CreateSalesRepDto) {
+  async getVolumeStats(@Res() res: any, @Body() saleRepDto: FacilityWiseDto) {
     try {
       const id = saleRepDto.marketer_id
       const start_date = new Date(saleRepDto.from_date)
@@ -287,7 +286,7 @@ export class SalesRepController {
   }
 
   @Post('cases-types/volume')
-  async getCaseTypesVolumeMonthWise(@Res() res: any, @Body() salesRepDto: CreateSalesRepDto) {
+  async getCaseTypesVolumeMonthWise(@Res() res: any, @Body() salesRepDto: FacilityWiseDto) {
     try {
       const id = salesRepDto.marketer_id
       const start = new Date(salesRepDto.from_date)
@@ -309,7 +308,7 @@ export class SalesRepController {
 
   @Post('case-types/revenue')
   async getOneSalesRepDuration(
-    @Body() salesRepDto: CreateSalesRepDto,
+    @Body() salesRepDto: FacilityWiseDto,
     @Res() res: any,
   ) {
     try {
@@ -333,7 +332,7 @@ export class SalesRepController {
 
   @Post('trends/revenue')
   async getOneSalesRepDurationTrend(
-    @Body() salesRepDto: CreateSalesRepDto,
+    @Body() salesRepDto: FacilityWiseDto,
     @Res() res: any,
   ) {
     try {
@@ -347,6 +346,29 @@ export class SalesRepController {
       })
     }
     catch (error) {
+      return res.status(500).json({
+        success: false,
+        message: error.message || SOMETHING_WENT_WRONG
+      })
+    }
+  }
+
+
+  @Post('trends/volume')
+  async getTrendVolume(@Res() res: any, @Body() salesRepDto: FacilityWiseDto) {
+    try {
+      const id = salesRepDto.marketer_id
+      const start_date = new Date(salesRepDto.from_date)
+      const end_date = new Date(salesRepDto.to_date)
+
+      const data = await this.salesRepHelper.getSalesTrendsVolumeData(id, start_date, end_date)
+
+      return res.status(200).json({
+        success: true,
+        message: SUCCESS_FETCHED_SALE_TREND_VOLUME,
+        data: data
+      })
+    } catch (error) {
       return res.status(500).json({
         success: false,
         message: error.message || SOMETHING_WENT_WRONG
