@@ -3,7 +3,7 @@ import { FacilitiesService } from './facilities.service';
 import { CreateFacilityDto } from './dto/create-facility.dto';
 import { UpdateFacilityDto } from './dto/update-facility.dto';
 import { FacilitiesHelper } from 'src/helpers/facilitiesHelper';
-import { SOMETHING_WENT_WRONG, SUCCESS_FETCHED_FACILITIES_REVENUE_STATS, SUCCESS_FETCHED_FACILITIES_VOLUME_STATS } from 'src/constants/messageConstants';
+import { SOMETHING_WENT_WRONG, SUCCESS_FETCHED_FACILITIES_REVENUE_STATS, SUCCESS_FETCHED_FACILITIES_VOLUME_STATS, SUCCESSS_FETCHED_FACILITIES_CASES_TYPES_VOLUME } from 'src/constants/messageConstants';
 
 @Controller({
   version: '2.0',
@@ -82,6 +82,27 @@ export class FacilitiesController {
           completed:completed_cases,
           pending:pending_cases
         }
+      })
+    } catch (err) {
+      console.log(err);
+      return res.status(500).json({
+        success: false,
+        message: err || SOMETHING_WENT_WRONG
+      })
+    }
+  }
+
+  @Post('case-types/volume')
+  async caseTypesVolumeMonthWise(@Res() res:any, @Body() faciliticesDto: CreateFacilityDto){
+    try {
+      const id = faciliticesDto.facility_id;
+      const from_date = new Date(faciliticesDto.from_date);
+      const to_date = new Date(faciliticesDto.to_date);
+      const data = await this.facilitiesHelper.facilityCaseTypesVolumeMonthWise(id,from_date,to_date)
+      return res.status(200).json({
+        success:true,
+        message:SUCCESSS_FETCHED_FACILITIES_CASES_TYPES_VOLUME,
+        data:data
       })
     } catch (err) {
       console.log(err);
