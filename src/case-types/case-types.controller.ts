@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Res } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Res, Query } from '@nestjs/common';
 import { CaseTypesService } from './case-types.service';
 import { SOMETHING_WENT_WRONG, SUCCESS_FETCHED_CASE_TYPES } from 'src/constants/messageConstants';
 import { CaseTypesHelper } from 'src/helpers/caseTypesHelper';
@@ -15,11 +15,11 @@ export class CaseTypesController {
     private readonly caseTypesHelper: CaseTypesHelper
   ) { }
 
-  @Post()
-  async getCaseTypeStats(@Res() res: any, @Body() body: CaseTypesDto) {
+  @Get()
+  async getCaseTypeStats(@Res() res: any, @Query() query: any) {
     try {
-      const fromDate = body.from_date;
-      const toDate = body.to_date;
+      const fromDate = query.from_date;
+      const toDate = query.to_date;
 
       // for volume 
       const volumeData = this.caseTypesHelper.forVolumeCaseTypeWise(fromDate, toDate);
