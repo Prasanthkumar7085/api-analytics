@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Res } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Res, Query } from '@nestjs/common';
 import { SalesRepService } from './sales-rep.service';
 import { SINGLE_REP_FACILITY_WISE, SOMETHING_WENT_WRONG, SUCCESS_FECTED_SALE_REP_REVENUE_STATS, SUCCESS_FECTED_SALE_REP_VOLUME_STATS, SUCCESS_FETCHED_CASE_TYPES_REVENUE, SUCCESS_FETCHED_SALES_REP, SUCCESS_FETCHED_SALES_REP_VOLUME_AND_REVENU, SUCCESS_FETCHED_SALE_VOLUME_MONTH_WISE, SUCCESS_FETCHED_TREND_REVENUE, SUCCESS_MARKETER, SUCCESS_FETCHED_SALE_TREND_VOLUME } from 'src/constants/messageConstants';
 import * as fs from 'fs';
@@ -8,7 +8,7 @@ import { SalesRepHelper } from 'src/helpers/salesRepHelper';
 
 @Controller({
   version: '2.0',
-  path: 'sales-rep',
+  path: 'sales-reps',
 })
 export class SalesRepController {
   constructor(
@@ -17,10 +17,10 @@ export class SalesRepController {
   ) { }
 
 
-  @Get(':marketer_id')
+  @Get(':id')
   async getMarketer(@Res() res: any, @Param() param: any) {
     try {
-      const marketerid = param.marketer_id;
+      const marketerid = param.id;
 
       const marketerDetails = await this.salesRepService.getMarketer(marketerid);
       return res.status(200).json({
@@ -162,13 +162,13 @@ export class SalesRepController {
     }
   }
 
-  @Post('facility-wise')
-  async getFacilityWiseForSingleRep(@Res() res: any, @Body() body: FacilityWiseDto) {
+  @Post(':id/facilities')
+  async getFacilityWiseForSingleRep(@Res() res: any, @Query() query: any, @Param() param: any) {
     try {
 
-      const marketerId = body.marketer_id;
-      const fromDate = body.from_date;
-      const toDate = body.to_date;
+      const marketerId = param.id;
+      const fromDate = query.from_date;
+      const toDate = query.to_date;
 
       // from volume
       const volumeData = this.salesRepHelper.getsingleRepVolumeFacilityWise(marketerId, fromDate, toDate);
@@ -206,12 +206,12 @@ export class SalesRepController {
     }
   }
 
-  @Post('stats-revenue')
-  async getRevenueStats(@Res() res: any, @Body() salesrepDto: FacilityWiseDto) {
+  @Post(':id/stats-revenue')
+  async getRevenueStats(@Res() res: any, @Query() query: any, @Param() param: any) {
     try {
-      const id = salesrepDto.marketer_id
-      const start_date = new Date(salesrepDto.from_date)
-      const end_date = new Date(salesrepDto.to_date)
+      const id = param.id
+      const start_date = new Date(query.from_date)
+      const end_date = new Date(query.to_date)
 
       const { total_amount, paid_amount, pending_amount } = await this.salesRepHelper.getRevenueStatsData(id, start_date, end_date)
       return res.status(200).json({
@@ -233,13 +233,15 @@ export class SalesRepController {
   }
 
 
-  @Post('case-types')
+  @Post(':id/case-types')
   async getOneSalesRep(
-    @Body() salesRepDto: FacilityWiseDto,
+    @Query() query: any,
+    @Param() param: any,
     @Res() res: any,
   ) {
     try {
-      const { marketer_id, from_date, to_date } = salesRepDto
+      const marketer_id = param.id;
+      const { from_date, to_date } = query;
       const { totalCounts, total } = await this.salesRepHelper.findOneVolume(marketer_id, from_date, to_date)
       const revenueData = await this.salesRepHelper.findOneRevenue(marketer_id, from_date, to_date)
 
@@ -260,12 +262,12 @@ export class SalesRepController {
     }
   }
 
-  @Post('stats-volume')
-  async getVolumeStats(@Res() res: any, @Body() saleRepDto: FacilityWiseDto) {
+  @Post(':id/stats-volume')
+  async getVolumeStats(@Res() res: any, @Query() query: any, @Param() param: any) {
     try {
-      const id = saleRepDto.marketer_id
-      const start_date = new Date(saleRepDto.from_date)
-      const end_date = new Date(saleRepDto.to_date)
+      const id = param.id
+      const start_date = new Date(query.from_date)
+      const end_date = new Date(query.to_date)
       const { total_cases, completed_cases, pending_cases } = await this.salesRepHelper.getVolumeStatsData(id, start_date, end_date)
       return res.status(200).json({
         success: true,
@@ -285,12 +287,12 @@ export class SalesRepController {
     }
   }
 
-  @Post('cases-types/volume')
-  async getCaseTypesVolumeMonthWise(@Res() res: any, @Body() salesRepDto: FacilityWiseDto) {
+  @Post(':id/case-types/volume')
+  async getCaseTypesVolumeMonthWise(@Res() res: any, @Query() query: any, @Param() param: any) {
     try {
-      const id = salesRepDto.marketer_id
-      const start = new Date(salesRepDto.from_date)
-      const end = new Date(salesRepDto.to_date)
+      const id = param.id
+      const start = new Date(query.from_date)
+      const end = new Date(query.to_date)
       const data = await this.salesRepHelper.caseTypesVolumeMonthWise(id, start, end)
 
       return res.status(200).json({
@@ -306,13 +308,15 @@ export class SalesRepController {
     }
   }
 
-  @Post('case-types/revenue')
+  @Post(':id/case-types/revenue')
   async getOneSalesRepDuration(
-    @Body() salesRepDto: FacilityWiseDto,
+    @Query() query: any,
+    @Param() param: any,
     @Res() res: any,
   ) {
     try {
-      const { marketer_id, from_date, to_date } = salesRepDto
+      const marketer_id = param.id;
+      const { from_date, to_date } = query;
 
       const data = await this.salesRepHelper.getCaseTypeRevenueMonthWise(marketer_id, new Date(from_date), new Date(to_date))
 
@@ -330,13 +334,15 @@ export class SalesRepController {
     }
   }
 
-  @Post('trends/revenue')
+  @Post(':id/trends/revenue')
   async getOneSalesRepDurationTrend(
-    @Body() salesRepDto: FacilityWiseDto,
+    @Query() query: any,
+    @Param() param: any,
     @Res() res: any,
   ) {
     try {
-      const { marketer_id, from_date, to_date } = salesRepDto
+      const marketer_id = param.id;
+      const { from_date, to_date } = query;
 
       const data = await this.salesRepHelper.getOneSalesRepDurationTrend(marketer_id, new Date(from_date), new Date(to_date))
       return res.status(200).json({
@@ -354,12 +360,12 @@ export class SalesRepController {
   }
 
 
-  @Post('trends/volume')
-  async getTrendVolume(@Res() res: any, @Body() salesRepDto: FacilityWiseDto) {
+  @Post(':id/trends/volume')
+  async getTrendVolume(@Res() res: any, @Query() query: any, @Param() param: any) {
     try {
-      const id = salesRepDto.marketer_id
-      const start_date = new Date(salesRepDto.from_date)
-      const end_date = new Date(salesRepDto.to_date)
+      const id = param.id
+      const start_date = new Date(query.from_date)
+      const end_date = new Date(query.to_date)
 
       const data = await this.salesRepHelper.getSalesTrendsVolumeData(id, start_date, end_date)
 
