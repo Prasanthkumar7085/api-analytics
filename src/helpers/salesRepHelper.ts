@@ -138,9 +138,9 @@ export class SalesRepHelper {
                 if (date >= start_date && date <= end_date) {
                     if (finalRevenueResp[i].marketer_id == id) {
 
-                        total_amount = total_amount + finalRevenueResp[i].total_amount,
-                            paid_amount = paid_amount + finalRevenueResp[i].paid_amount
-                        pending_amount = pending_amount + finalRevenueResp[i].pending_amount
+                        total_amount += finalRevenueResp[i].total_amount,
+                            paid_amount += finalRevenueResp[i].paid_amount
+                        pending_amount += finalRevenueResp[i].pending_amount
                     }
                 }
             }
@@ -165,9 +165,9 @@ export class SalesRepHelper {
                 if (date >= start_date && date <= end_date) {
 
                     if (finalVolumeResp[i].marketer_id == id) {
-                        total_cases = total_cases + finalVolumeResp[i].total_cases,
-                            completed_cases = completed_cases + finalVolumeResp[i].completed_cases,
-                            pending_cases = pending_cases + finalVolumeResp[i].pending_cases
+                        total_cases += finalVolumeResp[i].total_cases,
+                        completed_cases += finalVolumeResp[i].completed_cases,
+                        pending_cases += finalVolumeResp[i].pending_cases
 
                     }
                 }
@@ -190,7 +190,26 @@ export class SalesRepHelper {
         while (startDate <= endDate) {
             const monthYear = startDate.toLocaleString('default', { month: 'long', year: 'numeric' });
 
-            totalCounts[monthYear] = { count: 0, case_type_wise_counts: {} };
+            totalCounts[monthYear] = { count: 0, case_type_wise_counts: {
+            "COVID": 0,
+            "RESPIRATORY_PATHOGEN_PANEL": 0,
+            "TOXICOLOGY": 0,
+            "CLINICAL_CHEMISTRY": 0,
+            "UTI": 0,
+            "URINALYSIS": 0,
+            "PGX_TEST": 0,
+            "WOUND": 0,
+            "NAIL": 0,
+            "COVID_FLU": 0,
+            "CGX_PANEL": 0,
+            "CARDIAC": 0,
+            "DIABETES": 0,
+            "GASTRO": 0,
+            "PAD_ALZHEIMERS": 0,
+            "PULMONARY_PANEL": 0,
+            "GTI_STI": 0,
+            "GTI_WOMENS_HEALTH": 0
+        }};
             startDate.setMonth(startDate.getMonth() + 1);
         }
 
