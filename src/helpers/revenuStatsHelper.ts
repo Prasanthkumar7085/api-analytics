@@ -5,7 +5,7 @@ import { Injectable } from "@nestjs/common";
 import { LisService } from "src/lis/lis.service";
 import { RevenueStatsService } from "src/revenue-stats/revenue-stats.service";
 import { SortHelper } from "./sortHelper";
-import { caseTypes } from "src/constants/statsConstants";
+import { caseTypes } from "src/constants/lisConstants";
 import * as fs from 'fs'
 
 

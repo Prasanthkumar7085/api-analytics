@@ -11,7 +11,7 @@ import { CustomError } from 'src/middlewares/customValidationMiddleware';
 import { ManagerCombinedDto } from 'src/stats/dto/manager-combined.dto';
 import { SortHelper } from 'src/helpers/sortHelper';
 import { StatsService } from 'src/stats/stats.service';
-import { total_amount, total_cases } from 'src/constants/statsConstants';
+import { total_amount, total_cases } from 'src/constants/lisConstants';
 import { ManagerIndividualDto } from 'src/stats/dto/manager-individual';
 
 @Controller({

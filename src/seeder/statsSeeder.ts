@@ -1,5 +1,5 @@
 import { faker } from '@faker-js/faker';
-import { caseTypes, hospitalIds, marketerIds } from 'src/constants/statsConstants';
+import { caseTypes, hospitalIds, marketerIds } from 'src/constants/lisConstants';
 
 
 function seedStats(fromDate, toDate) {

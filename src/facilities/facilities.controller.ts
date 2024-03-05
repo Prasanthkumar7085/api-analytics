@@ -16,12 +16,17 @@ export class FacilitiesController {
 
 
   @Get(':hospital_id')
-  async getHospitalDetails(@Res() res: any){
+  async getHospitalDetails(@Res() res: any, @Param() param: any){
     try {
+
+      const hospitalId = param.hospital_id;
+
+      const hospitalDetails = await this.facilitiesService.getHospital(hospitalId);
 
       return res.status(200).json({
         success: true,
-        message: SUCCESS_FETCHED_FACILITY
+        message: SUCCESS_FETCHED_FACILITY,
+        data: hospitalDetails
       })
     } catch(err){
       console.log({err});
