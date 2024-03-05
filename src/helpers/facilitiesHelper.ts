@@ -90,24 +90,21 @@ export class FacilitiesHelper {
             startDate.setMonth(startDate.getMonth() + 1);
         }
         
-        for (const data of finalVolumeResp){
-            const date = new Date(data.date)
+        for (const data of finalVolumeResp) {
+            const date = new Date(data.date);
             if (date >= from_date && date <= to_date) {
-                for (const hospital of data.hospital_case_type_wise_counts){
-                    if (hospital.hospital === id) {
-                        for (const [key, value] of Object.entries(hospital)){
-                            if (!(key==='hospital')) {
-                                const monthYear = date.toLocaleString('default', { month: 'long', year: 'numeric' });
-                                totalCounts[monthYear]['case_type_wise_counts'][key]= (totalCounts[monthYear]['case_type_wise_counts'][key] || 0) + value
-                                totalCounts[monthYear]['count'] += value
-                            }
+                const hospital = data.hospital_case_type_wise_counts.find(item => item.hospital === id);
+                if (hospital) {
+                    Object.keys(hospital).forEach(key => {
+                        if (key !== 'hospital') {
+                            const value = hospital[key];
+                            const monthYear = date.toLocaleString('default', { month: 'long', year: 'numeric' });
+                            totalCounts[monthYear]['case_type_wise_counts'][key] += value;
+                            totalCounts[monthYear]['count'] += value;
                         }
-                        // console.log(totalCounts)
-                        // count+=1
-                        // console.log(count)
-                    }
+                    });
                 }
-            } 
+            }
         }
         return totalCounts
     }
