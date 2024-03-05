@@ -3,7 +3,7 @@ import { FacilitiesService } from './facilities.service';
 import { CreateFacilityDto } from './dto/create-facility.dto';
 import { UpdateFacilityDto } from './dto/update-facility.dto';
 import { FacilitiesHelper } from 'src/helpers/facilitiesHelper';
-import { SOMETHING_WENT_WRONG, SUCCESS_FETECHED_FACILITIES_REVENUE_STATS } from 'src/constants/messageConstants';
+import { SOMETHING_WENT_WRONG, SUCCESS_FETCHED_FACILITIES_REVENUE_STATS, SUCCESS_FETCHED_FACILITIES_VOLUME_STATS } from 'src/constants/messageConstants';
 
 @Controller({
   version: '2.0',
@@ -49,11 +49,38 @@ export class FacilitiesController {
       const {total_amount,paid_amount,pending_amount} = await this.facilitiesHelper.getFacilityRevenueStats(id,from_date,to_date)
       return res.status(200).json({
         success:true,
-        message:SUCCESS_FETECHED_FACILITIES_REVENUE_STATS,
+        message:SUCCESS_FETCHED_FACILITIES_REVENUE_STATS,
         data :{
           billed:total_amount,
           collected:paid_amount,
           pending:pending_amount
+        }
+      })
+    } catch (err) {
+      console.log(err);
+      return res.status(500).json({
+        success: false,
+        message: err || SOMETHING_WENT_WRONG
+      })
+    }
+  }
+
+
+  @Post('stats-volume')
+  async getVolumeStatsData(@Res() res:any, @Body() faciliticesDto:CreateFacilityDto){
+    try {
+      const id = faciliticesDto.facility_id
+      const from_date = new Date(faciliticesDto.from_date)
+      const to_date = new Date(faciliticesDto.to_date)
+
+      const {total_cases,completed_cases,pending_cases} = await this.facilitiesHelper.getFacilityVolumeStats(id,from_date,to_date)
+      return res.status(200).json({
+        success:true,
+        message:SUCCESS_FETCHED_FACILITIES_VOLUME_STATS,
+        data:{
+          total:total_cases,
+          completed:completed_cases,
+          pending:pending_cases
         }
       })
     } catch (err) {
