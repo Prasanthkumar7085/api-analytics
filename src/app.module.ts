@@ -13,6 +13,7 @@ import { UserSchema } from './schemas/userSchema';
 import { StatsModule } from './stats/stats.module';
 import { SalesRepModule } from './sales-rep/sales-rep.module';
 import { OverviewModule } from './overview/overview.module';
+import { FacilitiesModule } from './facilities/facilities.module';
 
 
 @Module({
@@ -22,7 +23,7 @@ import { OverviewModule } from './overview/overview.module';
     }),
     MongooseModule.forFeature([{ name: 'UserSchema', schema: UserSchema }]),
     MongooseModule.forRoot(process.env.LIS_DB_URL + '?authSource=admin'),
-    StatsModule, PrismaModule, LisModule, RevenueStatsModule, SalesRepModule, OverviewModule],
+    StatsModule, PrismaModule, LisModule, RevenueStatsModule, SalesRepModule, OverviewModule, FacilitiesModule],
   controllers: [AppController],
   providers: [AppService],
 })
