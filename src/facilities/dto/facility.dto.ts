@@ -2,9 +2,9 @@ import { IsDateString, IsMongoId, IsNotEmpty, IsOptional, IsString } from "class
 
 export class FacilityDto {
 
-    @IsMongoId({each: true, message: "Invalid Facility"})
-    @IsString({message: "Invalid Facility"})
-    @IsNotEmpty({message: "Facility is Required"})
+    @IsMongoId({ each: true, message: "Invalid Facility" })
+    @IsString({ message: "Invalid Facility" })
+    @IsNotEmpty({ message: "Facility is Required" })
     hospital_id: string
 
     @IsDateString({}, { message: "Invalid From Date" })
