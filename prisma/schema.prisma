@@ -35,14 +35,14 @@ model patient_payments {
   insurance_name              String
   payment_status              String
   cpt_codes                   Json[]
-  line_item_total             Json[]
-  insurance_payment_amount    Json[]
-  insurance_adjustment_amount Json[]
-  insurance_write_of_amount   Json[]
-  patient_payment_amount      Json[]
-  patient_adjustment_amount   Json[]
-  patient_write_of_amount     Json[]
-  line_item_balance           Json[]
+  line_item_total             Int
+  insurance_payment_amount    Int
+  insurance_adjustment_amount Int
+  insurance_write_of_amount   Int
+  patient_payment_amount      Int
+  patient_adjustment_amount   Int
+  patient_write_of_amount     Int
+  line_item_balance           Int
   total_amount                Int
   paid_amount                 Int
   pending_amount              Int
@@ -50,6 +50,7 @@ model patient_payments {
   values_changed              Boolean   @default(false)
   difference_values           Json?
   patient_id                  String?
+  patient_billing_info        Json[]
 }
 
 model revenue_stats {
