@@ -56,7 +56,8 @@ export class RevenueStatsHelpers {
             patient_adjustment_amount: e['Patient Adjustment Amount'],
             patient_write_of_amount: e['Patient Write-Off Amount'],
             line_item_balance: e['Line Item Balance'],
-            insurance_name: e['Primary Insurance']
+            insurance_name: e['Primary Insurance'],
+            ordering_provider: e['Referring Provider']
         }))
         // Need to Group the Raw Data
         const modifiedData = this.groupingKeys(rawData);
@@ -116,6 +117,7 @@ export class RevenueStatsHelpers {
                     patient_write_of_amount: [item.patient_write_of_amount],
                     line_item_balance: [item.line_item_balance],
                     insurance_name: item.insurance_name,
+                    ordering_provider: item.ordering_provider
                 };
                 acc.push(newEntry);
             }
@@ -135,19 +137,28 @@ export class RevenueStatsHelpers {
 
     sumOfRawData(data) {
         data.forEach((entry) => {
-            entry.total_amount = Math.floor(entry.line_item_total.reduce((sum, value) => sum + Number(value), 0));
+            entry.total_amount = entry.line_item_total.reduce((sum, value) => sum + parseFloat(value), 0);
 
-            const insurance_payment_amount_sum = entry.insurance_payment_amount.reduce((sum, value) => sum + Number(value), 0);
-            const insurance_adjustment_amount_sum = entry.insurance_adjustment_amount.reduce((sum, value) => sum + Number(value), 0);
-            const insurance_write_of_amount_sum = entry.insurance_write_of_amount.reduce((sum, value) => sum + Number(value), 0);
-            const patient_payment_amount_sum = entry.patient_payment_amount.reduce((sum, value) => sum + Number(value), 0);
-            const patient_adjustment_amount_sum = entry.patient_adjustment_amount.reduce((sum, value) => sum + Number(value), 0);
-            const patient_write_of_amount_sum = entry.patient_write_of_amount.reduce((sum, value) => sum + Number(value), 0);
+            const insurance_payment_amount_sum = entry.insurance_payment_amount.reduce((sum, value) => sum + parseFloat(value), 0);
+            const insurance_adjustment_amount_sum = entry.insurance_adjustment_amount.reduce((sum, value) => sum + parseFloat(value), 0);
+            const insurance_write_of_amount_sum = entry.insurance_write_of_amount.reduce((sum, value) => sum + parseFloat(value), 0);
+            const patient_payment_amount_sum = entry.patient_payment_amount.reduce((sum, value) => sum + parseFloat(value), 0);
+            const patient_adjustment_amount_sum = entry.patient_adjustment_amount.reduce((sum, value) => sum + parseFloat(value), 0);
+            const patient_write_of_amount_sum = entry.patient_write_of_amount.reduce((sum, value) => sum + parseFloat(value), 0);
+            const line_item_balance = entry.line_item_balance.reduce((sum, value) => sum + parseFloat(value), 0);
 
 
-            entry.paid_amount = Math.floor(insurance_payment_amount_sum + insurance_adjustment_amount_sum + insurance_write_of_amount_sum + patient_payment_amount_sum + patient_adjustment_amount_sum + patient_write_of_amount_sum);
+            entry.paid_amount = insurance_payment_amount_sum + insurance_adjustment_amount_sum + insurance_write_of_amount_sum + patient_payment_amount_sum + patient_adjustment_amount_sum + patient_write_of_amount_sum;
 
-            entry.pending_amount = Math.floor(entry.line_item_balance.reduce((sum, value) => sum + Number(value), 0));
+            entry.pending_amount = entry.total_amount - entry.paid_amount;
+
+            entry.insurance_payment_amount = insurance_payment_amount_sum;
+            entry.insurance_adjustment_amount = insurance_adjustment_amount_sum;
+            entry.insurance_write_of_amount = insurance_write_of_amount_sum;
+            entry.patient_payment_amount = patient_payment_amount_sum;
+            entry.patient_adjustment_amount = patient_adjustment_amount_sum;
+            entry.patient_write_of_amount = patient_write_of_amount_sum;
+            entry.line_item_balance = line_item_balance;
         });
 
 
@@ -186,7 +197,7 @@ export class RevenueStatsHelpers {
     mergeArrays(caseDataArray, modifiedData) {
         // Merge arrays based on hospital_marketer and date
         const mergedArrays = caseDataArray.map(objA => {
-            const patientId = objA.patient_info ? objA.patient_info._id.toString() : null;
+            const patientBillingInfo = this.forPatientBillingInfo(objA);
 
             const matchingObjB = modifiedData.find(objB => objB.accession_id === objA.accession_id);
             return {
@@ -196,7 +207,7 @@ export class RevenueStatsHelpers {
                 hospital_marketers: objA.hospital_marketers,
                 process_status: "PENDING",
                 ...matchingObjB,
-                patient_id: patientId
+                patient_billing_info: patientBillingInfo
             };
         });
 
@@ -204,6 +215,37 @@ export class RevenueStatsHelpers {
 
     }
 
+
+    forPatientBillingInfo(objA) {
+        const patientId = objA.patient_info ? objA.patient_info._id.toString() : null;
+        const patientFirstName = objA.patient_info ? objA.patient_info.first_name : null;
+        const patientLastName = objA.patient_info ? objA.patient_info.last_name : null;
+        const patientMiddleName = objA.patient_info ? objA.patient_info.middle_name : null;
+        const addressLine1 = objA.patient_info ? objA.patient_info.address_line_1 : null;
+        const addressLine2 = objA.patient_info ? objA.patient_info.address_line_2 : null;
+        const city = objA.patient_info ? objA.patient_info.city : null;
+        const state = objA.patient_info ? objA.patient_info.state : null;
+        const zip = objA.patient_info ? objA.patient_info.zip : null;
+
+        let specimen_types = [];
+        if (objA.sample_types && objA.sample_types.length > 0) {
+            specimen_types = objA.sample_types[0].sample_types;
+        }
+
+        return {
+            patient_id: patientId,
+            first_name: patientFirstName,
+            middle_name: patientMiddleName,
+            last_name: patientLastName,
+            address_line_1: addressLine1,
+            address_line_2: addressLine2,
+            city,
+            state,
+            zip,
+            collection_date: objA.collection_date,
+            specimen_types
+        }
+    }
 
 
 

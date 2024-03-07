@@ -53,13 +53,13 @@ export class RevenueStatsController {
       const { matchedObjects, notMatchedObjects } = await this.revenueStatsHelpers.checkAlreadyExisted(finalModifiedData);
 
       // Newly obtained stats will inserting into our db
-      if (notMatchedObjects.length > 0) {
+      // if (notMatchedObjects.length > 0) {
 
-        await this.revenueStatsService.saveDataInDb(notMatchedObjects);
-      }
+      //   await this.revenueStatsService.saveDataInDb(notMatchedObjects);
+      // }
 
-      // Already existed stats will be updating with differences
-      await this.revenueStatsHelpers.updateRawStats(matchedObjects);
+      // // Already existed stats will be updating with differences
+      // await this.revenueStatsHelpers.updateRawStats(matchedObjects);
 
       return res.status(200).json({
         success: true,

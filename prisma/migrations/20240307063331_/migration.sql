@@ -16,7 +16,7 @@ CREATE TABLE "marketer_stats" (
 );
 
 -- CreateTable
-CREATE TABLE "revenue_marketers_schema" (
+CREATE TABLE "patient_payments" (
     "id" SERIAL NOT NULL,
     "case_id" TEXT NOT NULL,
     "hospital" TEXT NOT NULL,
@@ -27,23 +27,24 @@ CREATE TABLE "revenue_marketers_schema" (
     "insurance_name" TEXT NOT NULL,
     "payment_status" TEXT NOT NULL,
     "cpt_codes" JSONB[],
-    "line_item_total" JSONB[],
-    "insurance_payment_amount" JSONB[],
-    "insurance_adjustment_amount" JSONB[],
-    "insurance_write_of_amount" JSONB[],
-    "patient_payment_amount" JSONB[],
-    "patient_adjustment_amount" JSONB[],
-    "patient_write_of_amount" JSONB[],
-    "line_item_balance" JSONB[],
+    "line_item_total" INTEGER NOT NULL,
+    "insurance_payment_amount" INTEGER NOT NULL,
+    "insurance_adjustment_amount" INTEGER NOT NULL,
+    "insurance_write_of_amount" INTEGER NOT NULL,
+    "patient_payment_amount" INTEGER NOT NULL,
+    "patient_adjustment_amount" INTEGER NOT NULL,
+    "patient_write_of_amount" INTEGER NOT NULL,
+    "line_item_balance" INTEGER NOT NULL,
     "total_amount" INTEGER NOT NULL,
     "paid_amount" INTEGER NOT NULL,
     "pending_amount" INTEGER NOT NULL,
     "process_status" TEXT NOT NULL,
     "values_changed" BOOLEAN NOT NULL DEFAULT false,
     "difference_values" JSONB,
-    "patient_id" TEXT NOT NULL,
+    "patient_id" TEXT,
+    "patient_billing_info" JSONB[],
 
-    CONSTRAINT "revenue_marketers_schema_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "patient_payments_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
