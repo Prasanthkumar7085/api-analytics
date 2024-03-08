@@ -169,28 +169,9 @@ export class SalesRepService {
 
 
 
-  async getStatsRevenue(id, query) {
-    // Write raw SQL query to join and calculate totals
-    let { from_date, to_date } = query;
-
-    // Ensure that from_date and to_date are valid dates, if provided
-    if (from_date) from_date = new Date(from_date);
-    if (to_date) to_date = new Date(to_date);
+  async getStatsRevenue(id, queryString) {
 
 
-    // Check if the provided id exists in the database
-    // const salesRepExists = await db.execute(sql`
-    //     SELECT COUNT(*) AS count
-    //     FROM ${sales_reps}
-    //     WHERE id = ${id}
-    // `);
-
-    // if (salesRepExists.rows.length === 0) {
-    //   throw new NotFoundException('Sales Representative not found');
-    // }
-
-
-    // Build the SQL query with optional date filter
     let statement = sql`
       SELECT 
         ROUND(SUM(${patient_claims.billableAmount})::NUMERIC, 2) AS billed,
@@ -204,11 +185,12 @@ export class SalesRepService {
         ${sales_reps.id} = ${id}
     `;
 
-    // Conditionally add the date filter if both from_date and to_date are provided
-    if (from_date && to_date) {
-      statement.append(sql`
-        AND ${patient_claims.serviceDate} BETWEEN ${from_date} AND ${to_date}
-      `);
+
+    if (queryString) {
+      statement = sql`
+        ${statement}
+        AND ${sql.raw(queryString)}
+    `;
     }
 
     statement.append(sql`
@@ -219,29 +201,17 @@ export class SalesRepService {
     // Execute the raw SQL query
     const data = await db.execute(statement);
 
-    return data.rows[0];
+    if (data && data.rows.length > 0) {
+      return data.rows;
+    }
+    else {
+      return [];
+    }
   }
 
 
 
-  async getInsurancePayers(id, query) {
-
-    let { from_date, to_date } = query;
-
-    if (from_date) from_date = new Date(from_date);
-    if (to_date) to_date = new Date(to_date);
-
-
-    // const salesRepExists = await db.execute(sql`
-    //     SELECT COUNT(*) AS count
-    //     FROM ${sales_reps}
-    //     WHERE id = ${id}
-    // `);
-    // console.log({ salesRepExists })
-    // if (salesRepExists.rows.length === 0) {
-    //   throw new NotFoundException('Sales Representative not found');
-    // }
-
+  async getInsurancePayers(id, queryString) {
 
     let statement = sql`
     SELECT 
@@ -254,16 +224,15 @@ export class SalesRepService {
     JOIN ${insurance_payors} ON ${patient_claims.insurancePayerId} = ${insurance_payors.id}
     WHERE ${sales_reps.id} = ${id}
 
-    
     `;
 
-
-    // Conditionally add the date filter if both from_date and to_date are provided
-    if (from_date && to_date) {
-      statement.append(sql`
-        AND ${patient_claims.serviceDate} BETWEEN ${from_date} AND ${to_date}
-      `);
+    if (queryString) {
+      statement = sql`
+        ${statement}
+        AND ${sql.raw(queryString)}
+    `;
     }
+
 
     statement.append(sql`
       GROUP BY 
@@ -274,7 +243,12 @@ export class SalesRepService {
     const data = await db.execute(statement);
 
 
-    return data.rows;
+    if (data && data.rows.length > 0) {
+      return data.rows;
+    }
+    else {
+      return [];
+    }
   }
 
 
