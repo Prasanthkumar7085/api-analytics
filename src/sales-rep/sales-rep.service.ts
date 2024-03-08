@@ -288,57 +288,88 @@ export class SalesRepService {
     return result;
   }
 
-  async getTrendsRevenue(id, fromDate, toDate) {
-    let startDate, endDate;
-    if (fromDate && toDate) {
-      startDate = new Date(fromDate)
-      endDate = new Date(toDate)
-    }
-    const query = sql`
-      SELECT 
+  async getTrendsRevenue(id, queryString) {
+    let query;
+    query= sql`
+    SELECT 
       TO_CHAR(service_date, 'Month YYYY') AS month,
       SUM(cleared_amount) AS revenue
       FROM patient_claims
-      WHERE sales_rep_id = ${id}`
-
-    if (fromDate && toDate) {
-      query.append(sql`
-      AND service_date BETWEEN ${startDate} AND ${endDate}
-    `)
+    `
+    if (queryString) {
+      query = sql`
+        ${query}
+        WHERE sales_rep_id = ${id} AND ${sql.raw(queryString)}
+        GROUP BY TO_CHAR(service_date, 'Month YYYY')
+    `;
+    } else {
+      query = sql`
+      ${query}
+      WHERE sales_rep_id = ${id}
+      GROUP BY TO_CHAR(service_date, 'Month YYYY')
+      `
     }
+    const data = await db.execute(query);
 
-    query.append(sql`
-    GROUP BY TO_CHAR(service_date, 'Month YYYY');`)
-
-    const result = await db.execute(query);
-    return result
+    if (data && data.rows.length > 0) {
+      return data.rows;
+    } else {
+      return [];
+    }
   }
 
 
-  async getTrendsVolume(id, fromDate, toDate) {
+  async getTrendsVolume(id, queryString) {
 
-    let startDate, endDate;
-    if (fromDate && toDate) {
-      startDate = new Date(fromDate)
-      endDate = new Date(toDate)
-    }
-    const query = sql`
+    let query;
+
+    query = sql`
       SELECT 
       TO_CHAR(service_date, 'Month YYYY') AS month,
       COUNT(*) AS volume
-      FROM patient_claims
-      WHERE sales_rep_id = ${id}`
+      FROM patient_claims`
 
-    if (fromDate && toDate) {
-      query.append(sql`
-      AND service_date BETWEEN ${startDate} AND ${endDate}
-    `)
+    if(queryString){
+      query = sql`
+        ${query}
+        WHERE sales_rep_id = ${id} AND ${sql.raw(queryString)}
+        GROUP BY TO_CHAR(service_date, 'Month YYYY')`
+    } else {
+      query = sql`
+      ${query}
+      WHERE sales_rep_id = ${id}
+      GROUP BY TO_CHAR(service_date, 'Month YYYY')`
     }
-    query.append(sql`
-    GROUP BY TO_CHAR(service_date, 'Month YYYY');`)
 
-    const result = await db.execute(query);
-    return result
+    const data = await db.execute(query);
+
+    if (data && data.rows.length > 0) {
+      return data.rows;
+    } else {
+      return [];
+    }
   }
 
+  async getStatsVolume(id,queryString){
+    let query;
+    query = sql`
+      SELECT
+      COUNT(*) AS total_cases, 
+      COUNT(*) FILTER (WHERE is_bill_cleared = TRUE) AS completed_cases,
+      COUNT(*) FILTER (WHERE is_bill_cleared = FALSE) AS pending_cases
+      FROM patient_claims
+      `
+    if(queryString){
+      query = sql`
+      ${query}
+      WHERE sales_rep_id = ${id} AND ${sql.raw(queryString)}`
+    } else {
+      query = sql`
+      ${query}
+      WHERE sales_rep_id = ${id}`
+    }
+
+    const result = await db.execute(query);
+    return result.rows
+  }
 }
