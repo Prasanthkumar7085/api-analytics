@@ -59,10 +59,12 @@ export class SalesRepController {
   }
 
   @Get(':id/case-types/revenue')
-  async getCaseTypesRevenue(@Res() res: any, @Param() param: any) {
+  async getCaseTypesRevenue(@Res() res: any, @Param() param: any, @Query() query: any) {
     try {
       const id = param.id;
-      const salesReps = await this.salesRepService.getCaseTypesRevenue(id);
+      const queryString = this.filterHelper.salesRep(query);
+
+      const salesReps = await this.salesRepService.getCaseTypesRevenue(id, queryString);
       return res.status(200).json({
         success: true,
         message: "Sales Reps Stats Fetched Successfully",
@@ -79,10 +81,12 @@ export class SalesRepController {
 
 
   @Get(':id/case-types/volume')
-  async getCaseTypesVolume(@Res() res: any, @Param() param: any) {
+  async getCaseTypesVolume(@Res() res: any, @Param() param: any, @Query() query: any) {
     try {
       const id = param.id;
-      const salesReps = await this.salesRepService.getCaseTypesVolume(id);
+      const queryString = this.filterHelper.salesRep(query);
+
+      const salesReps = await this.salesRepService.getCaseTypesVolume(id, queryString);
       return res.status(200).json({
         success: true,
         message: "Sales Reps Stats Fetched Successfully",
@@ -99,10 +103,12 @@ export class SalesRepController {
 
 
   @Get(':id/facilities')
-  async getFacilityWise(@Res() res: any, @Param() param: any) {
+  async getFacilityWise(@Res() res: any, @Param() param: any, @Query() query: any) {
     try {
       const id = param.id;
-      const salesReps = await this.salesRepService.getFacilityWise(id);
+      const queryString = this.filterHelper.salesRep(query);
+
+      const salesReps = await this.salesRepService.getFacilityWise(id, queryString);
       return res.status(200).json({
         success: true,
         message: "Sales Reps Stats Fetched Successfully",
@@ -185,11 +191,11 @@ export class SalesRepController {
   async getTrendsRevenue(@Res() res: any, @Param() param: any, @Query() query: any) {
     try {
       const id = param.id
-      const fromDate = query.from_date
-      const toDate = query.to_date
-      const data = await this.salesRepService.getTrendsRevenue(id, fromDate, toDate)
+      const queryString = this.filterHelper.salesRep(query);
+      const data = await this.salesRepService.getTrendsRevenue(id, queryString)
       return res.status(200).json({
         sucess: true,
+        message: 'Sales Reps Trends Revenue Fetched Successfully',
         data: data
       })
     } catch (err) {
@@ -204,11 +210,30 @@ export class SalesRepController {
   async getTrendsVolume(@Res() res: any, @Param() param: any, @Query() query: any) {
     try {
       const id = param.id
-      const fromDate = query.from_date
-      const toDate = query.to_date
-      const data = await this.salesRepService.getTrendsVolume(id, fromDate, toDate)
+      const queryString = this.filterHelper.salesRep(query);
+      const data = await this.salesRepService.getTrendsVolume(id, queryString)
       return res.status(200).json({
         sucess: true,
+        message: 'Sales Reps Trends Volume Fetched Successfully',
+        data: data
+      })
+    } catch (err) {
+      return res.status(500).json({
+        success: true,
+        message: err
+      })
+    }
+  }
+
+  @Get(':id/stats-volume')
+  async getStatsVolume(@Res() res:any, @Param() param:any, @Query() query:any){
+    try {
+      const id = param.id
+      const queryString = this.filterHelper.salesRep(query);
+      const data = await this.salesRepService.getStatsVolume(id,queryString)
+      return res.status(200).json({
+        sucess: true,
+        message: 'Sales Reps Stats Volume Fetched Successfully',
         data: data
       })
     } catch (err) {
