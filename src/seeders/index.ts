@@ -3,6 +3,7 @@ import insurance from "./insurancePayors"
 import salesRep from "./salesReps"
 import facilities from "./facilities"
 import patientClaims from "./patientClaims"
+import caseTypes from "./caseTypes"
 
 // roles.seed("Roles");
 
@@ -14,5 +15,6 @@ import patientClaims from "./patientClaims"
 
 patientClaims.seed("Patient Claims");
 
+// caseTypes.seed('Case Types')
 
 
