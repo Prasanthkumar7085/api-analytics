@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Res, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Res, NotFoundException, Query } from '@nestjs/common';
 import { SalesRepService } from './sales-rep.service';
 import { CreateSalesRepDto } from './dto/create-sales-rep.dto';
 import { UpdateSalesRepDto } from './dto/update-sales-rep.dto';
@@ -116,4 +116,44 @@ export class SalesRepController {
       })
     }
   }
+
+  @Get(':id/stats-revenue')
+  async getStatsRevenue(@Res() res: any, @Param('id') id: any, @Query() query: any) {
+    try {
+      const data = await this.salesRepService.getStatsRevenue(id, query)
+
+      return res.status(200).json({ success: true, message: 'Stats revenue Fetched Successfully', data: data })
+    }
+    catch (error) {
+      if (error instanceof NotFoundException) {
+        return res.status(404).json({ success: false, message: error.message })
+
+      }
+      return res.status(500).json({ success: false, error: error.message })
+    }
+  }
+
+
+
+
+  @Get(':id/insurance-payors')
+  async getInsurancePayers(
+    @Res() res: any, @Param('id') id: number, @Query() query: any
+  ) {
+    try {
+
+      const data = await this.salesRepService.getInsurancePayers(id, query)
+
+      return res.status(200).json({ success: true, message: 'Insurance payers data Fetched Successfully', data: data })
+
+    }
+    catch (error) {
+      if (error instanceof NotFoundException) {
+        return res.status(404).json({ success: false, message: error.message })
+
+      }
+      return res.status(500).json({ success: false, error: error.message })
+    }
+  }
+
 }
