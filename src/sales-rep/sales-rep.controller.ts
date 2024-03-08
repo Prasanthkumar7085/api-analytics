@@ -120,7 +120,10 @@ export class SalesRepController {
   @Get(':id/stats-revenue')
   async getStatsRevenue(@Res() res: any, @Param('id') id: any, @Query() query: any) {
     try {
-      const data = await this.salesRepService.getStatsRevenue(id, query)
+
+      const queryString = await this.filterHelper.salesRep(query);
+
+      const data = await this.salesRepService.getStatsRevenue(id, queryString)
 
       return res.status(200).json({ success: true, message: 'Stats revenue Fetched Successfully', data: data })
     }
@@ -142,12 +145,14 @@ export class SalesRepController {
   ) {
     try {
 
-      const data = await this.salesRepService.getInsurancePayers(id, query)
+      const queryString = this.filterHelper.salesRep(query);
+      const data = await this.salesRepService.getInsurancePayers(id, queryString)
 
       return res.status(200).json({ success: true, message: 'Insurance payers data Fetched Successfully', data: data })
 
     }
     catch (error) {
+      console.log({ error });
       if (error instanceof NotFoundException) {
         return res.status(404).json({ success: false, message: error.message })
 
