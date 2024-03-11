@@ -16,6 +16,21 @@ export class SalesRepController {
     private readonly filterHelper: FilterHelper
   ) { }
 
+  @Delete('delete')
+  async dropTable() {
+    const data = await this.salesRepService.dropTable();
+    return data
+  }
+
+  @Get('patient-claims')
+  async getPatientClaims(@Query() query: any) {
+    const queryString = this.filterHelper.salesRep(query);
+
+    const data = await this.salesRepService.getPatientClaims(queryString);
+
+    return data
+  }
+
   @Get()
   async getAll(@Res() res: any, @Query() query: any) {
     try {
@@ -226,11 +241,11 @@ export class SalesRepController {
   }
 
   @Get(':id/stats-volume')
-  async getStatsVolume(@Res() res:any, @Param() param:any, @Query() query:any){
+  async getStatsVolume(@Res() res: any, @Param() param: any, @Query() query: any) {
     try {
       const id = param.id
       const queryString = this.filterHelper.salesRep(query);
-      const data = await this.salesRepService.getStatsVolume(id,queryString)
+      const data = await this.salesRepService.getStatsVolume(id, queryString)
       return res.status(200).json({
         sucess: true,
         message: 'Sales Reps Stats Volume Fetched Successfully',
