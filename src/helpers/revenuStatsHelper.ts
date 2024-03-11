@@ -56,8 +56,7 @@ export class RevenueStatsHelpers {
             patient_adjustment_amount: e['Patient Adjustment Amount'],
             patient_write_of_amount: e['Patient Write-Off Amount'],
             line_item_balance: e['Line Item Balance'],
-            insurance_name: e['Primary Insurance'],
-            ordering_provider: e['Referring Provider']
+            insurance_name: e['Primary Insurance']
         }))
         // Need to Group the Raw Data
         const modifiedData = this.groupingKeys(rawData);
@@ -137,7 +136,9 @@ export class RevenueStatsHelpers {
 
     sumOfRawData(data) {
         data.forEach((entry) => {
-            entry.total_amount = entry.line_item_total.reduce((sum, value) => sum + parseFloat(value), 0);
+            const lineItemTotal = entry.line_item_total.reduce((sum, value) => sum + parseFloat(value), 0);
+            entry.line_item_total = lineItemTotal;
+            entry.total_amount = lineItemTotal;
 
             const insurance_payment_amount_sum = entry.insurance_payment_amount.reduce((sum, value) => sum + parseFloat(value), 0);
             const insurance_adjustment_amount_sum = entry.insurance_adjustment_amount.reduce((sum, value) => sum + parseFloat(value), 0);
@@ -197,7 +198,7 @@ export class RevenueStatsHelpers {
     mergeArrays(caseDataArray, modifiedData) {
         // Merge arrays based on hospital_marketer and date
         const mergedArrays = caseDataArray.map(objA => {
-            const patientBillingInfo = this.forPatientBillingInfo(objA);
+            const patientId = objA.patient_info ? objA.patient_info._id.toString() : null;
 
             const matchingObjB = modifiedData.find(objB => objB.accession_id === objA.accession_id);
             return {
@@ -207,44 +208,12 @@ export class RevenueStatsHelpers {
                 hospital_marketers: objA.hospital_marketers,
                 process_status: "PENDING",
                 ...matchingObjB,
-                patient_billing_info: patientBillingInfo
+                patient_id: patientId
             };
         });
 
         return mergedArrays;
 
-    }
-
-
-    forPatientBillingInfo(objA) {
-        const patientId = objA.patient_info ? objA.patient_info._id.toString() : null;
-        const patientFirstName = objA.patient_info ? objA.patient_info.first_name : null;
-        const patientLastName = objA.patient_info ? objA.patient_info.last_name : null;
-        const patientMiddleName = objA.patient_info ? objA.patient_info.middle_name : null;
-        const addressLine1 = objA.patient_info ? objA.patient_info.address_line_1 : null;
-        const addressLine2 = objA.patient_info ? objA.patient_info.address_line_2 : null;
-        const city = objA.patient_info ? objA.patient_info.city : null;
-        const state = objA.patient_info ? objA.patient_info.state : null;
-        const zip = objA.patient_info ? objA.patient_info.zip : null;
-
-        let specimen_types = [];
-        if (objA.sample_types && objA.sample_types.length > 0) {
-            specimen_types = objA.sample_types[0].sample_types;
-        }
-
-        return {
-            patient_id: patientId,
-            first_name: patientFirstName,
-            middle_name: patientMiddleName,
-            last_name: patientLastName,
-            address_line_1: addressLine1,
-            address_line_2: addressLine2,
-            city,
-            state,
-            zip,
-            collection_date: objA.collection_date,
-            specimen_types
-        }
     }
 
 
