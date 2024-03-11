@@ -29,9 +29,9 @@ export class RevenueStatsService {
 
   async deleteRevenueRawData(id) {
     return this.prisma.patient_payments.deleteMany({
-      where: {
-        id: id
-      }
+      // where: {
+      //   id: id
+      // }
     })
   }
 
