@@ -126,7 +126,7 @@ export class SalesRepController {
       const salesReps = await this.salesRepService.getFacilityWise(id, queryString);
       return res.status(200).json({
         success: true,
-        message: "Sales Reps Stats Fetched Successfully",
+        message: "Sales Reps Facilitiy Wise Stats Fetched Successfully",
         salesReps
       })
     } catch (err) {
@@ -183,25 +183,6 @@ export class SalesRepController {
   }
 
 
-
-  @Get('case-types/:id')
-  async getCaseTypes(@Res() res: any, @Param() param: any) {
-    try {
-      const salesRespId = param.id
-      const data = await this.salesRepService.getCaseTypes(salesRespId)
-      return res.status(200).json({
-        sucess: true,
-        data: data
-      })
-    }
-    catch (err) {
-      return res.status(500).json({
-        success: true,
-        message: err
-      })
-    }
-  }
-
   @Get(':id/trends/revenue')
   async getTrendsRevenue(@Res() res: any, @Param() param: any, @Query() query: any) {
     try {
@@ -209,7 +190,7 @@ export class SalesRepController {
       const queryString = this.filterHelper.salesRep(query);
       const data = await this.salesRepService.getTrendsRevenue(id, queryString)
       return res.status(200).json({
-        sucess: true,
+        success: true,
         message: 'Sales Reps Trends Revenue Fetched Successfully',
         data: data
       })
