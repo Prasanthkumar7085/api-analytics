@@ -308,22 +308,12 @@ export class SalesRepService {
   }
 
 
-  async getCaseTypes(id: any) {
-    const query = sql`
-      SELECT *
-      FROM patient_claims
-      Wh`;
-
-    const result = await db.execute(query);
-    return result;
-  }
-
   async getTrendsRevenue(id, queryString) {
     let query;
     query = sql`
     SELECT 
       TO_CHAR(service_date, 'Month YYYY') AS month,
-      SUM(cleared_amount) AS revenue
+      CAST(ROUND(SUM(cleared_amount)::NUMERIC, 2) AS FLOAT) AS revenue
       FROM patient_claims
     `
     if (queryString) {

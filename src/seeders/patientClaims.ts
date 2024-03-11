@@ -12,22 +12,22 @@ import { eq } from "drizzle-orm";
 export default {
     seed: async (title) => {
 
-        const fromDate = "2024-03-09T00:00:00.000Z";  //yyyy-mm-ddTHH-MM-ss.000Z
-        const toDate = "2024-03-11T00:00:00.000Z";
+        const fromDate = "2024-01-15T00:00:00.000Z";  //yyyy-mm-ddTHH-MM-ss.000Z
+        const toDate = "2024-01-31T00:00:00.000Z";
 
         const resultArray = await prepareData(fromDate, toDate);
         // fs.writeFileSync('patient_claims_1.json', JSON.stringify(resultArray))
 
-        // console.log({ resultArray });
+        console.log({ result: resultArray[0] });
         console.log({ resultArray: resultArray.length })
 
 
-        for (let i = 0; i < resultArray.length; i += 1500) {
-            console.log(i)
-            const chunk = resultArray.slice(i, i + 1500);
+        // for (let i = 0; i < resultArray.length; i += 1500) {
+        //     console.log(i)
+        //     const chunk = resultArray.slice(i, i + 1500);
 
-            await db.insert(patient_claims).values(chunk);
-        }
+        //     await db.insert(patient_claims).values(chunk);
+        // }
 
         console.log(title, "Data Seeded");
     }
@@ -55,7 +55,7 @@ async function prepareData(fromDate, toDate) {
 
     for (let currentDate = startDate; currentDate <= endDate; currentDate.setDate(currentDate.getDate() + 1)) {
         const date = new Date(currentDate); // Create a new date object
-        console.log({ date })
+        // console.log({ date })
 
         for (let j = 0; j < facilitiesList.length; j++) {
             let patientClaims: any = {}; // Create a new patientClaims object for each iteration
