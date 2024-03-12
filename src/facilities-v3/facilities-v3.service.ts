@@ -374,14 +374,18 @@ export class FacilitiesV3Service {
     async getAllFacilities(queryString) {
         let statement = sql`
             SELECT
-                sales_rep_id,
-                facility_id,
-                ROUND(SUM(billable_amount):: NUMERIC, 2) as total_amount,
-                ROUND(SUM(cleared_amount):: NUMERIC, 2) as paid_amount,
-                ROUND(SUM(pending_amount):: NUMERIC, 2) as pending_amount,
+                facilities.name AS facility_name,
+                sales_reps.name AS sales_rep,
+                ROUND(SUM(billable_amount):: NUMERIC, 2) as billed,
+                ROUND(SUM(cleared_amount):: NUMERIC, 2) as received,
+                ROUND(SUM(pending_amount):: NUMERIC, 2) as arrears,
                 COUNT(*) AS total_cases
             FROM 
                 patient_claims
+            JOIN facilities 
+                ON patient_claims.facility_id = facilities.id
+            JOIN sales_reps
+                ON patient_claims.sales_rep_id = sales_reps.id
             `;
 
         if (queryString) {
@@ -394,8 +398,8 @@ export class FacilitiesV3Service {
         statement = sql`
             ${statement}
             GROUP BY
-                sales_rep_id,
-                facility_id
+                sales_rep,
+                facility_name
         `
 
 
