@@ -19,20 +19,20 @@ export class InsurancesV3Service {
       patient_claims as p
     JOIN 
       insurance_payors i ON p.insurance_payer_id = i.id
-    `
+    `;
     if (queryString){
       query = sql`
         ${query}
         WHERE ${sql.raw(queryString)}
         GROUP BY 
           insurance_payer_id, i.name
-      `
+      `;
     } else {
       query = sql`
       ${query}
       GROUP BY 
         insurance_payer_id, i.name
-      `
+      `;
     }
 
     const data = await db.execute(query);
@@ -46,6 +46,7 @@ export class InsurancesV3Service {
 
 
   async getOneInsurancePayorData(id, queryString) {
+   
     let query = sql`
     SELECT 
       UPPER(c.name) AS case_type_name,
@@ -70,7 +71,7 @@ export class InsurancesV3Service {
         p.insurance_payer_id = ${id} AND ${sql.raw(queryString)}
       GROUP BY 
         c.name;
-      `
+      `;
     } else {
       query = sql`
       ${query}
@@ -79,6 +80,77 @@ export class InsurancesV3Service {
       GROUP BY 
         c.name;
       `;
+    }
+
+    const data = await db.execute(query);
+
+    if (data && data.rows.length > 0) {
+        return data.rows;
+    } else {
+        return [];
+    }
+  }
+
+  async getOneInsurancePayorTrendsRevenue(id,queryString){
+    
+    let query = sql`
+    SELECT 
+      TO_CHAR(service_date, 'Month YYYY') AS month,
+      CAST(ROUND(SUM(cleared_amount)::NUMERIC, 2) AS FLOAT) AS revenue
+    FROM 
+      patient_claims p
+    JOIN 
+      insurance_payors i ON p.insurance_payer_id = ${id}
+    `;
+    if (queryString) {
+      query = sql`
+        ${query}
+        WHERE p.insurance_payer_id = ${id} AND ${sql.raw(queryString)}
+        GROUP BY 
+          TO_CHAR(service_date, 'Month YYYY')    
+      `;
+    } else {
+      query = sql`
+      ${query}
+      WHERE 
+        p.insurance_payer_id = ${id}
+      GROUP BY 
+        TO_CHAR(service_date, 'Month YYYY')
+      `;
+    }
+    const data = await db.execute(query);
+
+    if (data && data.rows.length > 0) {
+        return data.rows;
+    } else {
+        return [];
+    }
+  }
+
+  async getOneInsurancePayorTrendsVolume(id,queryString){
+    let query = sql`
+    SELECT 
+      TO_CHAR(service_date, 'Month YYYY') AS month,
+      COUNT(*) AS volume
+    FROM 
+      patient_claims p
+    JOIN
+      insurance_payors i ON p.insurance_payer_id = i.id
+    `
+    if (queryString) {
+      query = sql`
+      ${query}
+      WHERE p.insurance_payer_id = ${id} AND ${sql.raw(queryString)}
+      GROUP BY
+        TO_CHAR(service_date, 'Month YYYY')
+      `
+    } else {
+      query=sql`
+      ${query}
+      WHERE p.insurance_payer_id = ${id}
+      GROUP BY
+        TO_CHAR(service_date, 'Month YYYY')
+      `
     }
 
     const data = await db.execute(query);

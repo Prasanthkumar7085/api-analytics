@@ -21,7 +21,7 @@ export class InsurancesV3Controller {
       const data = await this.insurancesV3Service.getAllInsurances(queryString);
       return res.status(200).json({
         success: true,
-        message: "Insurance Data Fetched Successfully",
+        message: "Get All Insurance Data Fetched Successfully",
         data        
       });
     } catch (err) {
@@ -33,14 +33,53 @@ export class InsurancesV3Controller {
     }
   }
 
-  @Get(':id')
+  @Get(':id/case-types')
   async getOneInsurancePayorData(@Res() res:any, @Param('id') id:any, @Query() query:any) {
     try {
       const queryString = await this.filterHelper.overviewFilter(query);
       const data = await this.insurancesV3Service.getOneInsurancePayorData(id,queryString);
       return res.status(200).json({
         success: true,
-        message: "Insurance Data Fetched Successfully",
+        message: "Insurance Case Types Data Fetched Successfully",
+        data        
+      });
+    } catch (err) {
+      console.log({ err });
+      return res.status(500).json({
+        success: false,
+        message: SOMETHING_WENT_WRONG
+      });
+    }
+  }
+
+  
+  @Get(':id/trends/revenue')
+  async getOneInsurancePayorTrendsRevenue(@Res() res:any, @Param('id') id:any, @Query() query:any) {
+    try {
+      const queryString = await this.filterHelper.overviewFilter(query);
+      const data = await this.insurancesV3Service.getOneInsurancePayorTrendsRevenue(id,queryString);
+      return res.status(200).json({
+        success: true,
+        message: "Insurance Trends Revenue Data Fetched Successfully",
+        data        
+      });
+    } catch (err) {
+      console.log({ err });
+      return res.status(500).json({
+        success: false,
+        message: SOMETHING_WENT_WRONG
+      });
+    }
+  }
+
+  @Get(':id/trends/volume')
+  async getOneInsurancePayorTrendsVolume(@Res() res:any, @Param('id') id:any, @Query() query:any) {
+    try {
+      const queryString = await this.filterHelper.overviewFilter(query);
+      const data = await this.insurancesV3Service.getOneInsurancePayorTrendsVolume(id,queryString);
+      return res.status(200).json({
+        success: true,
+        message: "Insurance Trends volume Data Fetched Successfully",
         data        
       });
     } catch (err) {
