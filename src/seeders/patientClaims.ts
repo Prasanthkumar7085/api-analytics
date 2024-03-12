@@ -12,22 +12,22 @@ import { eq } from "drizzle-orm";
 export default {
     seed: async (title) => {
 
-        const fromDate = "02/02/2024";
-        const toDate = "03/01/2024";
+        const fromDate = "2024-01-15T00:00:00.000Z";  //yyyy-mm-ddTHH-MM-ss.000Z
+        const toDate = "2024-01-31T00:00:00.000Z";
 
         const resultArray = await prepareData(fromDate, toDate);
-        // fs.writeFileSync('patient_claims.json', JSON.stringify(resultArray))
+        // fs.writeFileSync('patient_claims_1.json', JSON.stringify(resultArray))
 
-        // console.log({ resultArray });
+        console.log({ result: resultArray[0] });
         console.log({ resultArray: resultArray.length })
 
 
-        for (let i = 0; i < resultArray.length; i += 1500) {
-            console.log(i)
-            const chunk = resultArray.slice(i, i + 1500);
+        // for (let i = 0; i < resultArray.length; i += 1500) {
+        //     console.log(i)
+        //     const chunk = resultArray.slice(i, i + 1500);
 
-            await db.insert(patient_claims).values(chunk);
-        }
+        //     await db.insert(patient_claims).values(chunk);
+        // }
 
         console.log(title, "Data Seeded");
     }
@@ -45,7 +45,7 @@ async function prepareData(fromDate, toDate) {
     const caseTypesIdsArray = caseTypesList.map((e) => e.id);
 
 
-    const iterations = 10;
+    const iterations = 30;
     const resultArray = [];
 
     const startDate = new Date(fromDate);
@@ -55,6 +55,8 @@ async function prepareData(fromDate, toDate) {
 
     for (let currentDate = startDate; currentDate <= endDate; currentDate.setDate(currentDate.getDate() + 1)) {
         const date = new Date(currentDate); // Create a new date object
+        // console.log({ date })
+
         for (let j = 0; j < facilitiesList.length; j++) {
             let patientClaims: any = {}; // Create a new patientClaims object for each iteration
 
@@ -71,7 +73,6 @@ async function prepareData(fromDate, toDate) {
 async function getIdsandAmounts(patientClaims, element, salesRepList, insuranceIdsArray, caseTypesIdsArray, currentDate) {
 
     const date = currentDate.toISOString().split('T')[0];
-
 
     patientClaims.facilityId = element.id;
 
@@ -108,8 +109,11 @@ async function getIdsandAmounts(patientClaims, element, salesRepList, insuranceI
 
     patientClaims.collectionDate = date;
 
-    const recentPaymentDate = new Date(currentDate.setDate(currentDate.getDate() + 3));
+    const tempDate = new Date(currentDate.getTime()); // Clone currentDate without affecting the original
+    const recentPaymentDate = new Date(tempDate.setDate(tempDate.getDate() + 3));
+
     patientClaims.recentPaymentDate = recentPaymentDate.toISOString().split('T')[0];
+
 
     // for all payments completed then uncomment the below code
     // patientClaims.isBillCleared = true;

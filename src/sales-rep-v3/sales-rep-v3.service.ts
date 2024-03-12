@@ -8,6 +8,33 @@ import { insurance_payors } from 'src/drizzle/schemas/insurancePayors';
 @Injectable()
 export class SalesRepServiceV3 {
 
+  async dropTable() {
+    let query = sql`TRUNCATE TABLE patient_claims`
+    const data = await db.execute(query);
+    return data
+  }
+
+
+  async getPatientClaims(queryString) {
+
+    let query = sql`
+    SELECT COUNT(*) AS COUNT  
+    FROM patient_claims
+    `
+
+
+    if (queryString) {
+      query = sql`
+        ${query}
+        WHERE ${sql.raw(queryString)}
+    `;
+    }
+
+
+    const data = await db.execute(query);
+    return data.rows;
+  }
+
   async getAll(queryString) {
     let query;
     query = sql`
@@ -99,17 +126,17 @@ export class SalesRepServiceV3 {
     JOIN case_types c ON p.case_type_id = c.id
 `;
 
-if(queryString){
-  query = sql`
+    if (queryString) {
+      query = sql`
           ${query}
           WHERE sales_rep_id = ${id} AND ${sql.raw(queryString)}
           GROUP BY case_type_id, month, UPPER(c.name)`
-} else {
-  query = sql`
+    } else {
+      query = sql`
           ${query}
           WHERE sales_rep_id = ${id}
           GROUP BY case_type_id, month, UPPER(c.name)`
-}
+    }
 
     const data = await db.execute(query);
 
@@ -137,17 +164,17 @@ if(queryString){
     JOIN case_types c ON p.case_type_id = c.id
 `;
 
-if(queryString){
-  query = sql`
+    if (queryString) {
+      query = sql`
   ${query}
   WHERE sales_rep_id = ${id} AND ${sql.raw(queryString)}
   GROUP BY case_type_id, month, UPPER(c.name)`
-} else {
-  query = sql`
+    } else {
+      query = sql`
   ${query}
   WHERE sales_rep_id = ${id}
   GROUP BY case_type_id, month, UPPER(c.name)`
-}
+    }
 
     const data = await db.execute(query);
 
@@ -175,7 +202,7 @@ if(queryString){
     FROM patient_claims p
     JOIN facilities f ON p.facility_id = f.id`;
 
-    if(queryString){
+    if (queryString) {
       query = sql`
     ${query}
     WHERE p.sales_rep_id = ${id} AND ${sql.raw(queryString)}
@@ -281,22 +308,12 @@ if(queryString){
   }
 
 
-  async getCaseTypes(id: any) {
-    const query = sql`
-      SELECT *
-      FROM patient_claims
-      Wh`;
-
-    const result = await db.execute(query);
-    return result;
-  }
-
   async getTrendsRevenue(id, queryString) {
     let query;
-    query= sql`
+    query = sql`
     SELECT 
       TO_CHAR(service_date, 'Month YYYY') AS month,
-      SUM(cleared_amount) AS revenue
+      CAST(ROUND(SUM(cleared_amount)::NUMERIC, 2) AS FLOAT) AS revenue
       FROM patient_claims
     `
     if (queryString) {
@@ -332,7 +349,7 @@ if(queryString){
       COUNT(*) AS volume
       FROM patient_claims`
 
-    if(queryString){
+    if (queryString) {
       query = sql`
         ${query}
         WHERE sales_rep_id = ${id} AND ${sql.raw(queryString)}
@@ -353,7 +370,7 @@ if(queryString){
     }
   }
 
-  async getStatsVolume(id,queryString){
+  async getStatsVolume(id, queryString) {
     let query;
     query = sql`
       SELECT
@@ -362,7 +379,7 @@ if(queryString){
       COUNT(*) FILTER (WHERE is_bill_cleared = FALSE) AS pending_cases
       FROM patient_claims
       `
-    if(queryString){
+    if (queryString) {
       query = sql`
       ${query}
       WHERE sales_rep_id = ${id} AND ${sql.raw(queryString)}`
