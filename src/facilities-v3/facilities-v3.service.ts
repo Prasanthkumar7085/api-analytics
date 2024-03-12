@@ -1,11 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { sql } from 'drizzle-orm';
 import { facilities } from 'src/drizzle/schemas/facilities';
+import { insurance_payors } from 'src/drizzle/schemas/insurancePayors';
 import { patient_claims } from 'src/drizzle/schemas/patientClaims';
 import { db } from 'src/seeders/db';
 
 @Injectable()
 export class FacilitiesV3Service {
+
 
 
     async getStatsRevenue(id, queryString) {
@@ -47,6 +49,7 @@ export class FacilitiesV3Service {
     }
 
 
+
     async getStatsVolume(id, queryString) {
 
         let statement = sql`
@@ -71,8 +74,6 @@ export class FacilitiesV3Service {
 
         return data.rows;
     }
-
-
 
 
 
@@ -113,6 +114,7 @@ export class FacilitiesV3Service {
     }
 
 
+
     async getTrendsVolume(id, queryString) {
 
         let statement = sql`
@@ -146,4 +148,142 @@ export class FacilitiesV3Service {
             return [];
         }
     }
+
+
+
+    async getCaseTypesVolume(id, queryString) {
+
+        let statement = sql`
+            SELECT 
+                case_type_id,
+                UPPER(c.name) AS case_type_name,
+                TO_CHAR(service_date, 'Month YYYY') AS month,
+                (
+                SELECT COUNT(*)
+                FROM patient_claims
+                WHERE case_type_id = p.case_type_id AND facility_id = ${id}
+                ) AS total_cases
+            FROM 
+                patient_claims p
+            JOIN 
+                case_types c 
+                    ON p.case_type_id = c.id
+            WHERE 
+                facility_id = ${id}
+        `;
+
+
+
+        if (queryString) {
+            statement = sql`
+                ${statement}
+                AND ${sql.raw(queryString)}
+            `
+        }
+
+        statement = sql`
+            ${statement}
+            GROUP BY 
+                case_type_id, 
+                month, 
+                case_type_name
+        `
+
+        const data = await db.execute(statement);
+
+        if (data && data.rows.length > 0) {
+            return data.rows;
+        }
+        else {
+            return [];
+        }
+    }
+
+
+
+    async getCaseTypesRevenue(id, queryString) {
+
+        let statement = sql`
+            SELECT 
+                case_type_id,
+                UPPER(c.name) AS case_type_name,
+                TO_CHAR(service_date, 'Month YYYY') AS month,
+                CAST(SUM(cleared_amount) AS NUMERIC(10, 2)) AS paid_amount
+            FROM patient_claims p
+            JOIN case_types c 
+                ON p.case_type_id = c.id
+            WHERE facility_id = ${id}
+        `;
+
+        if (queryString) {
+            statement = sql`
+              ${statement}
+              AND ${sql.raw(queryString)}
+            `
+        }
+
+        statement = sql`
+            ${statement}
+            GROUP BY
+                case_type_id,
+                month,
+                case_type_name
+        `;
+
+        const data = await db.execute(statement);
+
+        if (data && data.rows.length > 0) {
+            return data.rows;
+        }
+        else {
+            return [];
+        }
+    }
+
+
+
+    async getInsurancePayers(id, queryString) {
+
+        let statement = sql`
+        SELECT 
+            insurance_payors.name AS insurance_name,
+            ROUND(SUM(patient_claims.billable_amount)::NUMERIC, 2) AS total,
+            ROUND(SUM(patient_claims.cleared_amount)::NUMERIC, 2) AS paid,
+            ROUND(SUM(patient_claims.pending_amount)::NUMERIC, 2) AS pending
+        FROM 
+            facilities
+        JOIN 
+            patient_claims 
+                ON patient_claims.facility_id = facilities.id
+        JOIN 
+            insurance_payors 
+                ON patient_claims.insurance_payer_id = insurance_payors.id
+        WHERE 
+            facilities.id = ${id}
+        `;
+
+        if (queryString) {
+            statement = sql`
+            ${statement}
+            AND ${sql.raw(queryString)}
+        `;
+        }
+
+
+        statement.append(sql`
+          GROUP BY 
+            insurance_payors.name
+        `);
+
+        // Execute the raw SQL query
+        const data = await db.execute(statement);
+
+        if (data && data.rows.length > 0) {
+            return data.rows;
+        }
+        else {
+            return [];
+        }
+    }
+
 }
