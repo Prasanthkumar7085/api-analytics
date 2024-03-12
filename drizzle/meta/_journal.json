@@ -1,0 +1,27 @@
+{
+  "version": "5",
+  "dialect": "pg",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1709871919709,
+      "tag": "0000_empty_taskmaster",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1709872044930,
+      "tag": "0001_flawless_grim_reaper",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1709875156995,
+      "tag": "0002_curly_nighthawk",
+      "breakpoints": true
+    }
+  ]
+}
