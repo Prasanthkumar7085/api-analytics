@@ -211,7 +211,7 @@ export class FacilitiesV3Controller {
 
 
   @Get(':id')
-  async GetFacilityDetails(@Res() res: any, @Param('id') id: any, @Query() query: any) {
+  async GetFacilityDetails(@Res() res: any, @Param('id') id: any) {
     try {
 
       const data = await this.facilitiesV3Service.getFacilityDetails(id)
@@ -232,4 +232,31 @@ export class FacilitiesV3Controller {
     }
   }
 
+
+  @Get()
+  async getAllFacilities(@Res() res: any, @Query() query: any) {
+    try {
+
+      const queryString = await this.filterHelper.facilitiesDateFilter(query)
+
+      const data = await this.facilitiesV3Service.getAllFacilities(queryString)
+
+      return res.status(200).json({
+        success: true,
+        message: "Facilities Overall Data Fetched Successfully",
+        data
+      });
+
+    }
+    catch (err) {
+      console.log({ err });
+      return res.status(500).json({
+        success: false,
+        message: SOMETHING_WENT_WRONG
+      });
+    }
+  }
+
+
 }
+

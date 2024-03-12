@@ -370,4 +370,44 @@ export class FacilitiesV3Service {
         }
     }
 
+
+    async getAllFacilities(queryString) {
+        let statement = sql`
+            SELECT
+                sales_rep_id,
+                facility_id,
+                ROUND(SUM(billable_amount):: NUMERIC, 2) as total_amount,
+                ROUND(SUM(cleared_amount):: NUMERIC, 2) as paid_amount,
+                ROUND(SUM(pending_amount):: NUMERIC, 2) as pending_amount,
+                COUNT(*) AS total_cases
+            FROM 
+                patient_claims
+            `;
+
+        if (queryString) {
+            statement = sql`
+                ${statement}
+                WHERE ${sql.raw(queryString)}
+            `
+        }
+
+        statement = sql`
+            ${statement}
+            GROUP BY
+                sales_rep_id,
+                facility_id
+        `
+
+
+        const data = await db.execute(statement);
+
+        if (data && data.rows.length > 0) {
+            return data.rows;
+        }
+        else {
+            return [];
+        }
+
+    }
+
 }
