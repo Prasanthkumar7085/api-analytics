@@ -286,4 +286,88 @@ export class FacilitiesV3Service {
         }
     }
 
+
+    async getOverAllCaseTypes(id, queryString) {
+
+        let statement = sql`
+            SELECT 
+                case_type_id,
+                UPPER(c.name) AS case_type_name,
+                ROUND(SUM(cleared_amount):: NUMERIC, 2) AS revenue,
+                (
+                SELECT 
+                    COUNT(*)
+                FROM 
+                    patient_claims
+                WHERE 
+                    case_type_id = p.case_type_id AND facility_id = ${id}
+                ) 
+                AS volume
+            FROM 
+                patient_claims p
+            JOIN 
+                case_types c 
+                    ON p.case_type_id = c.id
+            WHERE 
+                facility_id = ${id}
+        `;
+
+        if (queryString) {
+            statement = sql`
+                ${statement}
+                AND ${sql.raw(queryString)}
+            `
+        }
+
+
+        statement = sql`
+            ${statement}
+            GROUP BY 
+                p.case_type_id,
+                case_type_name
+        `;
+
+
+        const data = await db.execute(statement);
+
+        if (data && data.rows.length > 0) {
+            return data.rows;
+        }
+        else {
+            return [];
+        }
+    }
+
+
+    async getFacilityDetails(id) {
+        let statement = sql`
+            SELECT 
+                f.id AS facility_id,
+                UPPER(f.name) AS facility_name,
+                sales_rep_id,
+                UPPER(s.name) AS sales_rep_name
+            FROM 
+                facilities f
+            JOIN 
+                sales_reps s 
+                    ON f.sales_rep_id = s.id
+            WHERE 
+                f.id = ${id}
+            GROUP BY 
+                f.sales_rep_id,
+                facility_id,
+                sales_rep_name,
+                facility_name
+        `;
+
+        const data = await db.execute(statement);
+
+        if (data && data.rows.length > 0) {
+            return data.rows;
+        }
+        else {
+            return [];
+        }
+    }
+
 }

@@ -182,4 +182,54 @@ export class FacilitiesV3Controller {
   }
 
 
+
+  @Get(':id/case-types')
+  async getOverAllCaseTypes(@Res() res: any, @Param('id') id: any, @Query() query: any) {
+
+    try {
+      const queryString = await this.filterHelper.facilitiesDateFilter(query)
+
+      const data = await this.facilitiesV3Service.getOverAllCaseTypes(id, queryString)
+
+      return res.status(200).json({
+        success: true,
+        message: "Facilities Case Types Fetched Successfully",
+        data: data
+      });
+
+    }
+    catch (err) {
+      console.log({ err });
+      return res.status(500).json({
+        success: false,
+        message: err.message || SOMETHING_WENT_WRONG
+      });
+    }
+  }
+
+
+
+
+  @Get(':id')
+  async GetFacilityDetails(@Res() res: any, @Param('id') id: any, @Query() query: any) {
+    try {
+
+      const data = await this.facilitiesV3Service.getFacilityDetails(id)
+
+      return res.status(200).json({
+        success: true,
+        message: "Facilities Details Fetched Successfully",
+        data
+      });
+
+    }
+    catch (err) {
+      console.log({ err });
+      return res.status(500).json({
+        success: false,
+        message: SOMETHING_WENT_WRONG
+      });
+    }
+  }
+
 }
