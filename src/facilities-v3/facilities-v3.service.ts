@@ -111,4 +111,39 @@ export class FacilitiesV3Service {
             return [];
         }
     }
+
+
+    async getTrendsVolume(id, queryString) {
+
+        let statement = sql`
+            SELECT 
+                TO_CHAR(service_date, 'Month YYYY') AS month,
+                COUNT(*) AS volume
+            FROM 
+                patient_claims
+            WHERE 
+                facility_id = ${id}
+        `;
+
+        if (queryString) {
+            statement = sql`
+                ${statement}
+                AND ${sql.raw(queryString)}`;
+        }
+
+        statement = sql`
+            ${statement}
+            GROUP BY 
+                month
+
+        `;
+
+        const data = await db.execute(statement);
+
+        if (data && data.rows.length > 0) {
+            return data.rows;
+        } else {
+            return [];
+        }
+    }
 }
