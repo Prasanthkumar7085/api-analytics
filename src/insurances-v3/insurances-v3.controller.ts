@@ -32,4 +32,23 @@ export class InsurancesV3Controller {
       });
     }
   }
+
+  @Get(':id')
+  async getOneInsurancePayorData(@Res() res:any, @Param('id') id:any, @Query() query:any) {
+    try {
+      const queryString = await this.filterHelper.overviewFilter(query);
+      const data = await this.insurancesV3Service.getOneInsurancePayorData(id,queryString);
+      return res.status(200).json({
+        success: true,
+        message: "Insurance Data Fetched Successfully",
+        data        
+      });
+    } catch (err) {
+      console.log({ err });
+      return res.status(500).json({
+        success: false,
+        message: SOMETHING_WENT_WRONG
+      });
+    }
+  }
 }
