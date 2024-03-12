@@ -18,6 +18,7 @@ import { CaseTypesModule } from './case-types/case-types.module';
 import { DrizzleModule } from './drizzle/drizzle.module';
 import { SalesRepModuleV3 } from './sales-rep-v3/sales-rep-v3.module';
 import { OverviewV3Module } from './overview-v3/overview-v3.module';
+import { InsurancesV3Module } from './insurances-v3/insurances-v3.module';
 
 
 @Module({
@@ -28,7 +29,7 @@ import { OverviewV3Module } from './overview-v3/overview-v3.module';
     MongooseModule.forFeature([{ name: 'UserSchema', schema: UserSchema }]),
     MongooseModule.forRoot(process.env.LIS_DB_URL + '?authSource=admin'),
     StatsModule, PrismaModule, LisModule, RevenueStatsModule, SalesRepModule, OverviewModule, FacilitiesModule, CaseTypesModule,
-    DrizzleModule, SalesRepModuleV3, OverviewV3Module],
+    DrizzleModule, SalesRepModuleV3, OverviewV3Module, InsurancesV3Module],
   controllers: [AppController],
   providers: [AppService],
 })
