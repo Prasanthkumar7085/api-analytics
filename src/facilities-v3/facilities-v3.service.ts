@@ -45,4 +45,30 @@ export class FacilitiesV3Service {
             return [];
         }
     }
+
+
+    async getStatsVolume(id, queryString) {
+
+        let statement = sql`
+            SELECT
+                COUNT(*) AS total_cases,
+                COUNT(*) FILTER(WHERE is_bill_cleared = TRUE) AS completed_cases,
+                COUNT(*) FILTER (WHERE is_bill_cleared = FALSE) AS pending_cases
+            FROM
+                patient_claims
+            WHERE facility_id = ${id}
+        `;
+
+        if (queryString) {
+            statement = sql`
+                ${statement}
+                AND 
+                ${sql.raw(queryString)} 
+            `
+        }
+
+        const data = await db.execute(statement)
+
+        return data.rows;
+    }
 }
