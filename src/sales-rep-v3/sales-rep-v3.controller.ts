@@ -1,18 +1,18 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, Res, NotFoundException, Query } from '@nestjs/common';
-import { SalesRepService } from './sales-rep.service';
 import { CreateSalesRepDto } from './dto/create-sales-rep.dto';
 import { UpdateSalesRepDto } from './dto/update-sales-rep.dto';
 import { SOMETHING_WENT_WRONG } from 'src/constants/messageConstants';
 import { FilterHelper } from 'src/helpers/filterHelper';
+import { SalesRepServiceV3 } from './sales-rep-v3.service';
 
 @Controller({
   version: '3.0',
   path: 'sales-reps',
 })
 
-export class SalesRepController {
+export class SalesRepControllerV3 {
   constructor(
-    private readonly salesRepService: SalesRepService,
+    private readonly salesRepService: SalesRepServiceV3,
     private readonly filterHelper: FilterHelper
   ) { }
 
