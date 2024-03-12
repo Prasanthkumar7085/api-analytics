@@ -6,7 +6,7 @@ import { sales_reps } from 'src/drizzle/schemas/salesReps';
 import { insurance_payors } from 'src/drizzle/schemas/insurancePayors';
 
 @Injectable()
-export class SalesRepService {
+export class SalesRepServiceV3 {
 
   async getAll(queryString) {
     let query;

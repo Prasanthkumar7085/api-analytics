@@ -12,7 +12,7 @@ import { RevenueStatsModule } from './revenue-stats/revenue-stats.module';
 import { UserSchema } from './schemas/userSchema';
 import { StatsModule } from './stats/stats.module';
 import { DrizzleModule } from './drizzle/drizzle.module';
-import { SalesRepModule } from './sales-rep/sales-rep.module';
+import { SalesRepModule } from './sales-rep-v3/sales-rep-v3.module';
 
 
 @Module({
