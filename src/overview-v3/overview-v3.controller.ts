@@ -16,7 +16,7 @@ export class OverviewV3Controller {
   @Get('stats-revenue')
   async getStatsRevenue(@Res() res:any, @Query() query:any){
     try {
-      const queryString = await this.filterHelper.salesRep(query)
+      const queryString = await this.filterHelper.overviewFilter(query)
       const data = await this.overviewV3Service.getStatsrevenue(queryString)
       return res.status(200).json({
         success: true,
@@ -35,7 +35,7 @@ export class OverviewV3Controller {
   @Get('stats-volume')
   async getStatsVOlume(@Res() res:any, @Query() query:any) {
     try {
-      const queryString = await this.filterHelper.salesRep(query)
+      const queryString = await this.filterHelper.overviewFilter(query)
       const data = await this.overviewV3Service.getStatsVolume(queryString)
       return res.status(200).json({
         success: true,
@@ -51,6 +51,43 @@ export class OverviewV3Controller {
     }
   }
 
-  
-  
+
+  @Get('case-types')
+  async getOverallCaseTypes(@Res() res:any, @Query() query:any) {
+    try {
+      const queryString = await this.filterHelper.overviewFilter(query)
+      const data = await this.overviewV3Service.getOverallCaseTypes(queryString)
+      return res.status(200).json({
+        success: true,
+        message: "Overview Case Types Fetched Successfully",
+        data        
+      })
+    } catch (err) {
+      console.log({ err });
+      return res.status(500).json({
+        success: false,
+        message: SOMETHING_WENT_WRONG
+      })
+    }
+  }
+
+
+  @Get('revenue')
+  async getRevenue(@Res() res:any, @Query() query:any){
+    try {
+      const queryString = await this.filterHelper.overviewFilter(query)
+      const data = await this.overviewV3Service.getRevenue(queryString)
+      return res.status(200).json({
+        success: true,
+        message: "Overview Revenue Fetched Successfully",
+        data        
+      })
+    } catch (err) {
+      console.log({ err });
+      return res.status(500).json({
+        success: false,
+        message: SOMETHING_WENT_WRONG
+      })
+    }
+  }
 }

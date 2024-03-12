@@ -175,13 +175,30 @@ export class FilterHelper {
             filter.push(`service_date BETWEEN '${fromDate}' AND '${toDate}'`)
         }
 
-
         let queryString;
         if (filter.length > 0) {
             queryString = filter.join("AND ")
         }
         return queryString;
 
+    }
+
+    overviewFilter(query) {
+        let filter = []
+        const {
+            from_date: fromDate,
+            to_date: toDate
+        } = query;
+
+        if (fromDate && toDate) {
+            filter.push(`service_date BETWEEN '${fromDate}' AND '${toDate}'`)
+        }
+
+        let queryString;
+        if (filter.length > 0) {
+            queryString = filter.join("AND ")
+        }
+        return queryString;
     }
 
 }
