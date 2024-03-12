@@ -76,7 +76,7 @@ export class FacilitiesV3Controller {
     } catch (err) {
       console.log({ err })
       return res.status(500).json({
-        success: true,
+        success: false,
         message: err
       })
     }
@@ -94,13 +94,37 @@ export class FacilitiesV3Controller {
       const data = await this.facilitiesV3Service.getTrendsVolume(id, queryString);
 
       return res.status(200).json({
-        sucess: true,
+        success: true,
         message: 'Facility Trends Volume Fetched Successfully',
         data: data
       })
     } catch (err) {
       return res.status(500).json({
+        success: false,
+        message: err
+      })
+    }
+  }
+
+
+  @Get(':id/case-types/volume')
+  async getCaseTypesVolume(@Res() res: any, @Param('id') id: any, @Query() query: any) {
+
+    try {
+
+      const queryString = this.filterHelper.facilitiesDateFilter(query);
+
+      const data = await this.facilitiesV3Service.getCaseTypesVolume(id, queryString);
+
+      return res.status(200).json({
         success: true,
+        message: 'Facility Case Types Volume Fetched Successfully',
+        data: data
+      })
+    }
+    catch (err) {
+      return res.status(500).json({
+        success: false,
         message: err
       })
     }
@@ -108,6 +132,54 @@ export class FacilitiesV3Controller {
 
 
 
+  @Get(':id/case-types/revenue')
+  async getCaseTypesRevenue(@Res() res: any, @Param('id') id: any, @Query() query: any) {
+
+    try {
+
+      const queryString = this.filterHelper.facilitiesDateFilter(query);
+
+      const data = await this.facilitiesV3Service.getCaseTypesRevenue(id, queryString);
+
+      return res.status(200).json({
+        success: true,
+        message: 'Facility Case Types Revenue Fetched Successfully',
+        data: data
+      })
+    }
+    catch (err) {
+      return res.status(500).json({
+        success: false,
+        message: err
+      })
+    }
+  }
+
+
+
+
+  @Get(':id/insurance-payors')
+  async getInsurancePayers(@Res() res: any, @Param('id') id: any, @Query() query: any) {
+
+    try {
+
+      const queryString = this.filterHelper.facilitiesDateFilter(query);
+
+      const data = await this.facilitiesV3Service.getInsurancePayers(id, queryString);
+
+      return res.status(200).json({
+        success: true,
+        message: 'Facility Insurance Payors data Fetched Successfully',
+        data: data
+      })
+    }
+    catch (err) {
+      return res.status(500).json({
+        success: false,
+        message: err.message
+      })
+    }
+  }
 
 
 }
