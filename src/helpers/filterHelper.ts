@@ -184,4 +184,21 @@ export class FilterHelper {
 
     }
 
+    facilitiesDateFilter(query) {
+        let filter = []
+
+        const { from_date, to_date } = query;
+
+        if (from_date && to_date) {
+            filter.push(`service_date BETWEEN '${from_date}' AND '${to_date}'`)
+        }
+
+        let queryString;
+        if (filter.length > 0) {
+            queryString = filter.join("AND ")
+        }
+        return queryString;
+
+    }
+
 }

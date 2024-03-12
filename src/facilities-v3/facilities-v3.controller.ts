@@ -16,7 +16,7 @@ export class FacilitiesV3Controller {
   @Get(':id/stats-revenue')
   async getRevenuestatsData(@Res() res: any, @Param('id') id: any, @Query() query: any) {
     try {
-      const queryString = await this.filterHelper.salesRep(query);
+      const queryString = await this.filterHelper.facilitiesDateFilter(query);
 
       const data = await this.facilitiesV3Service.getStatsRevenue(id, queryString)
 
@@ -37,7 +37,7 @@ export class FacilitiesV3Controller {
   @Get(':id/stats-volume')
   async getStatsVolume(@Res() res: any, @Param('id') id: any, @Query() query: any) {
     try {
-      const queryString = this.filterHelper.salesRep(query)
+      const queryString = this.filterHelper.facilitiesDateFilter(query)
 
       const data = await this.facilitiesV3Service.getStatsVolume(id, queryString)
 
@@ -55,4 +55,29 @@ export class FacilitiesV3Controller {
       })
     }
   }
+
+  @Get(':id/trends/revenue')
+  async getTrendsRevenue(@Res() res: any, @Param('id') id: any, @Query() query: any) {
+    try {
+      const queryString = this.filterHelper.facilitiesDateFilter(query);
+      const data = await this.facilitiesV3Service.getTrendsRevenue(id, queryString)
+
+      return res.status(200).json({
+        success: true,
+        message: 'Sales Reps Trends Revenue Fetched Successfully',
+        data: data
+      })
+    } catch (err) {
+      console.log({ err })
+      return res.status(500).json({
+        success: true,
+        message: err
+      })
+    }
+  }
+
+
+
+
+
 }

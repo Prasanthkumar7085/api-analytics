@@ -71,4 +71,44 @@ export class FacilitiesV3Service {
 
         return data.rows;
     }
+
+
+
+
+
+    async getTrendsRevenue(id, queryString) {
+
+        let statement = sql`
+            SELECT 
+                TO_CHAR(service_date, 'Month YYYY') AS month,
+                CAST(ROUND(SUM(cleared_amount)::NUMERIC, 2) AS FLOAT) AS revenue
+            FROM 
+                patient_claims
+            WHERE 
+                facility_id = ${id}
+            `;
+
+
+        if (queryString) {
+            statement = sql`
+            ${statement}
+            AND ${sql.raw(queryString)}
+            
+        `;
+        }
+
+        statement = sql`
+            ${statement}
+            GROUP BY 
+                MONTH
+        `;
+
+        const data = await db.execute(statement);
+
+        if (data && data.rows.length > 0) {
+            return data.rows;
+        } else {
+            return [];
+        }
+    }
 }
