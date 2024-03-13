@@ -1,8 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { sql } from 'drizzle-orm';
-import { facilities } from 'src/drizzle/schemas/facilities';
-import { insurance_payors } from 'src/drizzle/schemas/insurancePayors';
-import { patient_claims } from 'src/drizzle/schemas/patientClaims';
 import { db } from 'src/seeders/db';
 
 @Injectable()
