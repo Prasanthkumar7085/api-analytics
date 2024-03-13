@@ -198,6 +198,8 @@ export class RevenueStatsHelpers {
     mergeArrays(caseDataArray, modifiedData) {
         // Merge arrays based on hospital_marketer and date
         const mergedArrays = caseDataArray.map(objA => {
+            const patientId = objA.patient_info ? objA.patient_info._id.toString() : null;
+
             const patientInfo = this.forPatientInfo(objA.patient_info);
 
             const matchingObjB = modifiedData.find(objB => objB.accession_id === objA.accession_id);
@@ -208,6 +210,7 @@ export class RevenueStatsHelpers {
                 hospital_marketers: objA.hospital_marketers,
                 process_status: "PENDING",
                 ...matchingObjB,
+                patient_id: patientId,
                 patient_info: patientInfo
             };
         });
@@ -217,13 +220,11 @@ export class RevenueStatsHelpers {
     }
 
     forPatientInfo(patientInfo){
-        const patientId = patientInfo ? patientInfo._id.toString() : null;
         const firstName = patientInfo ? patientInfo.first_name : "";
         const middleName = patientInfo ? patientInfo.middle_name : "";
         const lastName = patientInfo ? patientInfo.last_name : ""
 
         const patientDetails = {
-            patient_id: patientId,
             first_name: firstName,
             middle_name: middleName,
             last_name: lastName
