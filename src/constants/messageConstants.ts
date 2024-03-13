@@ -59,7 +59,7 @@ const SUCCESS_FETCHED_REVENUE_MONTH_WISE_TRENDS = 'Case Types Revenue Month Wise
 const SUCCESS_FETCHED_INSURANCE_STATS = "Insurance stats fetched successfully"
 
 const SUCCESS_FETCHED_OVERVIEW_STATS_REVENUE = "Overview Stats Revenue Fetched Successfully"
-const SUCCESS_FETCHED_OVERVIEW_STATS_VOLUME = "Overview Stats volume Fetched Successfully"
+const SUCCESS_FETCHED_OVERVIEW_STATS_VOLUME = "Overview Stats Volume Fetched Successfully"
 const SUCCES_FETCHED_OVERVIEW_CASE_TYPES = "Overview Case Types Fetched Successfully"
 const SUCCESS_FETCHED_OVERVIEW_REVNUE = "Overview Revenue Fetched Successfully"
 

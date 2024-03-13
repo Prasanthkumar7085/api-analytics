@@ -24,14 +24,15 @@ export class InsurancesV3Service {
       query = sql`
         ${query}
         WHERE ${sql.raw(queryString)}
-      `;
-    } 
+      `
+    } ;
 
     query = sql`
     ${query}
     GROUP BY 
       insurance_payer_id, i.name
-    `
+    `;
+
     const data = await db.execute(query);
 
     if (data && data.rows.length > 0) {
@@ -73,13 +74,13 @@ export class InsurancesV3Service {
       WHERE 
         p.insurance_payer_id = ${id}
       `;
-    }
+    };
 
     query = sql`
     ${query}
     GROUP BY 
       c.name;
-    `
+    `;
 
     const data = await db.execute(query);
 
@@ -87,7 +88,7 @@ export class InsurancesV3Service {
         return data.rows;
     } else {
         return [];
-    }
+    };
   }
 
   async getOneInsurancePayorTrendsRevenue(id,queryString){
@@ -118,7 +119,8 @@ export class InsurancesV3Service {
     ${query}
     GROUP BY 
       TO_CHAR(service_date, 'Month YYYY')
-    `
+    `;
+
     const data = await db.execute(query);
 
     if (data && data.rows.length > 0) {
@@ -148,13 +150,13 @@ export class InsurancesV3Service {
       ${query}
       WHERE p.insurance_payer_id = ${id}
       `
-    }
+    };
 
     query = sql`
     ${query}
     GROUP BY
       TO_CHAR(service_date, 'Month YYYY')
-    `
+    `;
 
     const data = await db.execute(query);
 
