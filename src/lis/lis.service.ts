@@ -21,7 +21,7 @@ export class LisService {
     async getCaseByAccessionId(query) {
         return await this.caseModel.find(query).select({
             accession_id: 1, _id: 1, case_types: 1, hospital: 1, hospital_marketers: 1,
-            'patient_info._id': 1
+            'patient_info._id': 1, 'patient_info.first_name': 1, 'patient_info.middle_name': 1, 'patient_info.last_name': 1
         });
     }
 }
