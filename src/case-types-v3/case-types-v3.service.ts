@@ -13,24 +13,26 @@ export class CaseTypesV3Service {
                 case_types.name AS case_type,
                 COUNT(*) AS total_cases,
                 COUNT(DISTINCT(facility_id)) AS facilities,
-                ROUND(SUM(billable_amount):: NUMERIC, 2) AS  billed,
-                ROUND(SUM(cleared_amount):: NUMERIC, 2) AS  received,
-                ROUND(SUM(pending_amount):: NUMERIC, 2) AS  arrears
+                ROUND(SUM(billable_amount):: NUMERIC, 2) AS  genereated_amount,
+                ROUND(SUM(cleared_amount):: NUMERIC, 2) AS  paid_amount,
+                ROUND(SUM(pending_amount):: NUMERIC, 2) AS  pending_amount
             FROM patient_claims
             JOIN case_types
                 ON patient_claims.case_type_id = case_types.id
         `;
 
         if (queryString) {
-            statement.append(sql`
+            statement = sql`
+                ${statement}
                 WHERE 
                 ${sql.raw(queryString)}
-            `);
+            `;
         }
 
-        statement.append(sql`
+        statement = sql`
+            ${statement}
             GROUP BY case_type
-        `);
+        `;
 
 
         const data = await db.execute(statement);

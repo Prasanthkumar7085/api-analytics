@@ -1,6 +1,6 @@
 import { Controller, Get, Param, Res, Query } from '@nestjs/common';
 import { FacilitiesV3Service } from './facilities-v3.service';
-import { SOMETHING_WENT_WRONG, SUCCESS_FETCHED_FACILITIES_REVENUE_STATS, SUCCESS_FETCHED_FACILITIES_VOLUME_STATS, SUCCESS_FETCHED_FACILITY } from 'src/constants/messageConstants';
+import { SOMETHING_WENT_WRONG, SUCCESSS_FETCHED_FACILITIES_CASES_TYPES_REVENUE, SUCCESSS_FETCHED_FACILITIES_CASES_TYPES_VOLUME, SUCCESS_FETCHED_FACILITIES, SUCCESS_FETCHED_FACILITIES_REVENUE_STATS, SUCCESS_FETCHED_FACILITIES_TRENDS_REVENUE, SUCCESS_FETCHED_FACILITIES_TRENDS_VOLUME, SUCCESS_FETCHED_FACILITIES_VOLUME_STATS, SUCCESS_FETCHED_FACILITY, SUCCESS_FETCHED_FACILITY_CASE_TYPE_VOLUME_AND_REVENUE, SUCCESS_FETCHED_FACILITY_INSURANCE_PAYORS } from 'src/constants/messageConstants';
 import { FilterHelper } from 'src/helpers/filterHelper';
 
 @Controller({
@@ -70,14 +70,14 @@ export class FacilitiesV3Controller {
 
       return res.status(200).json({
         success: true,
-        message: 'Facility Trends Revenue Fetched Successfully',
+        message: SUCCESS_FETCHED_FACILITIES_TRENDS_REVENUE,
         data: data
       })
     } catch (err) {
       console.log({ err })
       return res.status(500).json({
         success: false,
-        message: err
+        message: err || SOMETHING_WENT_WRONG
       })
     }
   }
@@ -95,13 +95,13 @@ export class FacilitiesV3Controller {
 
       return res.status(200).json({
         success: true,
-        message: 'Facility Trends Volume Fetched Successfully',
+        message: SUCCESS_FETCHED_FACILITIES_TRENDS_VOLUME,
         data: data
       })
     } catch (err) {
       return res.status(500).json({
         success: false,
-        message: err
+        message: err || SOMETHING_WENT_WRONG
       })
     }
   }
@@ -118,14 +118,14 @@ export class FacilitiesV3Controller {
 
       return res.status(200).json({
         success: true,
-        message: 'Facility Case Types Volume Fetched Successfully',
+        message: SUCCESSS_FETCHED_FACILITIES_CASES_TYPES_VOLUME,
         data: data
       })
     }
     catch (err) {
       return res.status(500).json({
         success: false,
-        message: err
+        message: err || SOMETHING_WENT_WRONG
       })
     }
   }
@@ -143,14 +143,15 @@ export class FacilitiesV3Controller {
 
       return res.status(200).json({
         success: true,
-        message: 'Facility Case Types Revenue Fetched Successfully',
+        message: SUCCESSS_FETCHED_FACILITIES_CASES_TYPES_REVENUE,
         data: data
       })
     }
     catch (err) {
+      console.log(err)
       return res.status(500).json({
         success: false,
-        message: err
+        message: err || SOMETHING_WENT_WRONG
       })
     }
   }
@@ -169,14 +170,14 @@ export class FacilitiesV3Controller {
 
       return res.status(200).json({
         success: true,
-        message: 'Facility Insurance Payors data Fetched Successfully',
+        message: SUCCESS_FETCHED_FACILITY_INSURANCE_PAYORS,
         data: data
       })
     }
     catch (err) {
       return res.status(500).json({
         success: false,
-        message: err.message
+        message: err.message || SOMETHING_WENT_WRONG
       })
     }
   }
@@ -193,7 +194,7 @@ export class FacilitiesV3Controller {
 
       return res.status(200).json({
         success: true,
-        message: "Facilities Case Types Fetched Successfully",
+        message: SUCCESS_FETCHED_FACILITY_CASE_TYPE_VOLUME_AND_REVENUE,
         data: data
       });
 
@@ -218,7 +219,7 @@ export class FacilitiesV3Controller {
 
       return res.status(200).json({
         success: true,
-        message: "Facilities Details Fetched Successfully",
+        message: SUCCESS_FETCHED_FACILITY,
         data
       });
 
@@ -243,7 +244,7 @@ export class FacilitiesV3Controller {
 
       return res.status(200).json({
         success: true,
-        message: "Facilities Overall Data Fetched Successfully",
+        message: SUCCESS_FETCHED_FACILITIES,
         data
       });
 

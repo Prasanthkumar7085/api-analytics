@@ -14,9 +14,9 @@ export class FacilitiesV3Service {
 
         let statement = sql`
             SELECT     
-                ROUND(SUM(billable_amount)::NUMERIC, 2) AS billed,
-                ROUND(SUM(cleared_amount)::NUMERIC, 2) AS collected,
-                ROUND(SUM(pending_amount)::NUMERIC, 2) AS pending
+                ROUND(SUM(billable_amount)::NUMERIC, 2) AS generated_amount,
+                ROUND(SUM(cleared_amount)::NUMERIC, 2) AS paid_amount,
+                ROUND(SUM(pending_amount)::NUMERIC, 2) AS pending_amount
             FROM 
                 patient_claims
             LEFT JOIN 
@@ -26,16 +26,18 @@ export class FacilitiesV3Service {
                 `;
 
         if (queryString) {
-            statement.append(sql`
+            statement = sql`
+                ${statement}
                 AND 
                 ${sql.raw(queryString)}
-            `)
+            `
         }
 
-        statement.append(sql`
+        statement = sql`
+            ${statement}
             GROUP BY 
             facilities.id;
-        `);
+        `;
 
         // Execute the raw SQL query
         const data = await db.execute(statement);
@@ -101,7 +103,7 @@ export class FacilitiesV3Service {
         statement = sql`
             ${statement}
             GROUP BY 
-                MONTH
+                month
         `;
 
         const data = await db.execute(statement);
@@ -247,9 +249,9 @@ export class FacilitiesV3Service {
         let statement = sql`
         SELECT 
             insurance_payors.name AS insurance_name,
-            ROUND(SUM(patient_claims.billable_amount)::NUMERIC, 2) AS total,
-            ROUND(SUM(patient_claims.cleared_amount)::NUMERIC, 2) AS paid,
-            ROUND(SUM(patient_claims.pending_amount)::NUMERIC, 2) AS pending
+            ROUND(SUM(patient_claims.billable_amount)::NUMERIC, 2) AS generated_amount,
+            ROUND(SUM(patient_claims.cleared_amount)::NUMERIC, 2) AS paid_amount,
+            ROUND(SUM(patient_claims.pending_amount)::NUMERIC, 2) AS pending_amount
         FROM 
             facilities
         JOIN 
@@ -376,9 +378,9 @@ export class FacilitiesV3Service {
             SELECT
                 facilities.name AS facility_name,
                 sales_reps.name AS sales_rep,
-                ROUND(SUM(billable_amount):: NUMERIC, 2) as billed,
-                ROUND(SUM(cleared_amount):: NUMERIC, 2) as received,
-                ROUND(SUM(pending_amount):: NUMERIC, 2) as arrears,
+                ROUND(SUM(billable_amount):: NUMERIC, 2) as generated_amount,
+                ROUND(SUM(cleared_amount):: NUMERIC, 2) as paid_amount,
+                ROUND(SUM(pending_amount):: NUMERIC, 2) as pending_amount,
                 COUNT(*) AS total_cases
             FROM 
                 patient_claims
