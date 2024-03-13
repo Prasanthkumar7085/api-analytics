@@ -1,6 +1,6 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Res, Query } from '@nestjs/common';
+import { Controller, Get, Res, Query } from '@nestjs/common';
 import { OverviewV3Service } from './overview-v3.service';
-import { SOMETHING_WENT_WRONG } from 'src/constants/messageConstants';
+import { SOMETHING_WENT_WRONG, SUCCESS_FETCHED_OVERVIEW_REVNUE, SUCCESS_FETCHED_OVERVIEW_STATS_REVENUE, SUCCESS_FETCHED_OVERVIEW_STATS_VOLUME, SUCCES_FETCHED_OVERVIEW_CASE_TYPES } from 'src/constants/messageConstants';
 import { FilterHelper } from 'src/helpers/filterHelper';
 
 
@@ -17,10 +17,11 @@ export class OverviewV3Controller {
   async getStatsRevenue(@Res() res:any, @Query() query:any){
     try {
       const queryString = await this.filterHelper.overviewFilter(query);
+
       const data = await this.overviewV3Service.getStatsrevenue(queryString);
       return res.status(200).json({
         success: true,
-        message: "Overview Stats Revenue Fetched Successfully",
+        message: SUCCESS_FETCHED_OVERVIEW_STATS_REVENUE,
         data        
       });
     } catch (err) {
@@ -39,7 +40,7 @@ export class OverviewV3Controller {
       const data = await this.overviewV3Service.getStatsVolume(queryString);
       return res.status(200).json({
         success: true,
-        message: "Overview Stats volume Fetched Successfully",
+        message: SUCCESS_FETCHED_OVERVIEW_STATS_VOLUME,
         data
       });
     } catch (err) {
@@ -56,10 +57,11 @@ export class OverviewV3Controller {
   async getOverallCaseTypes(@Res() res:any, @Query() query:any) {
     try {
       const queryString = await this.filterHelper.overviewFilter(query);
+
       const data = await this.overviewV3Service.getOverallCaseTypes(queryString);
       return res.status(200).json({
         success: true,
-        message: "Overview Case Types Fetched Successfully",
+        message: SUCCES_FETCHED_OVERVIEW_CASE_TYPES,
         data        
       });
     } catch (err) {
@@ -76,10 +78,11 @@ export class OverviewV3Controller {
   async getRevenue(@Res() res:any, @Query() query:any){
     try {
       const queryString = await this.filterHelper.overviewFilter(query);
+      
       const data = await this.overviewV3Service.getRevenue(queryString);
       return res.status(200).json({
         success: true,
-        message: "Overview Revenue Fetched Successfully",
+        message: SUCCESS_FETCHED_OVERVIEW_REVNUE,
         data        
       });
     } catch (err) {

@@ -12,9 +12,9 @@ export class InsurancesV3Service {
       i.name as insurance_payor_name,
       COUNT(DISTINCT facility_id) AS count_of_facilities,
       COUNT(*) AS total_cases,
-      ROUND(SUM(billable_amount)::NUMERIC, 2) AS billed,
-      ROUND(SUM(cleared_amount)::NUMERIC, 2) AS paid,
-      ROUND(SUM(pending_amount)::NUMERIC, 2) AS pending
+      ROUND(SUM(billable_amount)::NUMERIC, 2) AS generated_ammount,
+      ROUND(SUM(cleared_amount)::NUMERIC, 2) AS paid_amount,
+      ROUND(SUM(pending_amount)::NUMERIC, 2) AS pending_amount
     FROM 
       patient_claims as p
     JOIN 
@@ -24,17 +24,14 @@ export class InsurancesV3Service {
       query = sql`
         ${query}
         WHERE ${sql.raw(queryString)}
-        GROUP BY 
-          insurance_payer_id, i.name
       `;
-    } else {
-      query = sql`
-      ${query}
-      GROUP BY 
-        insurance_payer_id, i.name
-      `;
-    }
+    } 
 
+    query = sql`
+    ${query}
+    GROUP BY 
+      insurance_payer_id, i.name
+    `
     const data = await db.execute(query);
 
     if (data && data.rows.length > 0) {
@@ -53,7 +50,7 @@ export class InsurancesV3Service {
       COUNT(*) AS total_cases,
       COUNT(*) FILTER (WHERE is_bill_cleared = TRUE) AS completed_cases,
       ROUND(SUM(expected_amount)::NUMERIC, 2) AS expected_amount,
-      ROUND(SUM(billable_amount)::NUMERIC, 2) AS billed_amount,
+      ROUND(SUM(billable_amount)::NUMERIC, 2) AS generated_amount,
       ROUND(SUM(cleared_amount)::NUMERIC, 2) AS paid_amount,
       ROUND(SUM(pending_amount)::NUMERIC, 2) AS pending_amount,
       COUNT(*) FILTER (WHERE is_bill_cleared = FALSE) AS pending_cases
@@ -69,18 +66,20 @@ export class InsurancesV3Service {
       ${query}
       WHERE 
         p.insurance_payer_id = ${id} AND ${sql.raw(queryString)}
-      GROUP BY 
-        c.name;
       `;
     } else {
       query = sql`
       ${query}
       WHERE 
         p.insurance_payer_id = ${id}
-      GROUP BY 
-        c.name;
       `;
     }
+
+    query = sql`
+    ${query}
+    GROUP BY 
+      c.name;
+    `
 
     const data = await db.execute(query);
 
@@ -106,18 +105,20 @@ export class InsurancesV3Service {
       query = sql`
         ${query}
         WHERE p.insurance_payer_id = ${id} AND ${sql.raw(queryString)}
-        GROUP BY 
-          TO_CHAR(service_date, 'Month YYYY')    
       `;
     } else {
       query = sql`
       ${query}
       WHERE 
         p.insurance_payer_id = ${id}
-      GROUP BY 
-        TO_CHAR(service_date, 'Month YYYY')
       `;
     }
+
+    query = sql`
+    ${query}
+    GROUP BY 
+      TO_CHAR(service_date, 'Month YYYY')
+    `
     const data = await db.execute(query);
 
     if (data && data.rows.length > 0) {
@@ -141,17 +142,19 @@ export class InsurancesV3Service {
       query = sql`
       ${query}
       WHERE p.insurance_payer_id = ${id} AND ${sql.raw(queryString)}
-      GROUP BY
-        TO_CHAR(service_date, 'Month YYYY')
       `
     } else {
       query=sql`
       ${query}
       WHERE p.insurance_payer_id = ${id}
-      GROUP BY
-        TO_CHAR(service_date, 'Month YYYY')
       `
     }
+
+    query = sql`
+    ${query}
+    GROUP BY
+      TO_CHAR(service_date, 'Month YYYY')
+    `
 
     const data = await db.execute(query);
 

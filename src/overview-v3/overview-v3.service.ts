@@ -9,9 +9,9 @@ export class OverviewV3Service {
 
     let query=sql`
     SELECT 
-    ROUND(SUM(billable_amount)::NUMERIC,2) AS billed,
-    ROUND(SUM(cleared_amount)::NUMERIC, 2) AS paid,
-    ROUND(SUM(pending_amount)::NUMERIC, 2) AS pending
+    ROUND(SUM(billable_amount)::NUMERIC,2) AS generated_amount,
+    ROUND(SUM(cleared_amount)::NUMERIC, 2) AS paid_amount,
+    ROUND(SUM(pending_amount)::NUMERIC, 2) AS pending_amount
     FROM patient_claims
     `;
 
@@ -20,15 +20,17 @@ export class OverviewV3Service {
       ${query}
       WHERE ${sql.raw(queryString)}`
     };
+
     const data = await db.execute(query);
 
-      if (data && data.rows.length > 0) {
-        return data.rows;
-      } else {
-        return [];
-      }
-
+    if (data && data.rows.length > 0) {
+      return data.rows;
+    } else {
+      return [];
+    }
   }
+
+
   async getStatsVolume(queryString){
 
     let query = sql`
@@ -42,7 +44,8 @@ export class OverviewV3Service {
       query = sql`
       ${query}
       WHERE ${sql.raw(queryString)}`
-    }
+    };
+
     const data = await db.execute(query);
 
     if (data && data.rows.length > 0) {
@@ -57,28 +60,29 @@ export class OverviewV3Service {
 
     let query = sql`
     SELECT 
-    case_type_id,
-    UPPER(c.name) AS case_type_name,
-    ROUND(SUM(cleared_amount)::NUMERIC, 2) AS revenue,
-    (
-      SELECT COUNT(*)
-      FROM patient_claims
-    ) AS volume
-    FROM patient_claims p
-    JOIN case_types c ON p.case_type_id = c.id`;
+      case_type_id,
+      UPPER(c.name) AS case_type_name,
+      ROUND(SUM(cleared_amount)::NUMERIC, 2) AS revenue,
+      (
+        SELECT COUNT(*)
+        FROM patient_claims
+      ) AS volume
+    FROM 
+      patient_claims p
+    JOIN 
+      case_types c ON p.case_type_id = c.id`;
 
     if (queryString) {
       query = sql`
       ${query}
       WHERE ${sql.raw(queryString)}
-      GROUP BY p.case_type_id, UPPER(c.name);
       `
-    } else {
-      query = sql`
-      ${query}
-      GROUP BY p.case_type_id, UPPER(c.name);
-      `
-    }
+    };
+
+    query = sql`
+    ${query}
+    GROUP BY p.case_type_id, UPPER(c.name);
+    `;
 
     const data = await db.execute(query);
 
@@ -94,21 +98,21 @@ export class OverviewV3Service {
     let query = sql`
     SELECT 
     TO_CHAR(service_date, 'Month YYYY') AS month,
-    ROUND(SUM(billable_amount)::NUMERIC, 2) AS billed,
-    ROUND(SUM(cleared_amount)::NUMERIC, 2) AS collected
+    ROUND(SUM(billable_amount)::NUMERIC, 2) AS generated_amount,
+    ROUND(SUM(cleared_amount)::NUMERIC, 2) AS collected_amount
     FROM patient_claims
     `;
 
     if (queryString) {
       query = sql`
         ${query}
-        WHERE ${sql.raw(queryString)}
-        GROUP BY TO_CHAR(service_date, 'Month YYYY')`
-    } else {
-      query = sql`
-      ${query}
-      GROUP BY TO_CHAR(service_date, 'Month YYYY')`
+        WHERE ${sql.raw(queryString)}`
     }
+
+    query = sql`
+    ${query}
+    GROUP BY TO_CHAR(service_date, 'Month YYYY')
+    `
 
     const data = await db.execute(query);
 
