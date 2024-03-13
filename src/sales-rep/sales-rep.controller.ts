@@ -1,8 +1,7 @@
 import { Controller, Get, Body, Param, Res, Query } from '@nestjs/common';
 import { SalesRepService } from './sales-rep.service';
-import { SINGLE_REP_FACILITY_WISE, SOMETHING_WENT_WRONG, SUCCESS_FECTED_SALE_REP_REVENUE_STATS, SUCCESS_FECTED_SALE_REP_VOLUME_STATS, SUCCESS_FETCHED_CASE_TYPES_REVENUE, SUCCESS_FETCHED_SALES_REP, SUCCESS_FETCHED_SALES_REP_VOLUME_AND_REVENU, SUCCESS_FETCHED_SALE_VOLUME_MONTH_WISE, SUCCESS_FETCHED_TREND_REVENUE, SUCCESS_MARKETER, SUCCESS_FETCHED_SALE_TREND_VOLUME, SUCCESS_FETCHED_INSURANCE_STATS } from 'src/constants/messageConstants';
+import { SINGLE_REP_FACILITY_WISE, SOMETHING_WENT_WRONG, SUCCESS_FECTED_SALE_REP_REVENUE_STATS, SUCCESS_FECTED_SALE_REP_VOLUME_STATS, SUCCESS_FETCHED_CASE_TYPES_REVENUE, SUCCESS_FETCHED_SALES_REP, SUCCESS_FETCHED_SALES_REP_VOLUME_AND_REVENUE, SUCCESS_FETCHED_SALE_VOLUME_MONTH_WISE, SUCCESS_FETCHED_TREND_REVENUE, SUCCESS_MARKETER, SUCCESS_FETCHED_SALE_TREND_VOLUME, SUCCESS_FETCHED_INSURANCE_STATS } from 'src/constants/messageConstants';
 import * as fs from 'fs';
-import { FacilityWiseDto } from './dto/facility-wise.dto';
 import { SalesRepDto } from './dto/sales-rep.dto';
 import { SalesRepHelper } from 'src/helpers/salesRepHelper';
 
@@ -247,7 +246,7 @@ export class SalesRepController {
 
       return res.status(200).json({
         success: true,
-        message: SUCCESS_FETCHED_SALES_REP_VOLUME_AND_REVENU,
+        message: SUCCESS_FETCHED_SALES_REP_VOLUME_AND_REVENUE,
         data: [
           {
             "case_type": "COVID",
@@ -1049,42 +1048,42 @@ export class SalesRepController {
         message: SUCCESS_FETCHED_SALE_TREND_VOLUME,
         data: {
           "January 2024": {
-              "revenue": 35
+            "revenue": 35
           },
           "February 2024": {
-              "revenue": 26
+            "revenue": 26
           },
           "March 2024": {
-              "revenue": 0
+            "revenue": 0
           },
           "April 2024": {
-              "revenue": 0
+            "revenue": 0
           },
           "May 2024": {
-              "revenue": 0
+            "revenue": 0
           },
           "June 2024": {
-              "revenue": 0
+            "revenue": 0
           },
           "July 2024": {
-              "revenue": 0
+            "revenue": 0
           },
           "August 2024": {
-              "revenue": 0
+            "revenue": 0
           },
           "September 2024": {
-              "revenue": 0
+            "revenue": 0
           },
           "October 2024": {
-              "revenue": 0
+            "revenue": 0
           },
           "November 2024": {
-              "revenue": 0
+            "revenue": 0
           },
           "December 2024": {
-              "revenue": 0
+            "revenue": 0
           }
-      }
+        }
       })
     } catch (error) {
       return res.status(500).json({
@@ -1096,250 +1095,250 @@ export class SalesRepController {
 
 
   @Get(':id/insurance')
-  async getInsuranceWiseStats(@Res() res: any){
+  async getInsuranceWiseStats(@Res() res: any) {
     try {
       const insuranceStats = [
         {
-            "name": "1199 SEIU Nat Benefit & Pension Fndd",
-            "total_amount": 1000,
-            "total_paid": 510,
-            "total_pending": 490
+          "name": "1199 SEIU Nat Benefit & Pension Fndd",
+          "total_amount": 1000,
+          "total_paid": 510,
+          "total_pending": 490
         },
         {
-            "name": "AARP - UHC Ovations Ins Solution",
-            "total_amount": 1000,
-            "total_paid": 500,
-            "total_pending":500
+          "name": "AARP - UHC Ovations Ins Solution",
+          "total_amount": 1000,
+          "total_paid": 500,
+          "total_pending": 500
         },
         {
-            "name": "Absolute Total Care - Centene",
-            "total_amount": 490,
-            "total_paid": 490,
-            "total_pending": 0
+          "name": "Absolute Total Care - Centene",
+          "total_amount": 490,
+          "total_paid": 490,
+          "total_pending": 0
         },
         {
-            "name": "Acclaim",
-            "total_amount": 700,
-            "total_paid": 480,
-            "total_pending": 220
+          "name": "Acclaim",
+          "total_amount": 700,
+          "total_paid": 480,
+          "total_pending": 220
         },
         {
-            "name": "ACS BENEFIT SERVICES",
-            "total_amount": 800,
-            "total_paid": 470,
-            "total_pending": 330
+          "name": "ACS BENEFIT SERVICES",
+          "total_amount": 800,
+          "total_paid": 470,
+          "total_pending": 330
         },
         {
-            "name": "Administrative Concepts, Inc.",
-            "total_amount": 1000,
-            "total_paid": 460,
-            "total_pending": 540
+          "name": "Administrative Concepts, Inc.",
+          "total_amount": 1000,
+          "total_paid": 460,
+          "total_pending": 540
         },
         {
-            "name": "Administrative Services, Inc",
-            "total_amount": 1000,
-            "total_paid": 450,
-            "total_pending": 550
+          "name": "Administrative Services, Inc",
+          "total_amount": 1000,
+          "total_paid": 450,
+          "total_pending": 550
         },
         {
-            "name": "Advantage by Bridgeway Health Solutions",
-            "total_amount": 500,
-            "total_paid": 440,
-            "total_pending": 60
+          "name": "Advantage by Bridgeway Health Solutions",
+          "total_amount": 500,
+          "total_paid": 440,
+          "total_pending": 60
         },
         {
-            "name": "Advantage by Buckeye Comm",
-            "total_amount": 600,
-            "total_paid": 430,
-            "total_pending": 170
+          "name": "Advantage by Buckeye Comm",
+          "total_amount": 600,
+          "total_paid": 430,
+          "total_pending": 170
         },
         {
-            "name": "Advantage by Superior Health",
-            "total_amount": 1000,
-            "total_paid": 420,
-            "total_pending": 580
+          "name": "Advantage by Superior Health",
+          "total_amount": 1000,
+          "total_paid": 420,
+          "total_pending": 580
         },
         {
-            "name": "Aetna",
-            "total_amount": 1000,
-            "total_paid": 410,
-            "total_pending": 590
+          "name": "Aetna",
+          "total_amount": 1000,
+          "total_paid": 410,
+          "total_pending": 590
         },
         {
-            "name": "Aetna Admin Medicare Supp",
-            "total_amount": 400,
-            "total_paid": 400,
-            "total_pending": 0
+          "name": "Aetna Admin Medicare Supp",
+          "total_amount": 400,
+          "total_paid": 400,
+          "total_pending": 0
         },
         {
-            "name": "Aetna Better Health - PA Medicaid",
-            "total_amount": 390,
-            "total_paid": 390,
-            "total_pending": 0
+          "name": "Aetna Better Health - PA Medicaid",
+          "total_amount": 390,
+          "total_paid": 390,
+          "total_pending": 0
         },
         {
-            "name": "Aetna Better Health of California",
-            "total_amount": 1000,
-            "total_paid": 380,
-            "total_pending": 620
+          "name": "Aetna Better Health of California",
+          "total_amount": 1000,
+          "total_paid": 380,
+          "total_pending": 620
         },
         {
-            "name": "Aetna Better Health of Kansas",
-            "total_amount": 1000,
-            "total_paid": 370,
-            "total_pending": 630
+          "name": "Aetna Better Health of Kansas",
+          "total_amount": 1000,
+          "total_paid": 370,
+          "total_pending": 630
         },
         {
-            "name": "Aetna Better Health of Kentucky",
-            "total_amount": 400,
-            "total_paid": 360,
-            "total_pending": 40
+          "name": "Aetna Better Health of Kentucky",
+          "total_amount": 400,
+          "total_paid": 360,
+          "total_pending": 40
         },
         {
-            "name": "Aetna Better Health of Louisiana",
-            "total_amount": 500,
-            "total_paid": 350,
-            "total_pending": 150
+          "name": "Aetna Better Health of Louisiana",
+          "total_amount": 500,
+          "total_paid": 350,
+          "total_pending": 150
         },
         {
-            "name": "Aetna Better Health of Maryland",
-            "total_amount": 1000,
-            "total_paid": 340,
-            "total_pending": 660
+          "name": "Aetna Better Health of Maryland",
+          "total_amount": 1000,
+          "total_paid": 340,
+          "total_pending": 660
         },
         {
-            "name": "Aetna Better Health of Michigan",
-            "total_amount": 330,
-            "total_paid": 330,
-            "total_pending": 0
+          "name": "Aetna Better Health of Michigan",
+          "total_amount": 330,
+          "total_paid": 330,
+          "total_pending": 0
         },
         {
-            "name": "Aetna Better Health of New Jersey",
-            "total_amount": 320,
-            "total_paid": 320,
-            "total_pending": 0
+          "name": "Aetna Better Health of New Jersey",
+          "total_amount": 320,
+          "total_paid": 320,
+          "total_pending": 0
         },
         {
-            "name": "Aetna Better Health of New York",
-            "total_amount": 200,
-            "total_paid": 200,
-            "total_pending": 0
+          "name": "Aetna Better Health of New York",
+          "total_amount": 200,
+          "total_paid": 200,
+          "total_pending": 0
         },
         {
-            "name": "Aetna Better Health of Ohio",
-            "total_amount": 700,
-            "total_paid": 300,
-            "total_pending": 400
+          "name": "Aetna Better Health of Ohio",
+          "total_amount": 700,
+          "total_paid": 300,
+          "total_pending": 400
         },
         {
-            "name": "Aetna Better Health of Texas",
-            "total_amount": 300,
-            "total_paid": 290,
-            "total_pending": 10
+          "name": "Aetna Better Health of Texas",
+          "total_amount": 300,
+          "total_paid": 290,
+          "total_pending": 10
         },
         {
-            "name": "Aetna Better Health of Virginia",
-            "total_amount": 400,
-            "total_paid": 280,
-            "total_pending": 120
+          "name": "Aetna Better Health of Virginia",
+          "total_amount": 400,
+          "total_paid": 280,
+          "total_pending": 120
         },
         {
-            "name": "Aetna Better Health of WV",
-            "total_amount": 300,
-            "total_paid": 270,
-            "total_pending": 30
+          "name": "Aetna Better Health of WV",
+          "total_amount": 300,
+          "total_paid": 270,
+          "total_pending": 30
         },
         {
-            "name": "Aetna Long Term Care",
-            "total_amount": 300,
-            "total_paid": 260,
-            "total_pending": 40
+          "name": "Aetna Long Term Care",
+          "total_amount": 300,
+          "total_paid": 260,
+          "total_pending": 40
         },
         {
-            "name": "Aetna Senior Supplemental Insurance",
-            "total_amount": 350,
-            "total_paid": 250,
-            "total_pending": 100
+          "name": "Aetna Senior Supplemental Insurance",
+          "total_amount": 350,
+          "total_paid": 250,
+          "total_pending": 100
         },
         {
-            "name": "Aetna TX Medicaid & CHIP",
-            "total_amount": 250,
-            "total_paid": 240,
-            "total_pending": 10
+          "name": "Aetna TX Medicaid & CHIP",
+          "total_amount": 250,
+          "total_paid": 240,
+          "total_pending": 10
         },
         {
-            "name": "Affinity Health Plan",
-            "total_amount": 250,
-            "total_paid": 230,
-            "total_pending": 20
+          "name": "Affinity Health Plan",
+          "total_amount": 250,
+          "total_paid": 230,
+          "total_pending": 20
         },
         {
-            "name": "AFLAC",
-            "total_amount": 700,
-            "total_paid": 220,
-            "total_pending": 480
+          "name": "AFLAC",
+          "total_amount": 700,
+          "total_paid": 220,
+          "total_pending": 480
         },
         {
-            "name": "AFLAC Medicare Supplemental",
-            "total_amount": 500,
-            "total_paid": 210,
-            "total_pending": 290
+          "name": "AFLAC Medicare Supplemental",
+          "total_amount": 500,
+          "total_paid": 210,
+          "total_pending": 290
         },
         {
-            "name": "AgeWell New York",
-            "total_amount": 250,
-            "total_paid": 200,
-            "total_pending": 50
+          "name": "AgeWell New York",
+          "total_amount": 250,
+          "total_paid": 200,
+          "total_pending": 50
         },
         {
-            "name": "AGIA, Inc",
-            "total_amount": 350,
-            "total_paid": 190,
-            "total_pending": 160
+          "name": "AGIA, Inc",
+          "total_amount": 350,
+          "total_paid": 190,
+          "total_pending": 160
         },
         {
-            "name": "All Savers LIfe Insurance Co",
-            "total_amount": 200,
-            "total_paid": 180,
-            "total_pending": 20
+          "name": "All Savers LIfe Insurance Co",
+          "total_amount": 200,
+          "total_paid": 180,
+          "total_pending": 20
         },
         {
-            "name": "Allegiance Benefit Plan Management, Inc.",
-            "total_amount": 200,
-            "total_paid": 170,
-            "total_pending": 30
+          "name": "Allegiance Benefit Plan Management, Inc.",
+          "total_amount": 200,
+          "total_paid": 170,
+          "total_pending": 30
         },
         {
-            "name": "Alliant Health Plans of Georgia",
-            "total_amount": 200,
-            "total_paid": 160,
-            "total_pending": 40
+          "name": "Alliant Health Plans of Georgia",
+          "total_amount": 200,
+          "total_paid": 160,
+          "total_pending": 40
         },
         {
-            "name": "Allied Benefits Systems, Inc",
-            "total_amount": 150,
-            "total_paid": 150,
-            "total_pending": 0
+          "name": "Allied Benefits Systems, Inc",
+          "total_amount": 150,
+          "total_paid": 150,
+          "total_pending": 0
         },
         {
-            "name": "AlohaCare Advantage",
-            "total_amount": 150,
-            "total_paid": 140,
-            "total_pending": 10
+          "name": "AlohaCare Advantage",
+          "total_amount": 150,
+          "total_paid": 140,
+          "total_pending": 10
         },
         {
-            "name": "Alternative Insurance Resources",
-            "total_amount": 150,
-            "total_paid": 130,
-            "total_pending": 20
+          "name": "Alternative Insurance Resources",
+          "total_amount": 150,
+          "total_paid": 130,
+          "total_pending": 20
         },
         {
-            "name": "Ambetter of AR",
-            "total_amount": 150,
-            "total_paid": 120,
-            "total_pending": 30
+          "name": "Ambetter of AR",
+          "total_amount": 150,
+          "total_paid": 120,
+          "total_pending": 30
         }
-    ]
+      ]
 
       return res.status(200).json({
         success: true,
@@ -1347,8 +1346,8 @@ export class SalesRepController {
         data: insuranceStats
       })
 
-    } catch(err){
-      console.log({err});
+    } catch (err) {
+      console.log({ err });
       return res.status(500).json({
         success: false,
         message: err || SOMETHING_WENT_WRONG
