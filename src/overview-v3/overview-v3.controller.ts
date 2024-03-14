@@ -22,13 +22,13 @@ export class OverviewV3Controller {
       return res.status(200).json({
         success: true,
         message: SUCCESS_FETCHED_OVERVIEW_STATS_REVENUE,
-        data        
+        data: data     
       });
-    } catch (err) {
-      console.log({ err });
+    } catch (error) {
+      console.log({ error });
       return res.status(500).json({
         success: false,
-        message: SOMETHING_WENT_WRONG
+        message: error || SOMETHING_WENT_WRONG
       });
     }
   }
@@ -41,13 +41,13 @@ export class OverviewV3Controller {
       return res.status(200).json({
         success: true,
         message: SUCCESS_FETCHED_OVERVIEW_STATS_VOLUME,
-        data
+        data: data
       });
-    } catch (err) {
-      console.log({ err });
+    } catch (error) {
+      console.log({ error });
       return res.status(500).json({
         success: false,
-        message: SOMETHING_WENT_WRONG
+        message: error || SOMETHING_WENT_WRONG
       });
     }
   }
@@ -62,13 +62,13 @@ export class OverviewV3Controller {
       return res.status(200).json({
         success: true,
         message: SUCCES_FETCHED_OVERVIEW_CASE_TYPES,
-        data        
+        data: data     
       });
-    } catch (err) {
-      console.log({ err });
+    } catch (error) {
+      console.log({ error });
       return res.status(500).json({
         success: false,
-        message: SOMETHING_WENT_WRONG
+        message: error || SOMETHING_WENT_WRONG
       });
     }
   }
@@ -83,13 +83,13 @@ export class OverviewV3Controller {
       return res.status(200).json({
         success: true,
         message: SUCCESS_FETCHED_OVERVIEW_REVNUE,
-        data        
+        data: data 
       });
-    } catch (err) {
-      console.log({ err });
+    } catch (error) {
+      console.log({ error });
       return res.status(500).json({
         success: false,
-        message: SOMETHING_WENT_WRONG
+        message: error || SOMETHING_WENT_WRONG
       });
     }
   }

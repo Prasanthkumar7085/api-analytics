@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, Res, Query } from '@nestjs/common';
 import { InsurancesV3Service } from './insurances-v3.service';
 import { FilterHelper } from 'src/helpers/filterHelper';
-import { SOMETHING_WENT_WRONG, SUCCESS_FETCHED_ALL_INSURANCES_DATA, SUCCESS_FETCHED_INSURANCE_CASE_TYPES_DATA, SUCCESS_FETECHED_INSURANCE_TRENDS_VOLUME, SUCCESS_FTECHED_INSURANCE_TRENDS_REVENUE } from 'src/constants/messageConstants';
+import { SOMETHING_WENT_WRONG, SUCCESS_FETCHED_ALL_INSURANCES_DATA, SUCCESS_FETCHED_INSURANCE_CASE_TYPES_DATA, SUCCESS_FETCHED_INSURANCE_PAYORS_DETAILS, SUCCESS_FETECHED_INSURANCE_TRENDS_VOLUME, SUCCESS_FTECHED_INSURANCE_TRENDS_REVENUE } from 'src/constants/messageConstants';
 
 
 @Controller({
@@ -23,13 +23,13 @@ export class InsurancesV3Controller {
       return res.status(200).json({
         success: true,
         message: SUCCESS_FETCHED_ALL_INSURANCES_DATA,
-        data        
+        data: data
       });
-    } catch (err) {
-      console.log({ err });
+    } catch (error) {
+      console.log({ error });
       return res.status(500).json({
         success: false,
-        message: SOMETHING_WENT_WRONG
+        message: error || SOMETHING_WENT_WRONG
       });
     }
   }
@@ -43,13 +43,13 @@ export class InsurancesV3Controller {
       return res.status(200).json({
         success: true,
         message: SUCCESS_FETCHED_INSURANCE_CASE_TYPES_DATA,
-        data        
+        data: data
       });
-    } catch (err) {
-      console.log({ err });
+    } catch (error) {
+      console.log({ error });
       return res.status(500).json({
         success: false,
-        message: SOMETHING_WENT_WRONG
+        message: error || SOMETHING_WENT_WRONG
       });
     }
   }
@@ -64,13 +64,13 @@ export class InsurancesV3Controller {
       return res.status(200).json({
         success: true,
         message: SUCCESS_FTECHED_INSURANCE_TRENDS_REVENUE,
-        data        
+        data: data
       });
-    } catch (err) {
-      console.log({ err });
+    } catch (error) {
+      console.log({ error });
       return res.status(500).json({
         success: false,
-        message: SOMETHING_WENT_WRONG
+        message: error || SOMETHING_WENT_WRONG
       });
     }
   }
@@ -84,13 +84,30 @@ export class InsurancesV3Controller {
       return res.status(200).json({
         success: true,
         message: SUCCESS_FETECHED_INSURANCE_TRENDS_VOLUME,
-        data        
+        data: data     
       });
-    } catch (err) {
-      console.log({ err });
+    } catch (error) {
+      console.log({ error });
       return res.status(500).json({
         success: false,
-        message: SOMETHING_WENT_WRONG
+        message: error || SOMETHING_WENT_WRONG
+      });
+    }
+  }
+
+  @Get(':id')
+  async getOneInsurancePayorDetails(@Res() res:any, @Param('id') id:any){
+    try {
+      const data = await this.insurancesV3Service.getOneInsurancePayorDetails(id)
+      return res.status(200).json({
+        success: true,
+        message: SUCCESS_FETCHED_INSURANCE_PAYORS_DETAILS,
+        data: data
+      });
+    } catch (error) {
+      return res.status(500).json({
+        success: false,
+        message: error || SOMETHING_WENT_WRONG
       });
     }
   }

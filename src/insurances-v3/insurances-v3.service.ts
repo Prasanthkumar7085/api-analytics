@@ -167,4 +167,23 @@ export class InsurancesV3Service {
     }
   }
 
+  async getOneInsurancePayorDetails(id:any) {
+    let query = sql`
+      SELECT 
+        name
+      FROM 
+        insurance_payors
+      WHERE
+        id = ${id}
+    `;
+
+    const data = await db.execute(query);
+
+    if (data && data.rows.length > 0) {
+        return data.rows;
+    } else {
+        return [];
+    }
+  }
+
 }

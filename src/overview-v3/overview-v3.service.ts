@@ -99,7 +99,7 @@ export class OverviewV3Service {
     SELECT 
     TO_CHAR(service_date, 'Month YYYY') AS month,
     ROUND(SUM(billable_amount)::NUMERIC, 2) AS generated_amount,
-    ROUND(SUM(cleared_amount)::NUMERIC, 2) AS collected_amount
+    ROUND(SUM(cleared_amount)::NUMERIC, 2) AS paid_amount
     FROM patient_claims
     `;
 
