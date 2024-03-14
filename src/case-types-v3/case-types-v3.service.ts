@@ -11,7 +11,7 @@ export class CaseTypesV3Service {
             SELECT 
                 case_types.name AS case_type,
                 COUNT(*) AS total_cases,
-                COUNT(DISTINCT(facility_id)) AS facilities,
+                COUNT(DISTINCT(facility_id)) AS no_of_facilities,
                 ROUND(SUM(billable_amount):: NUMERIC, 2) AS  genereated_amount,
                 ROUND(SUM(cleared_amount):: NUMERIC, 2) AS  paid_amount,
                 ROUND(SUM(pending_amount):: NUMERIC, 2) AS  pending_amount
