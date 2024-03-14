@@ -46,6 +46,8 @@ export class SalesRepControllerV3 {
 
       const queryString = this.filterHelper.salesRep(query);
 
+      console.log({ queryString });
+
       const salesReps = await this.salesRepService.getAll(queryString);
       return res.status(200).json({
         success: true,

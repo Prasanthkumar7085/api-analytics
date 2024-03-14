@@ -48,25 +48,17 @@ export class SalesRepServiceV3 {
                 CAST(SUM(p.pending_amount) AS NUMERIC(10, 2)) AS pending_amount,
                 (
                     SELECT COUNT(*)
-                    FROM patient_claims
-                    WHERE sales_rep_id = p.sales_rep_id
+                    FROM patient_claims pc
+                    WHERE pc.sales_rep_id = p.sales_rep_id
+                    ${queryString ? sql`AND ${sql.raw(queryString)}` : sql``}
                 ) AS total_cases
             FROM patient_claims p
             JOIN sales_reps s 
                 ON p.sales_rep_id = s.id
-        `;
-
-        if (queryString) {
-            query = sql`
-                ${query}
-                WHERE ${sql.raw(queryString)}
-            `;
-        }
-
-        query = sql`
-            ${query}
+            ${queryString ? sql`WHERE ${sql.raw(queryString)}` : sql``}
             GROUP BY p.sales_rep_id, s.name
         `;
+
 
         const data = await db.execute(query);
 
@@ -76,6 +68,7 @@ export class SalesRepServiceV3 {
             return [];
         }
     }
+
 
     async getOverAllCaseTypes(id, queryString) {
         let query;
@@ -88,6 +81,7 @@ export class SalesRepServiceV3 {
                 SELECT COUNT(*)
                 FROM patient_claims
                 WHERE case_type_id = p.case_type_id AND sales_rep_id = ${id}
+                ${queryString ? sql`AND ${sql.raw(queryString)}` : sql``}
                 ) AS volume
             FROM patient_claims p
             JOIN case_types c 
@@ -167,6 +161,7 @@ export class SalesRepServiceV3 {
                 SELECT COUNT(*)
                 FROM patient_claims
                 WHERE case_type_id = p.case_type_id AND sales_rep_id = ${id}
+                ${queryString ? sql`AND ${sql.raw(queryString)}` : sql``}
                 ) AS total_cases
             FROM patient_claims p
             JOIN case_types c 
@@ -209,6 +204,7 @@ export class SalesRepServiceV3 {
                 SELECT COUNT(*)
                 FROM patient_claims
                 WHERE facility_id = p.facility_id AND sales_rep_id = ${id}
+                ${queryString ? sql`AND ${sql.raw(queryString)}` : sql``}
                 ) AS total_cases
             FROM patient_claims p
             JOIN facilities f 
