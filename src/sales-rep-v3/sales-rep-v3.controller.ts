@@ -1,5 +1,5 @@
 import { Controller, Get, Param, Delete, Res, Query } from '@nestjs/common';
-import { SOMETHING_WENT_WRONG, SUCCESS_FECTED_SALE_REP_REVENUE_STATS, SUCCESS_FECTED_SALE_REP_VOLUME_STATS, SUCCESS_FETCHED_CASE_TYPES_REVENUE, SUCCESS_FETCHED_SALES_REP, SUCCESS_FETCHED_SALES_REP_CASE_TYPE_MONTHLY_VOLUME, SUCCESS_FETCHED_SALES_REP_FACILITY_WISE_STATS, SUCCESS_FETCHED_SALES_REP_INSURANCE_PAYORS_DATA, SUCCESS_FETCHED_SALES_REP_TREND_REVENUE, SUCCESS_FETCHED_SALES_REP_TREND_VOLUME, SUCCESS_FETCHED_SALES_REP_VOLUME_AND_REVENUE } from 'src/constants/messageConstants';
+import { SOMETHING_WENT_WRONG, SUCCESS_DELETED_DATA_IN_TABLE, SUCCESS_FECTED_SALE_REP_REVENUE_STATS, SUCCESS_FECTED_SALE_REP_VOLUME_STATS, SUCCESS_FETCHED_CASE_TYPES_REVENUE, SUCCESS_FETCHED_ONE_SALES_REP, SUCCESS_FETCHED_PATIENT_CLAIMS_COUNT, SUCCESS_FETCHED_SALES_REP, SUCCESS_FETCHED_SALES_REP_CASE_TYPE_MONTHLY_VOLUME, SUCCESS_FETCHED_SALES_REP_FACILITY_WISE_STATS, SUCCESS_FETCHED_SALES_REP_INSURANCE_PAYORS_DATA, SUCCESS_FETCHED_SALES_REP_TREND_REVENUE, SUCCESS_FETCHED_SALES_REP_TREND_VOLUME, SUCCESS_FETCHED_SALES_REP_VOLUME_AND_REVENUE } from 'src/constants/messageConstants';
 import { FilterHelper } from 'src/helpers/filterHelper';
 import { SalesRepServiceV3 } from './sales-rep-v3.service';
 
@@ -15,18 +15,29 @@ export class SalesRepControllerV3 {
   ) { }
 
   @Delete('delete')
-  async dropTable() {
-    const data = await this.salesRepService.dropTable();
-    return data
+  async dropTable(@Res() res: any) {
+    try {
+      const data = await this.salesRepService.dropTable();
+      return res.status(200).json({ success: true, message: SUCCESS_DELETED_DATA_IN_TABLE, data: data });
+    }
+    catch (error) {
+      return res.status(500).json({ success: false, message: error || SOMETHING_WENT_WRONG })
+    }
   }
 
   @Get('patient-claims')
-  async getPatientClaims(@Query() query: any) {
-    const queryString = this.filterHelper.salesRep(query);
+  async getPatientClaims(@Query() query: any, @Res() res: any) {
+    try {
+      const queryString = this.filterHelper.salesRep(query);
 
-    const data = await this.salesRepService.getPatientClaims(queryString);
+      const data = await this.salesRepService.getPatientClaims(queryString);
 
-    return data
+      return res.status(200).json({ success: true, message: SUCCESS_FETCHED_PATIENT_CLAIMS_COUNT, data: data })
+
+    }
+    catch (error) {
+      return res.status(500).json({ success: false, message: error || SOMETHING_WENT_WRONG })
+    }
   }
 
   @Get()
@@ -41,11 +52,11 @@ export class SalesRepControllerV3 {
         message: SUCCESS_FETCHED_SALES_REP,
         data: salesReps
       })
-    } catch (err) {
-      console.log({ err });
+    } catch (error) {
+      console.log({ error });
       return res.status(500).json({
         success: false,
-        message: SOMETHING_WENT_WRONG
+        message: error || SOMETHING_WENT_WRONG
       })
     }
   }
@@ -62,11 +73,11 @@ export class SalesRepControllerV3 {
         message: SUCCESS_FETCHED_SALES_REP_VOLUME_AND_REVENUE,
         data: salesReps
       })
-    } catch (err) {
-      console.log({ err });
+    } catch (error) {
+      console.log({ error });
       return res.status(500).json({
         success: false,
-        message: SOMETHING_WENT_WRONG
+        message: error || SOMETHING_WENT_WRONG
       })
     }
   }
@@ -83,8 +94,8 @@ export class SalesRepControllerV3 {
         message: SUCCESS_FETCHED_CASE_TYPES_REVENUE,
         data: salesReps
       })
-    } catch (err) {
-      console.log({ err });
+    } catch (error) {
+      console.log({ error });
       return res.status(500).json({
         success: false,
         message: SOMETHING_WENT_WRONG
@@ -105,11 +116,11 @@ export class SalesRepControllerV3 {
         message: SUCCESS_FETCHED_SALES_REP_CASE_TYPE_MONTHLY_VOLUME,
         data: salesReps
       })
-    } catch (err) {
-      console.log({ err });
+    } catch (error) {
+      console.log({ error });
       return res.status(500).json({
         success: false,
-        message: SOMETHING_WENT_WRONG
+        message: error || SOMETHING_WENT_WRONG
       })
     }
   }
@@ -127,11 +138,11 @@ export class SalesRepControllerV3 {
         message: SUCCESS_FETCHED_SALES_REP_FACILITY_WISE_STATS,
         data: salesReps
       })
-    } catch (err) {
-      console.log({ err });
+    } catch (error) {
+      console.log({ error });
       return res.status(500).json({
         success: false,
-        message: SOMETHING_WENT_WRONG
+        message: error || SOMETHING_WENT_WRONG
       })
     }
   }
@@ -148,7 +159,7 @@ export class SalesRepControllerV3 {
     }
     catch (error) {
       console.log(error)
-      return res.status(500).json({ success: false, message: SOMETHING_WENT_WRONG })
+      return res.status(500).json({ success: false, message: error || SOMETHING_WENT_WRONG })
     }
   }
 
@@ -170,7 +181,7 @@ export class SalesRepControllerV3 {
     catch (error) {
       console.log({ error });
 
-      return res.status(500).json({ success: false, message: SOMETHING_WENT_WRONG })
+      return res.status(500).json({ success: false, message: error || SOMETHING_WENT_WRONG })
     }
   }
 
@@ -186,10 +197,10 @@ export class SalesRepControllerV3 {
         message: SUCCESS_FETCHED_SALES_REP_TREND_REVENUE,
         data: data
       })
-    } catch (err) {
+    } catch (error) {
       return res.status(500).json({
         success: false,
-        message: SOMETHING_WENT_WRONG
+        message: error || SOMETHING_WENT_WRONG
       })
     }
   }
@@ -205,11 +216,11 @@ export class SalesRepControllerV3 {
         message: SUCCESS_FETCHED_SALES_REP_TREND_VOLUME,
         data: data
       })
-    } catch (err) {
-      console.log(err)
+    } catch (error) {
+      console.log(error)
       return res.status(500).json({
         success: false,
-        message: SOMETHING_WENT_WRONG
+        message: error || SOMETHING_WENT_WRONG
       })
     }
   }
@@ -225,12 +236,26 @@ export class SalesRepControllerV3 {
         message: SUCCESS_FECTED_SALE_REP_VOLUME_STATS,
         data: data
       })
-    } catch (err) {
-      console.log(err)
+    } catch (error) {
+      console.log(error)
       return res.status(500).json({
         success: false,
-        message: SOMETHING_WENT_WRONG
+        message: error || SOMETHING_WENT_WRONG
       })
+    }
+  }
+
+  @Get(':id')
+  async getOne(@Param('id') id: any, @Res() res: any) {
+
+    try {
+      const data = await this.salesRepService.getOne(id)
+
+      return res.status(200).json({ success: true, message: SUCCESS_FETCHED_ONE_SALES_REP, data: data })
+
+    } catch (error) {
+      console.log(error.message)
+      return res.status(500).json({ success: false, message: error || SOMETHING_WENT_WRONG })
     }
   }
 

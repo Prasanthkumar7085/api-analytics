@@ -393,4 +393,23 @@ export class SalesRepServiceV3 {
     const result = await db.execute(query);
     return result.rows
   }
+
+
+
+  async getOne(id) {
+    let statement = sql`
+      SELECT 
+        sr.name AS sales_rep,
+        m.name AS manager 
+      FROM 
+        sales_reps sr
+      JOIN 
+        sales_reps m ON sr.reporting_to = m.id
+      WHERE 
+        sr.id = ${id}`;
+
+    const result = await db.execute(statement);
+
+    return result.rows;
+  }
 }
