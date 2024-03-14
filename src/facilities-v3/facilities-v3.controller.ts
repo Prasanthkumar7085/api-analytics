@@ -51,11 +51,11 @@ export class FacilitiesV3Controller {
         data: data
       })
     }
-    catch (error) {
-      console.log(error);
+    catch (err) {
+      console.log(err);
       return res.status(500).json({
         success: false,
-        message: error || SOMETHING_WENT_WRONG
+        message: err || SOMETHING_WENT_WRONG
       })
     }
   }
@@ -228,7 +228,7 @@ export class FacilitiesV3Controller {
       console.log({ err });
       return res.status(500).json({
         success: false,
-        message: SOMETHING_WENT_WRONG
+        message: err || SOMETHING_WENT_WRONG
       });
     }
   }
@@ -253,7 +253,7 @@ export class FacilitiesV3Controller {
       console.log({ err });
       return res.status(500).json({
         success: false,
-        message: SOMETHING_WENT_WRONG
+        message: err || SOMETHING_WENT_WRONG
       });
     }
   }

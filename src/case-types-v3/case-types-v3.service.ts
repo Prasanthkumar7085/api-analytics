@@ -5,7 +5,6 @@ import { db } from 'src/seeders/db';
 @Injectable()
 export class CaseTypesV3Service {
 
-
     async getCaseTypeStats(queryString) {
 
         let statement = sql`
@@ -24,8 +23,7 @@ export class CaseTypesV3Service {
         if (queryString) {
             statement = sql`
                 ${statement}
-                WHERE 
-                ${sql.raw(queryString)}
+                WHERE ${sql.raw(queryString)}
             `;
         }
 
@@ -33,7 +31,6 @@ export class CaseTypesV3Service {
             ${statement}
             GROUP BY case_type
         `;
-
 
         const data = await db.execute(statement);
 
