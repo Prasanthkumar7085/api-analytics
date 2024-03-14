@@ -50,8 +50,11 @@ model patient_payments {
   values_changed              Boolean   @default(false)
   difference_values           Json?
   patient_id                  String?
-  patient_info                Json?
+  patient_first_name          String?
+  patient_middle_name         String?
+  patient_last_name           String?
   is_partial_paid             Boolean   @default(false)
+  is_generated                Boolean   @default(false)
 }
 
 model revenue_stats {

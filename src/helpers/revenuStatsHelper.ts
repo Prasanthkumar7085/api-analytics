@@ -211,7 +211,9 @@ export class RevenueStatsHelpers {
                 process_status: "PENDING",
                 ...matchingObjB,
                 patient_id: patientId,
-                patient_info: patientInfo
+                patient_first_name: patientInfo.first_name,
+                patient_middle_name: patientInfo.middle_name,
+                patient_last_name: patientInfo.last_name
             };
         });
 
