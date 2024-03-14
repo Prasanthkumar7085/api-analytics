@@ -191,7 +191,7 @@ export class SalesRepServiceV3 {
     SELECT 
         facility_id,
         f.name AS facility_name,
-        CAST(SUM(billable_amount) AS NUMERIC(10, 2)) AS total_amount,
+        CAST(SUM(billable_amount) AS NUMERIC(10, 2)) AS generated_amount,
         CAST(SUM(cleared_amount) AS NUMERIC(10, 2)) AS paid_amount,
         CAST(SUM(pending_amount) AS NUMERIC(10, 2)) AS pending_amount,
         (
@@ -230,9 +230,9 @@ export class SalesRepServiceV3 {
 
     let statement = sql`
       SELECT 
-        ROUND(SUM(${patient_claims.billableAmount})::NUMERIC, 2) AS billed,
-        ROUND(SUM(${patient_claims.clearedAmount})::NUMERIC, 2) AS collected,
-        ROUND(SUM(${patient_claims.pendingAmount})::NUMERIC, 2) AS pending
+        ROUND(SUM(${patient_claims.billableAmount})::NUMERIC, 2) AS generated_amount,
+        ROUND(SUM(${patient_claims.clearedAmount})::NUMERIC, 2) AS paid_amount,
+        ROUND(SUM(${patient_claims.pendingAmount})::NUMERIC, 2) AS pending_amount
       FROM 
         ${sales_reps}
       LEFT JOIN 
@@ -272,9 +272,9 @@ export class SalesRepServiceV3 {
     let statement = sql`
     SELECT 
         ${insurance_payors.name} AS insurance_name,
-        ROUND(SUM(${patient_claims.billableAmount})::NUMERIC, 2) AS total,
-        ROUND(SUM(${patient_claims.clearedAmount})::NUMERIC, 2) AS paid,
-        ROUND(SUM(${patient_claims.pendingAmount})::NUMERIC, 2) AS pending
+        ROUND(SUM(${patient_claims.billableAmount})::NUMERIC, 2) AS total_amount,
+        ROUND(SUM(${patient_claims.clearedAmount})::NUMERIC, 2) AS paid_amount,
+        ROUND(SUM(${patient_claims.pendingAmount})::NUMERIC, 2) AS pending_amount
     FROM ${sales_reps}
     JOIN ${patient_claims} ON ${patient_claims.salesRepId} = ${sales_reps.id}
     JOIN ${insurance_payors} ON ${patient_claims.insurancePayerId} = ${insurance_payors.id}
@@ -290,10 +290,11 @@ export class SalesRepServiceV3 {
     }
 
 
-    statement.append(sql`
+    statement = sql`
+      ${statement}
       GROUP BY 
-        ${insurance_payors.name};
-    `);
+        insurance_name
+    `;
 
     // Execute the raw SQL query
     const data = await db.execute(statement);
