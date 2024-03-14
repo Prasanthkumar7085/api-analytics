@@ -39,7 +39,7 @@ export class SalesRepControllerV3 {
       return res.status(200).json({
         success: true,
         message: SUCCESS_FETCHED_SALES_REP,
-        salesReps
+        data: salesReps
       })
     } catch (err) {
       console.log({ err });
@@ -60,7 +60,7 @@ export class SalesRepControllerV3 {
       return res.status(200).json({
         success: true,
         message: SUCCESS_FETCHED_SALES_REP_VOLUME_AND_REVENUE,
-        salesReps
+        data: salesReps
       })
     } catch (err) {
       console.log({ err });
@@ -81,7 +81,7 @@ export class SalesRepControllerV3 {
       return res.status(200).json({
         success: true,
         message: SUCCESS_FETCHED_CASE_TYPES_REVENUE,
-        salesReps
+        data: salesReps
       })
     } catch (err) {
       console.log({ err });
@@ -103,7 +103,7 @@ export class SalesRepControllerV3 {
       return res.status(200).json({
         success: true,
         message: SUCCESS_FETCHED_SALES_REP_CASE_TYPE_MONTHLY_VOLUME,
-        salesReps
+        data: salesReps
       })
     } catch (err) {
       console.log({ err });
@@ -125,7 +125,7 @@ export class SalesRepControllerV3 {
       return res.status(200).json({
         success: true,
         message: SUCCESS_FETCHED_SALES_REP_FACILITY_WISE_STATS,
-        salesReps
+        data: salesReps
       })
     } catch (err) {
       console.log({ err });
