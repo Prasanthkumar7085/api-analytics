@@ -5,7 +5,7 @@ import { db } from 'src/seeders/db';
 @Injectable()
 export class InsurancesV3Service {
 
-    async getAllInsurancesData(queryString) {
+    async getAllInsurancesData(queryString:string) {
 
         // this sql query is used to get the list of insurance payors and calculating the total cases, generated, paid and pending amounts
         // here cast is used to convert data type
@@ -48,7 +48,7 @@ export class InsurancesV3Service {
     }
 
 
-    async getInsurancePayorCaseTypeWiseData(id, queryString) {
+    async getInsurancePayorCaseTypeWiseData(id:any, queryString:string) {
 
         // this sql query is used to calculate the case type wise revenue data and cases volume data
         let query = sql`
@@ -83,7 +83,7 @@ export class InsurancesV3Service {
     }
 
 
-    async getInsurancePayorRevenueTrends(id, queryString) {
+    async getInsurancePayorRevenueTrends(id:any, queryString:string) {
 
         // this sql query is used to calculate the month wise revenue of a particular insurance payor
         // here order by is used to show the months in ascending order
@@ -109,7 +109,7 @@ export class InsurancesV3Service {
     }
 
 
-    async getInsurancePayorVolumeTrends(id, queryString) {
+    async getInsurancePayorVolumeTrends(id:any, queryString:string) {
 
         // this sql query is used to calculate the month wise volume of a particular insurance payor
         let query = sql`

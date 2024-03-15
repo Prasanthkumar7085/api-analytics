@@ -5,7 +5,7 @@ import { db } from 'src/seeders/db';
 @Injectable()
 export class CaseTypesV3Service {
 
-    async getCaseTypeStatsData(queryString) {
+    async getCaseTypeStatsData(queryString:string) {
 
         // this sql query is used to fetch the overall case type wise data
         // here round used to round the generated amount decial values to 2 decimal places
