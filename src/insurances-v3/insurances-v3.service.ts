@@ -4,6 +4,7 @@ import { db } from 'src/seeders/db';
 
 @Injectable()
 export class InsurancesV3Service {
+
     async getAllInsurancesData(queryString) {
 
         // this sql query is used to get the list of insurance payors and calculating the total cases, generated, paid and pending amounts
@@ -71,6 +72,8 @@ export class InsurancesV3Service {
             GROUP BY 
                 case_type_id,
                 case_type_name
+            ORDER BY
+                case_type_id
         `;
 
         // Execute the query

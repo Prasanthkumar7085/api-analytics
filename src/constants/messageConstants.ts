@@ -57,7 +57,7 @@ const SUCCESS_FETCHED_SALES_REP_TREND_VOLUME = 'Sales Rep Trend Volume Data Fetc
 const SUCCESS_FETCHED_FACILITIES = "Facilities Fetched Successfully"
 const SUCCESS_FETCHED_FACILITY = "Facility Fetched Successfully"
 const SUCCESS_VOLUME_TREND = "Volume Trend Fetched Successfully"
-const SUCCESS_FETCHED_CASE_TYPES = "Case Types Stats Fetched Successfully"
+const SUCCESS_FETCHED_CASE_TYPES = "Case Types Stats Data Fetched Successfully"
 
 
 const SUCCESS_FETCHED_REVENUE_MONTH_WISE_TRENDS = 'Case Types Revenue Month Wise Data Fetched Successfully'
