@@ -8,422 +8,292 @@ import { insurance_payors } from 'src/drizzle/schemas/insurancePayors';
 @Injectable()
 export class SalesRepServiceV3 {
 
-	async getAll(queryString) {
+
+	async getAll(queryString: string) {
 
 		let query = sql`
             SELECT
                 p.sales_rep_id,
                 s.name AS sales_rep_name,
-                COUNT(DISTINCT p.facility_id) AS no_of_facilities,
-                CAST(SUM(p.expected_amount) AS NUMERIC(10, 2)) AS expected_amount,
-                CAST(SUM(p.billable_amount) AS NUMERIC(10, 2)) AS generated_amount,
-                CAST(SUM(p.cleared_amount) AS NUMERIC(10, 2)) AS paid_amount,
-                CAST(SUM(p.pending_amount) AS NUMERIC(10, 2)) AS pending_amount,
-                (
-                    SELECT COUNT(*)
-                    FROM patient_claims pc
-                    WHERE pc.sales_rep_id = p.sales_rep_id
-                    ${queryString ? sql`AND ${sql.raw(queryString)}` : sql``}
-                ) AS total_cases
+                CAST(COUNT(DISTINCT p.facility_id) AS INTEGER) AS no_of_facilities,
+                CAST(ROUND(SUM(p.expected_amount):: NUMERIC, 2) AS FLOAT) AS expected_amount,
+                CAST(ROUND(SUM(P.billable_amount)::NUMERIC, 2) AS FLOAT) AS generated_amount,
+                CAST(ROUND(SUM(P.cleared_amount)::NUMERIC, 2) AS FLOAT) AS paid_amount,
+                CAST(ROUND(SUM(P.pending_amount)::NUMERIC, 2) AS FLOAT) AS pending_amount,
+                CAST(COUNT(*) AS INTEGER) AS total_cases
             FROM patient_claims p
             JOIN sales_reps s 
                 ON p.sales_rep_id = s.id
             ${queryString ? sql`WHERE ${sql.raw(queryString)}` : sql``}
-            GROUP BY p.sales_rep_id, s.name
+            GROUP BY 
+				p.sales_rep_id, 
+				s.name
+			ORDER BY
+				p.sales_rep_id
         `;
-
 
 		const data = await db.execute(query);
 
-		if (data && data.rows.length > 0) {
-			return data.rows;
-		} else {
-			return [];
-		}
+		return data.rows;
 	}
 
 
-	async getOverAllCaseTypes(id, queryString) {
-		let query;
-		query = sql`
-            SELECT 
-                case_type_id,
-                UPPER(c.name) AS case_type_name,
-                CAST(SUM(cleared_amount) AS NUMERIC(10, 2)) AS revenue,
-                (
-                SELECT COUNT(*)
-                FROM patient_claims
-                WHERE case_type_id = p.case_type_id AND sales_rep_id = ${id}
-                ${queryString ? sql`AND ${sql.raw(queryString)}` : sql``}
-                ) AS volume
-            FROM patient_claims p
-            JOIN case_types c 
-                ON p.case_type_id = c.id
-        `;
+	async getOne(id: number) {
 
-		if (queryString) {
-			query = sql`
-                ${query}
-                WHERE sales_rep_id = ${id} AND ${sql.raw(queryString)}
-                GROUP BY p.case_type_id, UPPER(c.name);
-        `;
-		} else {
-			query = sql`
-                ${query}
-                WHERE sales_rep_id = ${id}
-                GROUP BY p.case_type_id, UPPER(c.name);
-            `
-		}
-
-		const data = await db.execute(query);
-
-		if (data && data.rows.length > 0) {
-			return data.rows;
-		} else {
-			return [];
-		}
-
-	}
-
-
-	async getCaseTypesRevenue(id, queryString) {
-
-		let query = sql`
-            SELECT 
-                case_type_id,
-                UPPER(c.name) AS case_type_name,
-                TO_CHAR(service_date, 'Month YYYY') AS month,
-                CAST(SUM(cleared_amount) AS NUMERIC(10, 2)) AS paid_amount
-            FROM patient_claims p
-            JOIN case_types c 
-                ON p.case_type_id = c.id
-        `;
-
-		if (queryString) {
-			query = sql`
-            ${query}
-            WHERE sales_rep_id = ${id} AND ${sql.raw(queryString)}
-            GROUP BY case_type_id, month, UPPER(c.name)
-        `;
-		} else {
-			query = sql`
-            ${query}
-            WHERE sales_rep_id = ${id}
-            GROUP BY case_type_id, month, UPPER(c.name)
-        `;
-		}
-
-		const data = await db.execute(query);
-
-		if (data && data.rows.length > 0) {
-			return data.rows;
-		} else {
-			return [];
-		}
-	}
-
-
-	async getCaseTypesVolume(id, queryString) {
-
-		let query = sql`
-            SELECT 
-                case_type_id,
-                UPPER(c.name) AS case_type_name,
-                TO_CHAR(service_date, 'Month YYYY') AS month,
-                (
-                SELECT COUNT(*)
-                FROM patient_claims
-                WHERE case_type_id = p.case_type_id AND sales_rep_id = ${id}
-                ${queryString ? sql`AND ${sql.raw(queryString)}` : sql``}
-                ) AS total_cases
-            FROM patient_claims p
-            JOIN case_types c 
-                ON p.case_type_id = c.id
-        `;
-
-		if (queryString) {
-			query = sql`
-                ${query}
-                WHERE sales_rep_id = ${id} AND ${sql.raw(queryString)}
-                GROUP BY case_type_id, month, UPPER(c.name)
-            `;
-		} else {
-			query = sql`
-                ${query}
-                WHERE sales_rep_id = ${id}
-                GROUP BY case_type_id, month, UPPER(c.name)
-                `;
-		}
-
-		const data = await db.execute(query);
-
-		if (data && data.rows.length > 0) {
-			return data.rows;
-		} else {
-			return [];
-		}
-	}
-
-
-	async getFacilityWise(id, queryString) {
-		let query = sql`
-            SELECT 
-                facility_id,
-                f.name AS facility_name,
-                CAST(SUM(billable_amount) AS NUMERIC(10, 2)) AS generated_amount,
-                CAST(SUM(cleared_amount) AS NUMERIC(10, 2)) AS paid_amount,
-                CAST(SUM(pending_amount) AS NUMERIC(10, 2)) AS pending_amount,
-                (
-                SELECT COUNT(*)
-                FROM patient_claims
-                WHERE facility_id = p.facility_id AND sales_rep_id = ${id}
-                ${queryString ? sql`AND ${sql.raw(queryString)}` : sql``}
-                ) AS total_cases
-            FROM patient_claims p
-            JOIN facilities f 
-                ON p.facility_id = f.id
-        `;
-
-		if (queryString) {
-			query = sql`
-                ${query}
-                WHERE p.sales_rep_id = ${id} AND ${sql.raw(queryString)}
-                GROUP BY facility_id, f.name
-            `;
-		} else {
-			query = sql`
-                ${query}
-                WHERE p.sales_rep_id = ${id}
-                GROUP BY facility_id, f.name
-            `;
-		}
-
-		const data = await db.execute(query);
-
-		if (data && data.rows.length > 0) {
-			return data.rows;
-		} else {
-			return [];
-		}
-	}
-
-
-
-	async getStatsRevenue(id, queryString) {
-
-
+		//SELF JOIN
 		let statement = sql`
-            SELECT 
-                ROUND(SUM(${patient_claims.billableAmount})::NUMERIC, 2) AS generated_amount,
-                ROUND(SUM(${patient_claims.clearedAmount})::NUMERIC, 2) AS paid_amount,
-                ROUND(SUM(${patient_claims.pendingAmount})::NUMERIC, 2) AS pending_amount
-            FROM ${sales_reps}
-            LEFT JOIN ${patient_claims} 
-                ON ${sales_reps.id} = ${patient_claims.salesRepId}
-            WHERE ${sales_reps.id} = ${id}
-        `;
-
-
-		if (queryString) {
-			statement = sql`
-                ${statement}
-                AND ${sql.raw(queryString)}
-            `;
-		}
-
-		statement.append(sql`
-        GROUP BY ${sales_reps.id};
-        `);
-
-		// Execute the raw SQL query
-		const data = await db.execute(statement);
-
-		if (data && data.rows.length > 0) {
-			return data.rows;
-		}
-		else {
-			return [];
-		}
-	}
-
-
-
-	async getInsurancePayers(id, queryString) {
-
-		let statement = sql`
-            SELECT 
-                ${insurance_payors.name} AS insurance_name,
-                ROUND(SUM(${patient_claims.billableAmount})::NUMERIC, 2) AS generated_amount,
-                ROUND(SUM(${patient_claims.clearedAmount})::NUMERIC, 2) AS paid_amount,
-                ROUND(SUM(${patient_claims.pendingAmount})::NUMERIC, 2) AS pending_amount
-            FROM ${sales_reps}
-            JOIN ${patient_claims} 
-                ON ${patient_claims.salesRepId} = ${sales_reps.id}
-            JOIN ${insurance_payors} 
-                ON ${patient_claims.insurancePayerId} = ${insurance_payors.id}
-            WHERE ${sales_reps.id} = ${id}
-
-        `;
-
-		if (queryString) {
-			statement = sql`
-                ${statement}
-                AND ${sql.raw(queryString)}
-        `;
-		}
-
-
-		statement.append(sql`
-        GROUP BY ${insurance_payors.name};
-        `);
-
-		// Execute the raw SQL query
-		const data = await db.execute(statement);
-
-
-		if (data && data.rows.length > 0) {
-			return data.rows;
-		}
-		else {
-			return [];
-		}
-	}
-
-
-	async getTrendsRevenue(id, queryString) {
-		let query;
-		query = sql`
-            SELECT 
-                TO_CHAR(service_date, 'Month YYYY') AS month,
-                CAST(ROUND(SUM(cleared_amount)::NUMERIC, 2) AS FLOAT) AS revenue
-            FROM patient_claims
-        `;
-		if (queryString) {
-			query = sql`
-                ${query}
-                WHERE sales_rep_id = ${id} AND ${sql.raw(queryString)}
-                GROUP BY TO_CHAR(service_date, 'Month YYYY')
-            `;
-		} else {
-			query = sql`
-                ${query}
-                WHERE sales_rep_id = ${id}
-                GROUP BY TO_CHAR(service_date, 'Month YYYY')
-            `;
-		}
-		const data = await db.execute(query);
-
-		if (data && data.rows.length > 0) {
-			return data.rows;
-		} else {
-			return [];
-		}
-	}
-
-
-	async getTrendsVolume(id, queryString) {
-
-		let query;
-
-		query = sql`
-            SELECT 
-                TO_CHAR(service_date, 'Month YYYY') AS month,
-                COUNT(*) AS volume
-            FROM patient_claims
-        `;
-
-		if (queryString) {
-			query = sql`
-                ${query}
-                WHERE sales_rep_id = ${id} AND ${sql.raw(queryString)}
-                GROUP BY TO_CHAR(service_date, 'Month YYYY')
-            `;
-		} else {
-			query = sql`
-                ${query}
-                WHERE sales_rep_id = ${id}
-                GROUP BY TO_CHAR(service_date, 'Month YYYY')
-            `;
-		}
-
-		const data = await db.execute(query);
-
-		if (data && data.rows.length > 0) {
-			return data.rows;
-		} else {
-			return [];
-		}
-	}
-
-	async getStatsVolume(id, queryString) {
-		let query;
-		query = sql`
-            SELECT
-                COUNT(*) AS total_cases, 
-                COUNT(*) FILTER (WHERE is_bill_cleared = TRUE) AS completed_cases,
-                COUNT(*) FILTER (WHERE is_bill_cleared = FALSE) AS pending_cases
-            FROM patient_claims
-        `;
-		if (queryString) {
-			query = sql`
-            ${query}
-            WHERE sales_rep_id = ${id} AND ${sql.raw(queryString)}`
-		} else {
-			query = sql`
-        ${query}
-        WHERE sales_rep_id = ${id}`
-		}
-
-		const data = await db.execute(query);
-
-		if (data && data.rows.length > 0) {
-			return data.rows;
-		} else {
-			return [];
-		}
-	}
-
-	async getOne(id) {
-		let statement = sql`
-      SELECT 
-        sr.name AS sales_rep,
-        m.name AS manager 
-      FROM 
-        sales_reps sr
-      JOIN 
-        sales_reps m ON sr.reporting_to = m.id
-      WHERE 
-        sr.id = ${id}`;
+			SELECT 
+				sr.name AS sales_rep,
+				m.name AS manager 
+			FROM sales_reps sr
+			JOIN sales_reps m 
+				ON sr.reporting_to = m.id
+			WHERE 
+				sr.id = ${id}`;
 
 		const result = await db.execute(statement);
 
 		return result.rows;
 	}
 
-	async dropTable() {
-		let query = sql`TRUNCATE TABLE patient_claims`
-		const data = await db.execute(query);
-		return data
+
+	async getRevenueStats(id: number, queryString: string) {
+
+		let statement = sql`
+            SELECT 
+				CAST(ROUND(SUM(p.billable_amount)::NUMERIC, 2) AS FLOAT) AS generated_amount,
+				CAST(ROUND(SUM(p.cleared_amount)::NUMERIC, 2) AS FLOAT) AS paid_amount,
+				CAST(ROUND(SUM(p.pending_amount)::NUMERIC, 2) AS FLOAT) AS pending_amount
+            FROM patient_claims p
+			WHERE p.sales_rep_id = ${id}
+            ${queryString ? sql`AND ${sql.raw(queryString)}` : sql``}
+		`;
+
+		// Execute the raw SQL query
+		const data = await db.execute(statement);
+
+		return data.rows;
 	}
 
 
-	async getPatientClaims(queryString) {
+	async getVolumeStats(id: number, queryString: string) {
+
+		let query = sql`
+			SELECT
+				CAST(COUNT(*) AS INTEGER) AS total_cases,
+				CAST(COUNT(*) FILTER(WHERE is_bill_cleared = TRUE) AS INTEGER) AS completed_cases,
+				CAST(COUNT(*) FILTER (WHERE is_bill_cleared = FALSE) AS INTEGER) AS pending_cases
+			FROM patient_claims
+			WHERE sales_rep_id = ${id}
+			${queryString ? sql`AND ${sql.raw(queryString)}` : sql``};
+        `;
+
+		const data = await db.execute(query);
+
+		return data.rows;
+	}
+
+
+	async getOverAllCaseTypes(id: number, queryString: string) {
+		let query = sql`
+            SELECT 
+                p.case_type_id,
+                UPPER(c.name) AS case_type_name,
+				CAST(ROUND(SUM(p.cleared_amount)::NUMERIC, 2) AS FLOAT) AS paid_amount,
+                CAST(COUNT(*) AS INTEGER) AS volume
+            FROM patient_claims p
+            JOIN case_types c 
+                ON p.case_type_id = c.id
+			WHERE p.sales_rep_id = ${id}
+			${queryString ? sql`AND ${sql.raw(queryString)}` : sql``}
+			GROUP BY 
+				p.case_type_id, 
+				UPPER(c.name)
+			ORDER BY
+				p.case_type_id
+        `;
+
+		const data = await db.execute(query);
+
+		return data.rows;
+
+	}
+
+
+	async getCaseTypesRevenue(id: number, queryString: string) {
 
 		let query = sql`
             SELECT 
-                COUNT(*) AS COUNT  
-            FROM patient_claims
+                case_type_id,
+                UPPER(c.name) AS case_type_name,
+                TO_CHAR(service_date, 'Month YYYY') AS month,
+                CAST(ROUND(SUM(cleared_amount)::NUMERIC, 2) AS FLOAT) AS revenue
+            FROM patient_claims p
+            JOIN case_types c 
+                ON p.case_type_id = c.id
+			WHERE sales_rep_id = ${id}
+			${queryString ? sql`AND ${sql.raw(queryString)}` : sql``}
+			GROUP BY
+				TO_CHAR(service_date, 'Month YYYY'),
+				case_type_id,
+				case_type_name
+			ORDER BY
+				TO_DATE(TO_CHAR(service_date, 'Month YYYY'), 'Month YYYY'),
+				case_type_id
         `;
 
 
-		if (queryString) {
-			query = sql`
-                ${query}
-                WHERE ${sql.raw(queryString)}
-            `;
-		}
-
 		const data = await db.execute(query);
+
 		return data.rows;
 	}
+
+
+	async getCaseTypesVolume(id: number, queryString: string) {
+
+		let query = sql`
+            SELECT 
+                p.case_type_id,
+                UPPER(c.name) AS case_type_name,
+                TO_CHAR(p.service_date, 'Month YYYY') AS month,
+				CAST(COUNT(*) AS INTEGER) AS total_cases
+            FROM patient_claims p
+            JOIN case_types c 
+                ON p.case_type_id = c.id
+			WHERE p.sales_rep_id = ${id}
+			${queryString ? sql`AND ${sql.raw(queryString)}` : sql``}
+			GROUP BY 
+				TO_CHAR(service_date, 'Month YYYY'), 
+				p.case_type_id, 
+				case_type_name
+			ORDER BY 
+				TO_DATE(TO_CHAR(service_date, 'Month YYYY'), 'Month YYYY'),
+				case_type_id 
+        `;
+
+		const data = await db.execute(query);
+
+		return data.rows;
+	}
+
+
+	async getInsurancePayers(id: number, queryString: string) {
+
+		let statement = sql`
+			SELECT 
+				ip.name AS insurance_name,
+				CAST(ROUND(SUM(p.billable_amount)::NUMERIC, 2) AS FLOAT) AS generated_amount,
+				CAST(ROUND(SUM(p.cleared_amount)::NUMERIC, 2) AS FLOAT) AS paid_amount,
+				CAST(ROUND(SUM(p.pending_amount)::NUMERIC, 2) AS FLOAT) AS pending_amount
+			FROM patient_claims p
+            JOIN insurance_payors ip 
+                ON p.insurance_payer_id = ip.id
+            WHERE p.sales_rep_id = ${id}
+            ${queryString ? sql`AND ${sql.raw(queryString)}` : sql``}
+            GROUP BY 
+                insurance_name
+            ORDER BY
+                insurance_name
+        `;
+
+		const data = await db.execute(statement);
+
+		return data.rows;
+	}
+
+
+	async getFacility(id: number, queryString: string) {
+		let query = sql`
+            SELECT 
+                p.facility_id,
+                f.name AS facility_name,
+                CAST(ROUND(SUM(p.billable_amount)::NUMERIC, 2) AS FLOAT) AS generated_amount,
+                CAST(ROUND(SUM(p.cleared_amount)::NUMERIC, 2) AS FLOAT) AS paid_amount,
+                CAST(ROUND(SUM(p.pending_amount)::NUMERIC, 2) AS FLOAT) AS pending_amount,
+                CAST(COUNT(*) AS INTEGER) AS total_cases
+            FROM patient_claims p
+            JOIN facilities f 
+                ON p.facility_id = f.id
+			WHERE p.sales_rep_id = ${id}
+			${queryString ? sql`AND ${sql.raw(queryString)}` : sql``}
+			GROUP BY
+				p.facility_id,
+				f.name	
+			ORDER BY
+				p.facility_id,
+				f.name
+        `;
+
+		const data = await db.execute(query);
+
+		return data.rows;
+	}
+
+
+	async getRevenueTrends(id: number, queryString: string) {
+
+		let query = sql`
+            SELECT 
+                TO_CHAR(service_date, 'Month YYYY') AS month,
+                CAST(ROUND(SUM(cleared_amount)::NUMERIC, 2) AS FLOAT) AS revenue
+            FROM patient_claims
+			WHERE sales_rep_id = ${id}
+            ${queryString ? sql`AND ${sql.raw(queryString)}` : sql``}
+            GROUP BY
+                month
+            ORDER BY
+                TO_DATE(TO_CHAR(service_date, 'Month YYYY'), 'Month YYYY')
+        `;
+
+		const data = await db.execute(query);
+
+		return data.rows;
+	}
+
+
+	async getVolumeTrends(id: number, queryString: string) {
+
+		let query = sql`
+			SELECT 
+				TO_CHAR(service_date, 'Month YYYY') AS month,
+				CAST(COUNT(*) AS INTEGER) AS volume
+			FROM patient_claims
+			WHERE sales_rep_id = ${id}
+			${queryString ? sql`AND ${sql.raw(queryString)}` : sql``}
+			GROUP BY    
+				month
+			ORDER BY
+				TO_DATE(TO_CHAR(service_date, 'Month YYYY'), 'Month YYYY')
+        `;
+
+		const data = await db.execute(query);
+
+		return data.rows;
+	}
+
+
+	async dropTable() {
+
+		let query = sql`TRUNCATE TABLE patient_claims`;
+
+		const data = await db.execute(query);
+
+		return data;
+	}
+
+
+	async getPatientClaimsTotalCount(queryString) {
+
+		let query = sql`
+            SELECT 
+                COUNT(*) AS count 
+            FROM patient_claims
+			${queryString ? sql`WHERE ${sql.raw(queryString)}` : sql``}
+		`;
+
+		const data = await db.execute(query);
+
+		return data.rows;
+	}
+
 }

@@ -198,7 +198,7 @@ export class FilterHelper {
         }
         return queryString;
     }
-    
+
     overviewFilter(query) {
         let filter = []
         const {

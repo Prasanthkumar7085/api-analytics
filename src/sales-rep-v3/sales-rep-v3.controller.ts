@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Delete, Res, Query } from '@nestjs/common';
+import { Controller, Get, Param, Delete, Res, Query, Post } from '@nestjs/common';
 import { SOMETHING_WENT_WRONG, SUCCESS_DELETED_DATA_IN_TABLE, SUCCESS_FECTED_SALE_REP_REVENUE_STATS, SUCCESS_FECTED_SALE_REP_VOLUME_STATS, SUCCESS_FETCHED_CASE_TYPES_REVENUE, SUCCESS_FETCHED_ONE_SALES_REP, SUCCESS_FETCHED_PATIENT_CLAIMS_COUNT, SUCCESS_FETCHED_SALES_REP, SUCCESS_FETCHED_SALES_REP_CASE_TYPE_MONTHLY_VOLUME, SUCCESS_FETCHED_SALES_REP_FACILITY_WISE_STATS, SUCCESS_FETCHED_SALES_REP_INSURANCE_PAYORS_DATA, SUCCESS_FETCHED_SALES_REP_TREND_REVENUE, SUCCESS_FETCHED_SALES_REP_TREND_VOLUME, SUCCESS_FETCHED_SALES_REP_VOLUME_AND_REVENUE } from 'src/constants/messageConstants';
 import { FilterHelper } from 'src/helpers/filterHelper';
 import { SalesRepServiceV3 } from './sales-rep-v3.service';
@@ -42,6 +42,31 @@ export class SalesRepControllerV3 {
 	}
 
 
+	@Get('patient-claims-count')
+	async getPatientClaimsTotalCount(@Query() query: any, @Res() res: any) {
+		try {
+
+			const queryString = await this.filterHelper.salesRep(query);
+
+			const data = await this.salesRepService.getPatientClaimsTotalCount(queryString);
+
+			return res.status(200).json({
+				success: true,
+				message: SUCCESS_FETCHED_PATIENT_CLAIMS_COUNT,
+				data: data
+			});
+		}
+		catch (error) {
+			console.log({ error });
+
+			return res.status(500).json({
+				success: false,
+				message: error || SOMETHING_WENT_WRONG
+			});
+		}
+	}
+
+
 	@Get(':id')
 	async getOne(@Param('id') id: any, @Res() res: any) {
 		try {
@@ -56,6 +81,7 @@ export class SalesRepControllerV3 {
 		}
 		catch (error) {
 			console.log({ error });
+
 			return res.status(500).json({
 				success: false,
 				message: error || SOMETHING_WENT_WRONG
@@ -70,7 +96,7 @@ export class SalesRepControllerV3 {
 
 			const queryString = await this.filterHelper.salesRep(query);
 
-			const data = await this.salesRepService.getStatsRevenue(id, queryString)
+			const data = await this.salesRepService.getRevenueStats(id, queryString)
 
 			return res.status(200).json({
 				success: true,
@@ -95,7 +121,7 @@ export class SalesRepControllerV3 {
 
 			const queryString = this.filterHelper.salesRep(query);
 
-			const data = await this.salesRepService.getStatsVolume(id, queryString);
+			const data = await this.salesRepService.getVolumeStats(id, queryString);
 
 			return res.status(200).json({
 				success: true,
@@ -220,7 +246,7 @@ export class SalesRepControllerV3 {
 
 			const queryString = this.filterHelper.salesRep(query);
 
-			const salesReps = await this.salesRepService.getFacilityWise(id, queryString);
+			const salesReps = await this.salesRepService.getFacility(id, queryString);
 
 			return res.status(200).json({
 				success: true,
@@ -245,7 +271,7 @@ export class SalesRepControllerV3 {
 
 			const queryString = this.filterHelper.salesRep(query);
 
-			const data = await this.salesRepService.getTrendsRevenue(id, queryString);
+			const data = await this.salesRepService.getRevenueTrends(id, queryString);
 
 			return res.status(200).json({
 				success: true,
@@ -270,7 +296,7 @@ export class SalesRepControllerV3 {
 
 			const queryString = this.filterHelper.salesRep(query);
 
-			const data = await this.salesRepService.getTrendsVolume(id, queryString);
+			const data = await this.salesRepService.getVolumeTrends(id, queryString);
 
 			return res.status(200).json({
 				success: true,
@@ -298,31 +324,6 @@ export class SalesRepControllerV3 {
 			return res.status(200).json({
 				success: true,
 				message: SUCCESS_DELETED_DATA_IN_TABLE,
-				data: data
-			});
-		}
-		catch (error) {
-			console.log({ error });
-
-			return res.status(500).json({
-				success: false,
-				message: error || SOMETHING_WENT_WRONG
-			});
-		}
-	}
-
-
-	@Get('patient-claims')
-	async getPatientClaims(@Query() query: any, @Res() res: any) {
-		try {
-
-			const queryString = this.filterHelper.salesRep(query);
-
-			const data = await this.salesRepService.getPatientClaims(queryString);
-
-			return res.status(200).json({
-				success: true,
-				message: SUCCESS_FETCHED_PATIENT_CLAIMS_COUNT,
 				data: data
 			});
 		}

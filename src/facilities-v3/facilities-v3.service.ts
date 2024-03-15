@@ -6,10 +6,11 @@ import { db } from 'src/seeders/db';
 @Injectable()
 export class FacilitiesV3Service {
 
-    async getAllFacilities(queryString: string) {
 
-        //this query aggregates the revenue_data and total cases for a facility
-        let statement = sql`
+	async getAllFacilities(queryString: string) {
+
+		//this query aggregates the revenue_data and total cases for a facility
+		let statement = sql`
             SELECT
                 f.name AS facility_name,
                 sr.name AS sales_rep,
@@ -31,16 +32,16 @@ export class FacilitiesV3Service {
                 facility_name
         `;
 
-        const data = await db.execute(statement);
+		const data = await db.execute(statement);
 
-        return data.rows;
+		return data.rows;
 
-    }
+	}
 
 
-    async getFacilityDetails(id: any) {
+	async getFacilityDetails(id: number) {
 
-        let statement = sql`
+		let statement = sql`
             SELECT 
                 f.id AS facility_id,
                 UPPER(f.name) AS facility_name,
@@ -57,15 +58,15 @@ export class FacilitiesV3Service {
                 facility_name
         `;
 
-        const data = await db.execute(statement);
+		const data = await db.execute(statement);
 
-        return data.rows;
-    }
+		return data.rows;
+	}
 
 
-    async getRevenueStats(id: any, queryString: string) {
+	async getRevenueStats(id: number, queryString: string) {
 
-        let statement = sql`
+		let statement = sql`
             SELECT     
                 CAST(ROUND(SUM(billable_amount)::NUMERIC, 2) AS FLOAT) AS generated_amount,
                 CAST(ROUND(SUM(cleared_amount)::NUMERIC, 2) AS FLOAT) AS paid_amount,
@@ -75,20 +76,18 @@ export class FacilitiesV3Service {
                 ON facilities.id = patient_claims.facility_id
             WHERE facilities.id = ${id}
             ${queryString ? sql`AND ${sql.raw(queryString)}` : sql``}
-            GROUP BY facilities.id;
         `;
 
+		// Execute the raw SQL query
+		const data = await db.execute(statement);
 
-        // Execute the raw SQL query
-        const data = await db.execute(statement);
-
-        return data.rows;
-    }
+		return data.rows;
+	}
 
 
-    async getVolumeStats(id: any, queryString: string) {
+	async getVolumeStats(id: number, queryString: string) {
 
-        let statement = sql`
+		let statement = sql`
             SELECT
                 CAST(COUNT(*) AS INTEGER) AS total_cases,
                 CAST(COUNT(*) FILTER(WHERE is_bill_cleared = TRUE) AS INTEGER) AS completed_cases,
@@ -98,16 +97,16 @@ export class FacilitiesV3Service {
             ${queryString ? sql`AND ${sql.raw(queryString)}` : sql``};
         `;
 
-        const data = await db.execute(statement);
+		const data = await db.execute(statement);
 
-        return data.rows;
+		return data.rows;
 
-    }
+	}
 
 
-    async getOverAllCaseTypes(id: any, queryString: string) {
+	async getOverAllCaseTypes(id: number, queryString: string) {
 
-        let statement = sql`
+		let statement = sql`
             SELECT 
                 p.case_type_id,
                 UPPER(c.name) AS case_type_name,
@@ -125,20 +124,20 @@ export class FacilitiesV3Service {
                 p.case_type_id
         `;
 
-        const data = await db.execute(statement);
+		const data = await db.execute(statement);
 
-        if (data && data.rows.length > 0) {
-            return data.rows;
-        }
-        else {
-            return [];
-        }
-    }
+		if (data && data.rows.length > 0) {
+			return data.rows;
+		}
+		else {
+			return [];
+		}
+	}
 
 
-    async getCaseTypesRevenue(id: any, queryString: string) {
+	async getCaseTypesRevenue(id: number, queryString: string) {
 
-        let statement = sql`
+		let statement = sql`
             SELECT 
                 case_type_id,
                 UPPER(c.name) AS case_type_name,
@@ -158,19 +157,19 @@ export class FacilitiesV3Service {
                 case_type_id
         `;
 
-        const data = await db.execute(statement);
+		const data = await db.execute(statement);
 
-        return data.rows;
-    }
+		return data.rows;
+	}
 
 
-    async getCaseTypesVolume(id: any, queryString: string) {
+	async getCaseTypesVolume(id: number, queryString: string) {
 
-        let statement = sql`
+		let statement = sql`
             SELECT
                 p.case_type_id,
                 UPPER(c.name) AS case_type_name,
-                TO_CHAR(service_date, 'Month YYYY') AS month,
+                TO_CHAR(p.service_date, 'Month YYYY') AS month,
                 CAST(COUNT(*) AS INTEGER) AS total_cases
             FROM patient_claims p
             JOIN case_types c 
@@ -186,27 +185,26 @@ export class FacilitiesV3Service {
                 case_type_id 
         `;
 
+		const data = await db.execute(statement);
 
-        const data = await db.execute(statement);
-
-        return data.rows;
-    }
+		return data.rows;
+	}
 
 
-    async getInsurancePayers(id: any, queryString: string) {
+	async getInsurancePayers(id: number, queryString: string) {
 
-        let statement = sql`
+		let statement = sql`
             SELECT 
                 ip.name AS insurance_name,
                 CAST(ROUND(SUM(p.billable_amount)::NUMERIC, 2) AS FLOAT) AS generated_amount,
                 CAST(ROUND(SUM(p.cleared_amount)::NUMERIC, 2) AS FLOAT) AS paid_amount,
                 CAST(ROUND(SUM(p.pending_amount)::NUMERIC, 2) AS FLOAT) AS pending_amount
-            FROM facilities
-            JOIN patient_claims p 
-                ON p.facility_id = facilities.id
+            FROM facilities f
+            JOIN patient_claims p
+                ON p.facility_id = f.id
             JOIN insurance_payors ip 
                 ON p.insurance_payer_id = ip.id
-            WHERE facilities.id = ${id}
+            WHERE f.id = ${id}
             ${queryString ? sql`AND ${sql.raw(queryString)}` : sql``}
             GROUP BY 
                 insurance_name
@@ -214,15 +212,15 @@ export class FacilitiesV3Service {
                 insurance_name
         `;
 
-        const data = await db.execute(statement);
+		const data = await db.execute(statement);
 
-        return data.rows;
-    }
+		return data.rows;
+	}
 
 
-    async getTrendsRevenue(id: any, queryString: string) {
+	async getTrendsRevenue(id: number, queryString: string) {
 
-        let statement = sql`
+		let statement = sql`
             SELECT 
                 TO_CHAR(service_date, 'Month YYYY') AS month,
                 CAST(ROUND(SUM(cleared_amount)::NUMERIC, 2) AS FLOAT) AS revenue
@@ -235,15 +233,15 @@ export class FacilitiesV3Service {
                 TO_DATE(TO_CHAR(service_date, 'Month YYYY'), 'Month YYYY')
         `;
 
-        const data = await db.execute(statement);
+		const data = await db.execute(statement);
 
-        return data.rows;
-    }
+		return data.rows;
+	}
 
 
-    async getTrendsVolume(id: any, queryString: string) {
+	async getTrendsVolume(id: number, queryString: string) {
 
-        let statement = sql`
+		let statement = sql`
             SELECT 
                 TO_CHAR(service_date, 'Month YYYY') AS month,
                 CAST(COUNT(*) AS INTEGER) AS volume
@@ -256,9 +254,9 @@ export class FacilitiesV3Service {
                 TO_DATE(TO_CHAR(service_date, 'Month YYYY'), 'Month YYYY')
         `;
 
-        const data = await db.execute(statement);
+		const data = await db.execute(statement);
 
-        return data.rows;
-    }
+		return data.rows;
+	}
 
 }
