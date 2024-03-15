@@ -14,6 +14,7 @@ export class SalesRepControllerV3 {
 		private readonly filterHelper: FilterHelper
 	) { }
 
+
 	@Get()
 	async getAll(@Res() res: any, @Query() query: any) {
 		try {

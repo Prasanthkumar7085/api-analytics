@@ -8,36 +8,9 @@ import { insurance_payors } from 'src/drizzle/schemas/insurancePayors';
 @Injectable()
 export class SalesRepServiceV3 {
 
-    async dropTable() {
-        let query = sql`TRUNCATE TABLE patient_claims`
-        const data = await db.execute(query);
-        return data
-    }
+	async getAll(queryString) {
 
-
-    async getPatientClaims(queryString) {
-
-        let query = sql`
-            SELECT 
-                COUNT(*) AS COUNT  
-            FROM patient_claims
-        `;
-
-
-        if (queryString) {
-            query = sql`
-                ${query}
-                WHERE ${sql.raw(queryString)}
-            `;
-        }
-
-        const data = await db.execute(query);
-        return data.rows;
-    }
-
-    async getAll(queryString) {
-        let query;
-        query = sql`
+		let query = sql`
             SELECT
                 p.sales_rep_id,
                 s.name AS sales_rep_name,
@@ -60,19 +33,19 @@ export class SalesRepServiceV3 {
         `;
 
 
-        const data = await db.execute(query);
+		const data = await db.execute(query);
 
-        if (data && data.rows.length > 0) {
-            return data.rows;
-        } else {
-            return [];
-        }
-    }
+		if (data && data.rows.length > 0) {
+			return data.rows;
+		} else {
+			return [];
+		}
+	}
 
 
-    async getOverAllCaseTypes(id, queryString) {
-        let query;
-        query = sql`
+	async getOverAllCaseTypes(id, queryString) {
+		let query;
+		query = sql`
             SELECT 
                 case_type_id,
                 UPPER(c.name) AS case_type_name,
@@ -88,34 +61,34 @@ export class SalesRepServiceV3 {
                 ON p.case_type_id = c.id
         `;
 
-        if (queryString) {
-            query = sql`
+		if (queryString) {
+			query = sql`
                 ${query}
                 WHERE sales_rep_id = ${id} AND ${sql.raw(queryString)}
                 GROUP BY p.case_type_id, UPPER(c.name);
         `;
-        } else {
-            query = sql`
+		} else {
+			query = sql`
                 ${query}
                 WHERE sales_rep_id = ${id}
                 GROUP BY p.case_type_id, UPPER(c.name);
             `
-        }
+		}
 
-        const data = await db.execute(query);
+		const data = await db.execute(query);
 
-        if (data && data.rows.length > 0) {
-            return data.rows;
-        } else {
-            return [];
-        }
+		if (data && data.rows.length > 0) {
+			return data.rows;
+		} else {
+			return [];
+		}
 
-    }
+	}
 
 
-    async getCaseTypesRevenue(id, queryString) {
+	async getCaseTypesRevenue(id, queryString) {
 
-        let query = sql`
+		let query = sql`
             SELECT 
                 case_type_id,
                 UPPER(c.name) AS case_type_name,
@@ -126,33 +99,33 @@ export class SalesRepServiceV3 {
                 ON p.case_type_id = c.id
         `;
 
-        if (queryString) {
-            query = sql`
+		if (queryString) {
+			query = sql`
             ${query}
             WHERE sales_rep_id = ${id} AND ${sql.raw(queryString)}
             GROUP BY case_type_id, month, UPPER(c.name)
         `;
-        } else {
-            query = sql`
+		} else {
+			query = sql`
             ${query}
             WHERE sales_rep_id = ${id}
             GROUP BY case_type_id, month, UPPER(c.name)
         `;
-        }
+		}
 
-        const data = await db.execute(query);
+		const data = await db.execute(query);
 
-        if (data && data.rows.length > 0) {
-            return data.rows;
-        } else {
-            return [];
-        }
-    }
+		if (data && data.rows.length > 0) {
+			return data.rows;
+		} else {
+			return [];
+		}
+	}
 
 
-    async getCaseTypesVolume(id, queryString) {
+	async getCaseTypesVolume(id, queryString) {
 
-        let query = sql`
+		let query = sql`
             SELECT 
                 case_type_id,
                 UPPER(c.name) AS case_type_name,
@@ -168,32 +141,32 @@ export class SalesRepServiceV3 {
                 ON p.case_type_id = c.id
         `;
 
-        if (queryString) {
-            query = sql`
+		if (queryString) {
+			query = sql`
                 ${query}
                 WHERE sales_rep_id = ${id} AND ${sql.raw(queryString)}
                 GROUP BY case_type_id, month, UPPER(c.name)
             `;
-        } else {
-            query = sql`
+		} else {
+			query = sql`
                 ${query}
                 WHERE sales_rep_id = ${id}
                 GROUP BY case_type_id, month, UPPER(c.name)
                 `;
-        }
+		}
 
-        const data = await db.execute(query);
+		const data = await db.execute(query);
 
-        if (data && data.rows.length > 0) {
-            return data.rows;
-        } else {
-            return [];
-        }
-    }
+		if (data && data.rows.length > 0) {
+			return data.rows;
+		} else {
+			return [];
+		}
+	}
 
 
-    async getFacilityWise(id, queryString) {
-        let query = sql`
+	async getFacilityWise(id, queryString) {
+		let query = sql`
             SELECT 
                 facility_id,
                 f.name AS facility_name,
@@ -211,35 +184,35 @@ export class SalesRepServiceV3 {
                 ON p.facility_id = f.id
         `;
 
-        if (queryString) {
-            query = sql`
+		if (queryString) {
+			query = sql`
                 ${query}
                 WHERE p.sales_rep_id = ${id} AND ${sql.raw(queryString)}
                 GROUP BY facility_id, f.name
             `;
-        } else {
-            query = sql`
+		} else {
+			query = sql`
                 ${query}
                 WHERE p.sales_rep_id = ${id}
                 GROUP BY facility_id, f.name
             `;
-        }
+		}
 
-        const data = await db.execute(query);
+		const data = await db.execute(query);
 
-        if (data && data.rows.length > 0) {
-            return data.rows;
-        } else {
-            return [];
-        }
-    }
-
-
-
-    async getStatsRevenue(id, queryString) {
+		if (data && data.rows.length > 0) {
+			return data.rows;
+		} else {
+			return [];
+		}
+	}
 
 
-        let statement = sql`
+
+	async getStatsRevenue(id, queryString) {
+
+
+		let statement = sql`
             SELECT 
                 ROUND(SUM(${patient_claims.billableAmount})::NUMERIC, 2) AS generated_amount,
                 ROUND(SUM(${patient_claims.clearedAmount})::NUMERIC, 2) AS paid_amount,
@@ -251,33 +224,33 @@ export class SalesRepServiceV3 {
         `;
 
 
-        if (queryString) {
-            statement = sql`
+		if (queryString) {
+			statement = sql`
                 ${statement}
                 AND ${sql.raw(queryString)}
             `;
-        }
+		}
 
-        statement.append(sql`
+		statement.append(sql`
         GROUP BY ${sales_reps.id};
         `);
 
-        // Execute the raw SQL query
-        const data = await db.execute(statement);
+		// Execute the raw SQL query
+		const data = await db.execute(statement);
 
-        if (data && data.rows.length > 0) {
-            return data.rows;
-        }
-        else {
-            return [];
-        }
-    }
+		if (data && data.rows.length > 0) {
+			return data.rows;
+		}
+		else {
+			return [];
+		}
+	}
 
 
 
-    async getInsurancePayers(id, queryString) {
+	async getInsurancePayers(id, queryString) {
 
-        let statement = sql`
+		let statement = sql`
             SELECT 
                 ${insurance_payors.name} AS insurance_name,
                 ROUND(SUM(${patient_claims.billableAmount})::NUMERIC, 2) AS generated_amount,
@@ -292,126 +265,126 @@ export class SalesRepServiceV3 {
 
         `;
 
-        if (queryString) {
-            statement = sql`
+		if (queryString) {
+			statement = sql`
                 ${statement}
                 AND ${sql.raw(queryString)}
         `;
-        }
+		}
 
 
-        statement.append(sql`
+		statement.append(sql`
         GROUP BY ${insurance_payors.name};
         `);
 
-        // Execute the raw SQL query
-        const data = await db.execute(statement);
+		// Execute the raw SQL query
+		const data = await db.execute(statement);
 
 
-        if (data && data.rows.length > 0) {
-            return data.rows;
-        }
-        else {
-            return [];
-        }
-    }
+		if (data && data.rows.length > 0) {
+			return data.rows;
+		}
+		else {
+			return [];
+		}
+	}
 
 
-    async getTrendsRevenue(id, queryString) {
-        let query;
-        query = sql`
+	async getTrendsRevenue(id, queryString) {
+		let query;
+		query = sql`
             SELECT 
                 TO_CHAR(service_date, 'Month YYYY') AS month,
                 CAST(ROUND(SUM(cleared_amount)::NUMERIC, 2) AS FLOAT) AS revenue
             FROM patient_claims
         `;
-        if (queryString) {
-            query = sql`
+		if (queryString) {
+			query = sql`
                 ${query}
                 WHERE sales_rep_id = ${id} AND ${sql.raw(queryString)}
                 GROUP BY TO_CHAR(service_date, 'Month YYYY')
             `;
-        } else {
-            query = sql`
+		} else {
+			query = sql`
                 ${query}
                 WHERE sales_rep_id = ${id}
                 GROUP BY TO_CHAR(service_date, 'Month YYYY')
             `;
-        }
-        const data = await db.execute(query);
+		}
+		const data = await db.execute(query);
 
-        if (data && data.rows.length > 0) {
-            return data.rows;
-        } else {
-            return [];
-        }
-    }
+		if (data && data.rows.length > 0) {
+			return data.rows;
+		} else {
+			return [];
+		}
+	}
 
 
-    async getTrendsVolume(id, queryString) {
+	async getTrendsVolume(id, queryString) {
 
-        let query;
+		let query;
 
-        query = sql`
+		query = sql`
             SELECT 
                 TO_CHAR(service_date, 'Month YYYY') AS month,
                 COUNT(*) AS volume
             FROM patient_claims
         `;
 
-        if (queryString) {
-            query = sql`
+		if (queryString) {
+			query = sql`
                 ${query}
                 WHERE sales_rep_id = ${id} AND ${sql.raw(queryString)}
                 GROUP BY TO_CHAR(service_date, 'Month YYYY')
             `;
-        } else {
-            query = sql`
+		} else {
+			query = sql`
                 ${query}
                 WHERE sales_rep_id = ${id}
                 GROUP BY TO_CHAR(service_date, 'Month YYYY')
             `;
-        }
+		}
 
-        const data = await db.execute(query);
+		const data = await db.execute(query);
 
-        if (data && data.rows.length > 0) {
-            return data.rows;
-        } else {
-            return [];
-        }
-    }
+		if (data && data.rows.length > 0) {
+			return data.rows;
+		} else {
+			return [];
+		}
+	}
 
-    async getStatsVolume(id, queryString) {
-        let query;
-        query = sql`
+	async getStatsVolume(id, queryString) {
+		let query;
+		query = sql`
             SELECT
                 COUNT(*) AS total_cases, 
                 COUNT(*) FILTER (WHERE is_bill_cleared = TRUE) AS completed_cases,
                 COUNT(*) FILTER (WHERE is_bill_cleared = FALSE) AS pending_cases
             FROM patient_claims
         `;
-        if (queryString) {
-            query = sql`
+		if (queryString) {
+			query = sql`
             ${query}
             WHERE sales_rep_id = ${id} AND ${sql.raw(queryString)}`
-        } else {
-            query = sql`
+		} else {
+			query = sql`
         ${query}
         WHERE sales_rep_id = ${id}`
-        }
+		}
 
-        const data = await db.execute(query);
+		const data = await db.execute(query);
 
-        if (data && data.rows.length > 0) {
-            return data.rows;
-        } else {
-            return [];
-        }
-    }
+		if (data && data.rows.length > 0) {
+			return data.rows;
+		} else {
+			return [];
+		}
+	}
 
-    async getOne(id) {
-        let statement = sql`
+	async getOne(id) {
+		let statement = sql`
       SELECT 
         sr.name AS sales_rep,
         m.name AS manager 
@@ -422,8 +395,35 @@ export class SalesRepServiceV3 {
       WHERE 
         sr.id = ${id}`;
 
-        const result = await db.execute(statement);
+		const result = await db.execute(statement);
 
-        return result.rows;
-    }
+		return result.rows;
+	}
+
+	async dropTable() {
+		let query = sql`TRUNCATE TABLE patient_claims`
+		const data = await db.execute(query);
+		return data
+	}
+
+
+	async getPatientClaims(queryString) {
+
+		let query = sql`
+            SELECT 
+                COUNT(*) AS COUNT  
+            FROM patient_claims
+        `;
+
+
+		if (queryString) {
+			query = sql`
+                ${query}
+                WHERE ${sql.raw(queryString)}
+            `;
+		}
+
+		const data = await db.execute(query);
+		return data.rows;
+	}
 }
