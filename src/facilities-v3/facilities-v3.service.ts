@@ -138,20 +138,17 @@ export class FacilitiesV3Service {
     async getCaseTypesVolume(id, queryString) {
 
         let statement = sql`
-            SELECT 
-                case_type_id,
+            SELECT
+                p.case_type_id,
                 UPPER(c.name) AS case_type_name,
                 TO_CHAR(service_date, 'Month YYYY') AS month,
-                (
-                SELECT COUNT(*)
-                FROM patient_claims
-                WHERE case_type_id = p.case_type_id AND facility_id = ${id}
-                ) AS total_cases
+                CAST(COUNT(*) AS INTEGER) AS total_cases
             FROM patient_claims p
             JOIN case_types c 
                 ON p.case_type_id = c.id
-            WHERE facility_id = ${id}
+            WHERE p.facility_id = ${id}
         `;
+
 
 
 
@@ -165,10 +162,12 @@ export class FacilitiesV3Service {
         statement = sql`
             ${statement}
             GROUP BY 
-                case_type_id, 
+                p.case_type_id, 
                 month, 
                 case_type_name
-        `
+            ORDER BY case_type_id, month
+        `;
+
 
         const data = await db.execute(statement);
 
@@ -268,20 +267,16 @@ export class FacilitiesV3Service {
 
         let statement = sql`
             SELECT 
-                case_type_id,
+                p.case_type_id,
                 UPPER(c.name) AS case_type_name,
-                ROUND(SUM(cleared_amount):: NUMERIC, 2) AS revenue,
-                (
-                SELECT COUNT(*)
-                FROM patient_claims
-                WHERE case_type_id = p.case_type_id AND facility_id = ${id}
-                ) 
-                AS volume
+                CAST(ROUND(SUM(cleared_amount)::NUMERIC, 2) AS FLOAT) AS revenue,
+                COUNT(*) AS volume
             FROM patient_claims p
             JOIN case_types c 
                 ON p.case_type_id = c.id
-            WHERE facility_id = ${id}
+            WHERE p.facility_id = ${id}
         `;
+
 
         if (queryString) {
             statement = sql`
