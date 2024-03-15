@@ -1,9 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { db } from 'src/seeders/db';
 import { sql } from 'drizzle-orm';
-import { patient_claims } from 'src/drizzle/schemas/patientClaims';
-import { sales_reps } from 'src/drizzle/schemas/salesReps';
-import { insurance_payors } from 'src/drizzle/schemas/insurancePayors';
+
 
 @Injectable()
 export class SalesRepServiceV3 {
@@ -11,15 +9,16 @@ export class SalesRepServiceV3 {
 
 	async getAll(queryString: string) {
 
+		//This query retrieves all sales reps and counts no_of_facilities there are in and counts total revenues and total cases
 		let query = sql`
             SELECT
                 p.sales_rep_id,
                 s.name AS sales_rep_name,
                 CAST(COUNT(DISTINCT p.facility_id) AS INTEGER) AS no_of_facilities,
                 CAST(ROUND(SUM(p.expected_amount):: NUMERIC, 2) AS FLOAT) AS expected_amount,
-                CAST(ROUND(SUM(P.billable_amount)::NUMERIC, 2) AS FLOAT) AS generated_amount,
-                CAST(ROUND(SUM(P.cleared_amount)::NUMERIC, 2) AS FLOAT) AS paid_amount,
-                CAST(ROUND(SUM(P.pending_amount)::NUMERIC, 2) AS FLOAT) AS pending_amount,
+                CAST(ROUND(SUM(p.billable_amount)::NUMERIC, 2) AS FLOAT) AS generated_amount,
+                CAST(ROUND(SUM(p.cleared_amount)::NUMERIC, 2) AS FLOAT) AS paid_amount,
+                CAST(ROUND(SUM(p.pending_amount)::NUMERIC, 2) AS FLOAT) AS pending_amount,
                 CAST(COUNT(*) AS INTEGER) AS total_cases
             FROM patient_claims p
             JOIN sales_reps s 
@@ -124,22 +123,22 @@ export class SalesRepServiceV3 {
 
 		let query = sql`
             SELECT 
-                case_type_id,
+                p.case_type_id,
                 UPPER(c.name) AS case_type_name,
-                TO_CHAR(service_date, 'Month YYYY') AS month,
-                CAST(ROUND(SUM(cleared_amount)::NUMERIC, 2) AS FLOAT) AS revenue
+                TO_CHAR(p.service_date, 'Mon YYYY') AS month,
+                CAST(ROUND(SUM(p.cleared_amount)::NUMERIC, 2) AS FLOAT) AS revenue
             FROM patient_claims p
             JOIN case_types c 
                 ON p.case_type_id = c.id
-			WHERE sales_rep_id = ${id}
+			WHERE p.sales_rep_id = ${id}
 			${queryString ? sql`AND ${sql.raw(queryString)}` : sql``}
 			GROUP BY
-				TO_CHAR(service_date, 'Month YYYY'),
-				case_type_id,
+				TO_CHAR(service_date, 'Mon YYYY'),
+				p.case_type_id,
 				case_type_name
 			ORDER BY
-				TO_DATE(TO_CHAR(service_date, 'Month YYYY'), 'Month YYYY'),
-				case_type_id
+				TO_DATE(TO_CHAR(service_date, 'Mon YYYY'), 'Mon YYYY'),
+				p.case_type_id
         `;
 
 
@@ -155,7 +154,7 @@ export class SalesRepServiceV3 {
             SELECT 
                 p.case_type_id,
                 UPPER(c.name) AS case_type_name,
-                TO_CHAR(p.service_date, 'Month YYYY') AS month,
+                TO_CHAR(p.service_date, 'Mon YYYY') AS month,
 				CAST(COUNT(*) AS INTEGER) AS total_cases
             FROM patient_claims p
             JOIN case_types c 
@@ -163,12 +162,12 @@ export class SalesRepServiceV3 {
 			WHERE p.sales_rep_id = ${id}
 			${queryString ? sql`AND ${sql.raw(queryString)}` : sql``}
 			GROUP BY 
-				TO_CHAR(service_date, 'Month YYYY'), 
+				TO_CHAR(service_date, 'Mon YYYY'), 
 				p.case_type_id, 
 				case_type_name
 			ORDER BY 
-				TO_DATE(TO_CHAR(service_date, 'Month YYYY'), 'Month YYYY'),
-				case_type_id 
+				TO_DATE(TO_CHAR(service_date, 'Mon YYYY'), 'Mon YYYY'),
+				p.case_type_id 
         `;
 
 		const data = await db.execute(query);
@@ -234,15 +233,15 @@ export class SalesRepServiceV3 {
 
 		let query = sql`
             SELECT 
-                TO_CHAR(service_date, 'Month YYYY') AS month,
+                TO_CHAR(service_date, 'Mon YYYY') AS month,
                 CAST(ROUND(SUM(cleared_amount)::NUMERIC, 2) AS FLOAT) AS revenue
             FROM patient_claims
 			WHERE sales_rep_id = ${id}
             ${queryString ? sql`AND ${sql.raw(queryString)}` : sql``}
             GROUP BY
-                month
+				TO_CHAR(service_date, 'Mon YYYY')
             ORDER BY
-                TO_DATE(TO_CHAR(service_date, 'Month YYYY'), 'Month YYYY')
+                TO_DATE(TO_CHAR(service_date, 'Mon YYYY'), 'Mon YYYY')
         `;
 
 		const data = await db.execute(query);
@@ -255,15 +254,15 @@ export class SalesRepServiceV3 {
 
 		let query = sql`
 			SELECT 
-				TO_CHAR(service_date, 'Month YYYY') AS month,
+				TO_CHAR(service_date, 'Mon YYYY') AS month,
 				CAST(COUNT(*) AS INTEGER) AS volume
 			FROM patient_claims
 			WHERE sales_rep_id = ${id}
 			${queryString ? sql`AND ${sql.raw(queryString)}` : sql``}
 			GROUP BY    
-				month
+				TO_CHAR(service_date, 'Mon YYYY')
 			ORDER BY
-				TO_DATE(TO_CHAR(service_date, 'Month YYYY'), 'Month YYYY')
+				TO_DATE(TO_CHAR(service_date, 'Mon YYYY'), 'Mon YYYY')
         `;
 
 		const data = await db.execute(query);
