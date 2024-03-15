@@ -4,13 +4,13 @@ import { db } from 'src/seeders/db';
 
 @Injectable()
 export class InsurancesV3Service {
-    async getAllInsurances(queryString){
-        
-        let query = sql `
+    async getAllInsurances(queryString) {
+
+        let query = sql`
             SELECT 
                 insurance_payer_id,
                 i.name as insurance_payor_name,
-                COUNT(DISTINCT facility_id) AS count_of_facilities,
+                COUNT(DISTINCT facility_id) AS no_of_facilities,
                 COUNT(*) AS total_cases,
                 ROUND(SUM(billable_amount)::NUMERIC, 2) AS generated_ammount,
                 ROUND(SUM(cleared_amount)::NUMERIC, 2) AS paid_amount,
@@ -20,7 +20,7 @@ export class InsurancesV3Service {
         `;
 
 
-        if (queryString){
+        if (queryString) {
             query = sql`
                 ${query}
                 WHERE ${sql.raw(queryString)}
@@ -43,7 +43,7 @@ export class InsurancesV3Service {
 
 
     async getOneInsurancePayorData(id, queryString) {
-    
+
         let query = sql`
             SELECT 
                 UPPER(c.name) AS case_type_name,
@@ -60,7 +60,7 @@ export class InsurancesV3Service {
         `;
 
 
-        if (queryString) {  
+        if (queryString) {
             query = sql`
                 ${query}
                 WHERE p.insurance_payer_id = ${id} AND ${sql.raw(queryString)}
@@ -86,8 +86,8 @@ export class InsurancesV3Service {
         };
     }
 
-    async getOneInsurancePayorTrendsRevenue(id,queryString){
-        
+    async getOneInsurancePayorTrendsRevenue(id, queryString) {
+
         let query = sql`
             SELECT 
                 TO_CHAR(service_date, 'Month YYYY') AS month,
@@ -124,7 +124,7 @@ export class InsurancesV3Service {
         }
     }
 
-    async getOneInsurancePayorTrendsVolume(id,queryString){
+    async getOneInsurancePayorTrendsVolume(id, queryString) {
         let query = sql`
             SELECT 
                 TO_CHAR(service_date, 'Month YYYY') AS month,
@@ -140,7 +140,7 @@ export class InsurancesV3Service {
                 WHERE p.insurance_payer_id = ${id} AND ${sql.raw(queryString)}
             `;
         } else {
-            query=sql`
+            query = sql`
                 ${query}
                 WHERE p.insurance_payer_id = ${id}
             `;
@@ -160,10 +160,10 @@ export class InsurancesV3Service {
         }
     }
 
-    async getOneInsurancePayorDetails(id:any) {
+    async getOneInsurancePayorDetails(id: any) {
         let query = sql`
             SELECT 
-                name
+                name AS insurance_payor_name
             FROM insurance_payors
             WHERE id = ${id}
         `;
