@@ -67,10 +67,10 @@ const SUCCESS_FETCHED_FACILITIES_TRENDS_REVENUE = "Facility Trends Revenue Fetch
 const SUCCESS_FETCHED_FACILITIES_TRENDS_VOLUME = 'Facility Trends Volume Fetched Successfully'
 
 const SUCCESS_FETCHED_FACILITY_INSURANCE_PAYORS = 'Facility Insurance Payors data Fetched Successfully'
-const SUCCESS_FETCHED_OVERVIEW_STATS_REVENUE = "Overview Stats Revenue Fetched Successfully"
-const SUCCESS_FETCHED_OVERVIEW_STATS_VOLUME = "Overview Stats Volume Fetched Successfully"
+const SUCCESS_FETCHED_OVERVIEW_STATS_REVENUE = "Overview Revenue Stats Fetched Successfully"
+const SUCCESS_FETCHED_OVERVIEW_STATS_VOLUME = "Overview Volume Stats Fetched Successfully"
 const SUCCES_FETCHED_OVERVIEW_CASE_TYPES = "Overview Case Types Fetched Successfully"
-const SUCCESS_FETCHED_OVERVIEW_REVNUE = "Overview Revenue Fetched Successfully"
+const SUCCESS_FETCHED_OVERVIEW_REVNUE = "Overview Revenue Data Fetched Successfully"
 
 const SUCCESS_FETCHED_ALL_INSURANCES_DATA = "Get All Insurance Data Fetched Successfully"
 const SUCCESS_FETCHED_INSURANCE_CASE_TYPES_DATA = "Insurance Case Types Data Fetched Successfully"
