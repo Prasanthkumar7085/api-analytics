@@ -72,10 +72,10 @@ const SUCCESS_FETCHED_OVERVIEW_STATS_VOLUME = "Overview Volume Stats Fetched Suc
 const SUCCES_FETCHED_OVERVIEW_CASE_TYPES = "Overview Case Types Fetched Successfully"
 const SUCCESS_FETCHED_OVERVIEW_REVNUE = "Overview Revenue Data Fetched Successfully"
 
-const SUCCESS_FETCHED_ALL_INSURANCES_DATA = "Get All Insurance Data Fetched Successfully"
-const SUCCESS_FETCHED_INSURANCE_CASE_TYPES_DATA = "Insurance Case Types Data Fetched Successfully"
-const SUCCESS_FTECHED_INSURANCE_TRENDS_REVENUE = "Insurance Trends Revenue Data Fetched Successfully"
-const SUCCESS_FETECHED_INSURANCE_TRENDS_VOLUME = "Insurance Trends Volume Data Fetched Successfully"
+const SUCCESS_FETCHED_ALL_INSURANCES_DATA = "Insurance Payors Data Fetched Successfully"
+const SUCCESS_FETCHED_INSURANCE_CASE_TYPES_DATA = "Insurance Case Type Wise Data Fetched Successfully"
+const SUCCESS_FTECHED_INSURANCE_TRENDS_REVENUE = "Insurance Revenue Trends Data Fetched Successfully"
+const SUCCESS_FETECHED_INSURANCE_TRENDS_VOLUME = "Insurance Volume Trends Data Fetched Successfully"
 const SUCCESS_FETCHED_INSURANCE_PAYORS_DETAILS = "Insurance Payor Details Fetched Successfully"
 
 

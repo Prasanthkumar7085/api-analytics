@@ -8,6 +8,8 @@ export class OverviewV3Service {
     async getRevenueStats(queryString: string) {
 
         // this sql query is used to calculate the overall generated, paid and pending amounts
+		// here cast is used to convert data type
+        // here round used to round the generated amount decial values to 2 decimal places
         let query = sql`
             SELECT 
                 CAST(ROUND(SUM(billable_amount)::NUMERIC, 2) AS FLOAT) AS generated_amount,
