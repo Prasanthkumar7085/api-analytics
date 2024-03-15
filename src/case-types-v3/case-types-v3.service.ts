@@ -5,31 +5,27 @@ import { db } from 'src/seeders/db';
 @Injectable()
 export class CaseTypesV3Service {
 
-    async getCaseTypeStats(queryString) {
+    async getCaseTypeStatsData(queryString:string) {
 
+        // this sql query is used to fetch the overall case type wise data
+        // here round used to round the generated amount decial values to 2 decimal places
+        // here cast is used to convert data type
         let statement = sql`
             SELECT 
-                case_types.name AS case_type,
-                COUNT(*) AS total_cases,
-                COUNT(DISTINCT(facility_id)) AS no_of_facilities,
-                ROUND(SUM(billable_amount):: NUMERIC, 2) AS  genereated_amount,
-                ROUND(SUM(cleared_amount):: NUMERIC, 2) AS  paid_amount,
-                ROUND(SUM(pending_amount):: NUMERIC, 2) AS  pending_amount
+                case_type_id,
+                UPPER(c.name) AS case_type_name,
+                CAST(COUNT(*) AS INTEGER) AS total_cases,
+                CAST(COUNT(DISTINCT(facility_id)) AS INTEGER) AS no_of_facilities,
+                CAST(ROUND(SUM(billable_amount):: NUMERIC, 2) AS FLOAT) AS genereated_amount,
+                CAST(ROUND(SUM(cleared_amount):: NUMERIC, 2) AS FLOAT) AS paid_amount,
+                CAST(ROUND(SUM(pending_amount):: NUMERIC, 2) AS FLOAT) AS pending_amount
             FROM patient_claims
-            JOIN case_types
-                ON patient_claims.case_type_id = case_types.id
-        `;
-
-        if (queryString) {
-            statement = sql`
-                ${statement}
-                WHERE ${sql.raw(queryString)}
-            `;
-        }
-
-        statement = sql`
-            ${statement}
-            GROUP BY case_type
+            JOIN case_types c
+                ON patient_claims.case_type_id = c.id
+            ${queryString ? sql`WHERE ${sql.raw(queryString)}` : sql``}
+            GROUP BY 
+                case_type_id,
+                case_type_name
         `;
 
         const data = await db.execute(statement);

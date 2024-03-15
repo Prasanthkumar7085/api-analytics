@@ -57,7 +57,7 @@ const SUCCESS_FETCHED_SALES_REP_TREND_VOLUME = 'Sales Rep Trend Volume Data Fetc
 const SUCCESS_FETCHED_FACILITIES = "Facilities Fetched Successfully"
 const SUCCESS_FETCHED_FACILITY = "Facility Fetched Successfully"
 const SUCCESS_VOLUME_TREND = "Volume Trend Fetched Successfully"
-const SUCCESS_FETCHED_CASE_TYPES = "Case Types Stats Fetched Successfully"
+const SUCCESS_FETCHED_CASE_TYPES = "Case Types Stats Data Fetched Successfully"
 
 
 const SUCCESS_FETCHED_REVENUE_MONTH_WISE_TRENDS = 'Case Types Revenue Month Wise Data Fetched Successfully'
@@ -67,15 +67,15 @@ const SUCCESS_FETCHED_FACILITIES_TRENDS_REVENUE = "Facility Trends Revenue Fetch
 const SUCCESS_FETCHED_FACILITIES_TRENDS_VOLUME = 'Facility Trends Volume Fetched Successfully'
 
 const SUCCESS_FETCHED_FACILITY_INSURANCE_PAYORS = 'Facility Insurance Payors data Fetched Successfully'
-const SUCCESS_FETCHED_OVERVIEW_STATS_REVENUE = "Overview Stats Revenue Fetched Successfully"
-const SUCCESS_FETCHED_OVERVIEW_STATS_VOLUME = "Overview Stats Volume Fetched Successfully"
+const SUCCESS_FETCHED_OVERVIEW_STATS_REVENUE = "Overview Revenue Stats Fetched Successfully"
+const SUCCESS_FETCHED_OVERVIEW_STATS_VOLUME = "Overview Volume Stats Fetched Successfully"
 const SUCCES_FETCHED_OVERVIEW_CASE_TYPES = "Overview Case Types Fetched Successfully"
-const SUCCESS_FETCHED_OVERVIEW_REVNUE = "Overview Revenue Fetched Successfully"
+const SUCCESS_FETCHED_OVERVIEW_REVNUE = "Overview Revenue Data Fetched Successfully"
 
-const SUCCESS_FETCHED_ALL_INSURANCES_DATA = "Get All Insurance Data Fetched Successfully"
-const SUCCESS_FETCHED_INSURANCE_CASE_TYPES_DATA = "Insurance Case Types Data Fetched Successfully"
-const SUCCESS_FTECHED_INSURANCE_TRENDS_REVENUE = "Insurance Trends Revenue Data Fetched Successfully"
-const SUCCESS_FETECHED_INSURANCE_TRENDS_VOLUME = "Insurance Trends Volume Data Fetched Successfully"
+const SUCCESS_FETCHED_ALL_INSURANCES_DATA = "Insurance Payors Data Fetched Successfully"
+const SUCCESS_FETCHED_INSURANCE_CASE_TYPES_DATA = "Insurance Case Type Wise Data Fetched Successfully"
+const SUCCESS_FTECHED_INSURANCE_TRENDS_REVENUE = "Insurance Revenue Trends Data Fetched Successfully"
+const SUCCESS_FETECHED_INSURANCE_TRENDS_VOLUME = "Insurance Volume Trends Data Fetched Successfully"
 const SUCCESS_FETCHED_INSURANCE_PAYORS_DETAILS = "Insurance Payor Details Fetched Successfully"
 
 
