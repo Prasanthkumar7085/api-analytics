@@ -188,7 +188,7 @@ export class SalesRepControllerV3 {
 	}
 
 
-	@Get(':id/case-types/revenue')
+	@Get(':id/case-types/months/revenue')
 	async getCaseTypesRevenue(@Res() res: any, @Param('id') id: number, @Query() query: any) {
 		try {
 
@@ -214,7 +214,7 @@ export class SalesRepControllerV3 {
 	}
 
 
-	@Get(':id/case-types/volume')
+	@Get(':id/case-types/months/volume')
 	async getCaseTypesVolume(@Res() res: any, @Param('id') id: number, @Query() query: any) {
 		try {
 
@@ -360,6 +360,7 @@ export class SalesRepControllerV3 {
 			});
 		}
 	}
+
 
 	@Get(':id/insurance-payors/:payor_id')
 	async getOneInsuranceRevenue(@Param() param: any, @Res() res: any, @Query() query: any) {

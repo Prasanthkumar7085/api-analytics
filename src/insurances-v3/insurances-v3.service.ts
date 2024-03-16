@@ -13,7 +13,7 @@ export class InsurancesV3Service {
         // here round used to round the generated amount decial values to 2 decimal places
         let query = sql`
             SELECT 
-                insurance_payer_id,
+                i.id AS insurance_payor_id,
                 i.name as insurance_payor_name,
                 CAST(COUNT(DISTINCT facility_id) AS INTEGER) AS no_of_facilities,
                 CAST(COUNT(*) AS INTEGER) AS total_cases,
@@ -25,7 +25,10 @@ export class InsurancesV3Service {
                 ON p.insurance_payer_id = i.id
             ${queryString ? sql`WHERE ${sql.raw(queryString)}` : sql``}
             GROUP BY 
-                insurance_payer_id, i.name
+                i.id, 
+                i.name
+            ORDER BY
+                insurance_payor_name
         `;
 
         // Execute the query
