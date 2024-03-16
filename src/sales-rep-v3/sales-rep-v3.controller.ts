@@ -1,5 +1,5 @@
 import { Controller, Get, Param, Delete, Res, Query, Post } from '@nestjs/common';
-import { SOMETHING_WENT_WRONG, SUCCESS_DELETED_DATA_IN_TABLE, SUCCESS_FECTED_SALE_REP_REVENUE_STATS, SUCCESS_FECTED_SALE_REP_VOLUME_STATS, SUCCESS_FETCHED_CASE_TYPES_REVENUE, SUCCESS_FETCHED_ONE_SALES_REP, SUCCESS_FETCHED_PATIENT_CLAIMS_COUNT, SUCCESS_FETCHED_SALES_REP, SUCCESS_FETCHED_SALES_REP_CASE_TYPE_MONTHLY_VOLUME, SUCCESS_FETCHED_SALES_REP_FACILITY_WISE_STATS, SUCCESS_FETCHED_SALES_REP_INSURANCE_PAYORS_DATA, SUCCESS_FETCHED_SALES_REP_INSURANCE_PAYORS_MONTH_WISE_DATA, SUCCESS_FETCHED_SALES_REP_TREND_REVENUE, SUCCESS_FETCHED_SALES_REP_TREND_VOLUME, SUCCESS_FETCHED_SALES_REP_VOLUME_AND_REVENUE } from 'src/constants/messageConstants';
+import { SOMETHING_WENT_WRONG, SUCCESS_DELETED_DATA_IN_TABLE, SUCCESS_FECTED_SALE_REP_REVENUE_STATS, SUCCESS_FECTED_SALE_REP_VOLUME_STATS, SUCCESS_FETCHED_CASE_TYPES_REVENUE, SUCCESS_FETCHED_ONE_SALES_REP, SUCCESS_FETCHED_PATIENT_CLAIMS_COUNT, SUCCESS_FETCHED_SALES_REP, SUCCESS_FETCHED_SALES_REP_CASE_TYPE_MONTHLY_VOLUME, SUCCESS_FETCHED_SALES_REP_FACILITY_WISE_STATS, SUCCESS_FETCHED_SALES_REP_INSURANCE_PAYORS_DATA, SUCCESS_FETCHED_SALES_REP_INSURANCE_PAYORS_MONTH_WISE_DATA, SUCCESS_FETCHED_SALES_REP_OVERALL_REVENUE, SUCCESS_FETCHED_SALES_REP_OVERALL_VOLUME, SUCCESS_FETCHED_SALES_REP_TREND_REVENUE, SUCCESS_FETCHED_SALES_REP_TREND_VOLUME, SUCCESS_FETCHED_SALES_REP_VOLUME_AND_REVENUE } from 'src/constants/messageConstants';
 import { FilterHelper } from 'src/helpers/filterHelper';
 import { SalesRepServiceV3 } from './sales-rep-v3.service';
 
@@ -20,8 +20,6 @@ export class SalesRepControllerV3 {
 		try {
 
 			const queryString = this.filterHelper.salesRep(query);
-
-			console.log({ queryString });
 
 			const salesReps = await this.salesRepService.getAll(queryString);
 
@@ -140,17 +138,42 @@ export class SalesRepControllerV3 {
 	}
 
 
-	@Get(':id/case-types')
-	async getOverallCaseTypes(@Res() res: any, @Param('id') id: number, @Query() query: any) {
+	@Get(':id/case-types-revenue')
+	async getOverAllCaseTypesRevenue(@Res() res: any, @Param('id') id: number, @Query() query: any) {
 		try {
 
 			const queryString = this.filterHelper.salesRep(query);
 
-			const salesReps = await this.salesRepService.getOverAllCaseTypes(id, queryString);
+			const salesReps = await this.salesRepService.getOverAllCaseTypesRevenue(id, queryString);
 
 			return res.status(200).json({
 				success: true,
-				message: SUCCESS_FETCHED_SALES_REP_VOLUME_AND_REVENUE,
+				message: SUCCESS_FETCHED_SALES_REP_OVERALL_REVENUE,
+				data: salesReps
+			});
+		}
+		catch (error) {
+			console.log({ error });
+
+			return res.status(500).json({
+				success: false,
+				message: error || SOMETHING_WENT_WRONG
+			});
+		}
+	}
+
+
+	@Get(':id/case-types-volume')
+	async getOverallCaseTypesVolume(@Res() res: any, @Param('id') id: number, @Query() query: any) {
+		try {
+
+			const queryString = this.filterHelper.salesRep(query);
+
+			const salesReps = await this.salesRepService.getOverAllCaseTypesVolume(id, queryString);
+
+			return res.status(200).json({
+				success: true,
+				message: SUCCESS_FETCHED_SALES_REP_OVERALL_VOLUME,
 				data: salesReps
 			});
 		}
@@ -338,15 +361,15 @@ export class SalesRepControllerV3 {
 		}
 	}
 
-	@Get(':id/insurance-payors/:i_id')
+	@Get(':id/insurance-payors/:payor_id')
 	async getOneInsuranceRevenue(@Param() param: any, @Res() res: any, @Query() query: any) {
 		try {
 
-			const { id, i_id } = param;
+			const { id, payor_id } = param;
 
 			const queryString = this.filterHelper.salesRep(query);
 
-			const data = await this.salesRepService.getOneInsuranceRevenue(id, i_id, queryString);
+			const data = await this.salesRepService.getOneInsuranceRevenue(id, payor_id, queryString);
 
 			return res.status(200).json({
 				success: true,

@@ -28,7 +28,7 @@ export class SalesRepServiceV3 {
 				p.sales_rep_id, 
 				s.name
 			ORDER BY
-				p.sales_rep_id
+				sales_rep_name
         `;
 
 		const data = await db.execute(query);
@@ -93,30 +93,57 @@ export class SalesRepServiceV3 {
 	}
 
 
-	async getOverAllCaseTypes(id: number, queryString: string) {
+	async getOverAllCaseTypesRevenue(id: number, queryString: string) {
+
 		let query = sql`
-            SELECT 
-                p.case_type_id,
-                UPPER(c.name) AS case_type_name,
+			SELECT 
+				p.case_type_id,
+				UPPER(c.name) AS case_type_name,
+				CAST(ROUND(SUM(p.billable_amount)::NUMERIC, 2) AS FLOAT) AS generated_amount,
 				CAST(ROUND(SUM(p.cleared_amount)::NUMERIC, 2) AS FLOAT) AS paid_amount,
-                CAST(COUNT(*) AS INTEGER) AS volume
-            FROM patient_claims p
-            JOIN case_types c 
-                ON p.case_type_id = c.id
+				CAST(ROUND(SUM(p.pending_amount)::NUMERIC, 2) AS FLOAT) AS pending_amount
+			FROM patient_claims p
+			JOIN case_types c
+				ON p.case_type_id = c.id
 			WHERE p.sales_rep_id = ${id}
 			${queryString ? sql`AND ${sql.raw(queryString)}` : sql``}
-			GROUP BY 
+			GROUP BY
 				p.case_type_id, 
 				UPPER(c.name)
 			ORDER BY
-				case_type_name,
-				p.case_type_id
-        `;
+				case_type_name
+		`;
 
 		const data = await db.execute(query);
 
 		return data.rows;
+	}
 
+
+	async getOverAllCaseTypesVolume(id: number, queryString: string) {
+
+		let query = sql`
+			SELECT 
+				p.case_type_id,
+				UPPER(c.name) AS case_type_name,
+				CAST(COUNT(*) AS INTEGER) AS total_cases,
+				CAST(COUNT(*) FILTER(WHERE is_bill_cleared = TRUE) AS INTEGER) AS completed_cases,
+				CAST(COUNT(*) FILTER (WHERE is_bill_cleared = FALSE) AS INTEGER) AS pending_cases
+			FROM patient_claims p
+			JOIN case_types c
+				ON p.case_type_id = c.id
+			WHERE p.sales_rep_id = ${id}
+			${queryString ? sql`AND ${sql.raw(queryString)}` : sql``}
+			GROUP BY
+				p.case_type_id, 
+				UPPER(c.name)
+			ORDER BY
+				case_type_name
+		`;
+
+		const data = await db.execute(query);
+
+		return data.rows;
 	}
 
 
@@ -139,7 +166,7 @@ export class SalesRepServiceV3 {
 				case_type_name
 			ORDER BY
 				TO_DATE(TO_CHAR(service_date, 'Mon YYYY'), 'Mon YYYY'),
-				p.case_type_id
+				case_type_name
         `;
 
 
@@ -168,7 +195,7 @@ export class SalesRepServiceV3 {
 				case_type_name
 			ORDER BY 
 				TO_DATE(TO_CHAR(service_date, 'Mon YYYY'), 'Mon YYYY'),
-				p.case_type_id 
+				case_type_name 
         `;
 
 		const data = await db.execute(query);
@@ -181,7 +208,7 @@ export class SalesRepServiceV3 {
 
 		let statement = sql`
 			SELECT 
-				ip.id,
+				ip.id AS insurance_id,
 				ip.name AS insurance_name,
 				CAST(ROUND(SUM(p.billable_amount)::NUMERIC, 2) AS FLOAT) AS generated_amount,
 				CAST(ROUND(SUM(p.cleared_amount)::NUMERIC, 2) AS FLOAT) AS paid_amount,
@@ -207,7 +234,7 @@ export class SalesRepServiceV3 {
 	async getFacility(id: number, queryString: string) {
 		let query = sql`
             SELECT 
-                p.facility_id,
+                f.id AS facility_id,
                 f.name AS facility_name,
                 CAST(ROUND(SUM(p.billable_amount)::NUMERIC, 2) AS FLOAT) AS generated_amount,
                 CAST(ROUND(SUM(p.cleared_amount)::NUMERIC, 2) AS FLOAT) AS paid_amount,
@@ -219,10 +246,9 @@ export class SalesRepServiceV3 {
 			WHERE p.sales_rep_id = ${id}
 			${queryString ? sql`AND ${sql.raw(queryString)}` : sql``}
 			GROUP BY
-				p.facility_id,
+				f.id,
 				f.name	
 			ORDER BY
-				p.facility_id,
 				f.name
         `;
 
@@ -237,7 +263,7 @@ export class SalesRepServiceV3 {
 		let query = sql`
             SELECT 
                 TO_CHAR(service_date, 'Mon YYYY') AS month,
-                CAST(ROUND(SUM(cleared_amount)::NUMERIC, 2) AS FLOAT) AS revenue
+                CAST(ROUND(SUM(cleared_amount)::NUMERIC, 2) AS FLOAT) AS paid_amount
             FROM patient_claims
 			WHERE sales_rep_id = ${id}
             ${queryString ? sql`AND ${sql.raw(queryString)}` : sql``}
@@ -258,7 +284,7 @@ export class SalesRepServiceV3 {
 		let query = sql`
 			SELECT 
 				TO_CHAR(service_date, 'Mon YYYY') AS month,
-				CAST(COUNT(*) AS INTEGER) AS volume
+				CAST(COUNT(*) AS INTEGER) AS total_cases
 			FROM patient_claims
 			WHERE sales_rep_id = ${id}
 			${queryString ? sql`AND ${sql.raw(queryString)}` : sql``}
@@ -299,17 +325,17 @@ export class SalesRepServiceV3 {
 	}
 
 
-	async getOneInsuranceRevenue(sr_id: number, in_id: number, queryString: string) {
+	async getOneInsuranceRevenue(sr_id: number, payor_id: number, queryString: string) {
 
 		let query = sql`
 			SELECT 
 				TO_CHAR(service_date, 'Mon YYYY') AS month,
-				CAST(ROUND(SUM(cleared_amount)::NUMERIC, 2) AS FLOAT) AS revenue
+				CAST(ROUND(SUM(cleared_amount)::NUMERIC, 2) AS FLOAT) AS paid_amount
 			FROM 
 				patient_claims
 			WHERE 
 				sales_rep_id = ${sr_id} 
-				AND insurance_payer_id = ${in_id}
+				AND insurance_payer_id = ${payor_id}
 				${queryString ? sql`AND ${sql.raw(queryString)}` : sql``}
 			GROUP BY 
 				TO_CHAR(service_date, 'Mon YYYY')

@@ -1,6 +1,6 @@
 import { Controller, Get, Param, Res, Query } from '@nestjs/common';
 import { FacilitiesV3Service } from './facilities-v3.service';
-import { SOMETHING_WENT_WRONG, SUCCESSS_FETCHED_FACILITIES_CASES_TYPES_REVENUE, SUCCESSS_FETCHED_FACILITIES_CASES_TYPES_VOLUME, SUCCESS_FETCHED_FACILITIES, SUCCESS_FETCHED_FACILITIES_REVENUE_STATS, SUCCESS_FETCHED_FACILITIES_TRENDS_REVENUE, SUCCESS_FETCHED_FACILITIES_TRENDS_VOLUME, SUCCESS_FETCHED_FACILITIES_VOLUME_STATS, SUCCESS_FETCHED_FACILITY, SUCCESS_FETCHED_FACILITY_CASE_TYPE_VOLUME_AND_REVENUE, SUCCESS_FETCHED_FACILITY_INSURANCE_PAYORS } from 'src/constants/messageConstants';
+import { SOMETHING_WENT_WRONG, SUCCESSS_FETCHED_FACILITIES_CASES_TYPES_REVENUE, SUCCESSS_FETCHED_FACILITIES_CASES_TYPES_VOLUME, SUCCESS_FETCHED_FACILITIES, SUCCESS_FETCHED_FACILITIES_REVENUE_STATS, SUCCESS_FETCHED_FACILITIES_TRENDS_REVENUE, SUCCESS_FETCHED_FACILITIES_TRENDS_VOLUME, SUCCESS_FETCHED_FACILITIES_VOLUME_STATS, SUCCESS_FETCHED_FACILITY, SUCCESS_FETCHED_FACILITY_CASE_TYPES_OVERALL_REVENUE, SUCCESS_FETCHED_FACILITY_CASE_TYPES_OVERALL_VOLUME, SUCCESS_FETCHED_FACILITY_CASE_TYPE_VOLUME_AND_REVENUE, SUCCESS_FETCHED_FACILITY_INSURANCE_PAYORS } from 'src/constants/messageConstants';
 import { FilterHelper } from 'src/helpers/filterHelper';
 
 @Controller({
@@ -63,7 +63,7 @@ export class FacilitiesV3Controller {
 
 
 	@Get(':id/stats-revenue')
-	async getRevenuestats(@Res() res: any, @Param('id') id: number, @Query() query: any) {
+	async getRevenueStats(@Res() res: any, @Param('id') id: number, @Query() query: any) {
 		try {
 
 			const queryString = await this.filterHelper.facilitiesDateFilter(query);
@@ -111,26 +111,51 @@ export class FacilitiesV3Controller {
 	}
 
 
-	@Get(':id/case-types')
-	async getOverAllCaseTypes(@Res() res: any, @Param('id') id: number, @Query() query: any) {
+	@Get(':id/case-types-revenue')
+	async getOverAllCaseTypesRevenue(@Res() res: any, @Param('id') id: number, @Query() query: any) {
 		try {
-			const queryString = await this.filterHelper.facilitiesDateFilter(query);
 
-			const data = await this.facilitiesV3Service.getOverAllCaseTypes(id, queryString);
+			const queryString = this.filterHelper.salesRep(query);
+
+			const salesReps = await this.facilitiesV3Service.getOverAllCaseTypesRevenue(id, queryString);
 
 			return res.status(200).json({
 				success: true,
-				message: SUCCESS_FETCHED_FACILITY_CASE_TYPE_VOLUME_AND_REVENUE,
-				data: data
+				message: SUCCESS_FETCHED_FACILITY_CASE_TYPES_OVERALL_REVENUE,
+				data: salesReps
 			});
-
 		}
-		catch (err) {
-			console.log({ err });
+		catch (error) {
+			console.log({ error });
 
 			return res.status(500).json({
 				success: false,
-				message: err.message || SOMETHING_WENT_WRONG
+				message: error || SOMETHING_WENT_WRONG
+			});
+		}
+	}
+
+
+	@Get(':id/case-types-volume')
+	async getOverAllCaseTypesVolume(@Res() res: any, @Param('id') id: number, @Query() query: any) {
+		try {
+
+			const queryString = this.filterHelper.salesRep(query);
+
+			const salesReps = await this.facilitiesV3Service.getOverAllCaseTypesVolume(id, queryString);
+
+			return res.status(200).json({
+				success: true,
+				message: SUCCESS_FETCHED_FACILITY_CASE_TYPES_OVERALL_VOLUME,
+				data: salesReps
+			});
+		}
+		catch (error) {
+			console.log({ error });
+
+			return res.status(500).json({
+				success: false,
+				message: error || SOMETHING_WENT_WRONG
 			});
 		}
 	}
@@ -187,12 +212,12 @@ export class FacilitiesV3Controller {
 
 
 	@Get(':id/insurance-payors')
-	async getInsurancePayers(@Res() res: any, @Param('id') id: number, @Query() query: any) {
+	async getInsurancePayors(@Res() res: any, @Param('id') id: number, @Query() query: any) {
 		try {
 
 			const queryString = this.filterHelper.facilitiesDateFilter(query);
 
-			const data = await this.facilitiesV3Service.getInsurancePayers(id, queryString);
+			const data = await this.facilitiesV3Service.getInsurancePayors(id, queryString);
 
 			return res.status(200).json({
 				success: true,
@@ -217,7 +242,7 @@ export class FacilitiesV3Controller {
 
 			const queryString = this.filterHelper.facilitiesDateFilter(query);
 
-			const data = await this.facilitiesV3Service.getTrendsRevenue(id, queryString);
+			const data = await this.facilitiesV3Service.getRevenueTrends(id, queryString);
 
 			return res.status(200).json({
 				success: true,
@@ -242,7 +267,7 @@ export class FacilitiesV3Controller {
 
 			const queryString = this.filterHelper.facilitiesDateFilter(query);
 
-			const data = await this.facilitiesV3Service.getTrendsVolume(id, queryString);
+			const data = await this.facilitiesV3Service.getVolumeTrends(id, queryString);
 
 			return res.status(200).json({
 				success: true,

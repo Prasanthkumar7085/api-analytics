@@ -5,7 +5,8 @@ import { db } from 'src/seeders/db';
 @Injectable()
 export class InsurancesV3Service {
 
-    async getAllInsurancesData(queryString:string) {
+
+    async getAllInsurancesData(queryString: string) {
 
         // this sql query is used to get the list of insurance payors and calculating the total cases, generated, paid and pending amounts
         // here cast is used to convert data type
@@ -32,6 +33,8 @@ export class InsurancesV3Service {
 
         return data.rows;
     }
+
+
     async getOneInsurancePayorDetails(id: any) {
 
         // this sql query is used to fetch insurance payor name.
@@ -48,7 +51,7 @@ export class InsurancesV3Service {
     }
 
 
-    async getInsurancePayorCaseTypeWiseData(id:any, queryString:string) {
+    async getInsurancePayorCaseTypeWiseData(id: any, queryString: string) {
 
         // this sql query is used to calculate the case type wise revenue data and cases volume data
         let query = sql`
@@ -73,7 +76,7 @@ export class InsurancesV3Service {
                 case_type_id,
                 case_type_name
             ORDER BY
-                case_type_id
+                case_type_name
         `;
 
         // Execute the query
@@ -83,14 +86,14 @@ export class InsurancesV3Service {
     }
 
 
-    async getInsurancePayorRevenueTrends(id:any, queryString:string) {
+    async getInsurancePayorRevenueTrends(id: any, queryString: string) {
 
         // this sql query is used to calculate the month wise revenue of a particular insurance payor
         // here order by is used to show the months in ascending order
         let query = sql`
             SELECT 
                 TO_CHAR(service_date, 'Month YYYY') AS month,
-                CAST(ROUND(SUM(cleared_amount)::NUMERIC, 2) AS FLOAT) AS revenue
+                CAST(ROUND(SUM(cleared_amount)::NUMERIC, 2) AS FLOAT) AS paid_amount
             FROM patient_claims p
             JOIN insurance_payors i 
                 ON p.insurance_payer_id = i.id
@@ -109,13 +112,13 @@ export class InsurancesV3Service {
     }
 
 
-    async getInsurancePayorVolumeTrends(id:any, queryString:string) {
+    async getInsurancePayorVolumeTrends(id: any, queryString: string) {
 
         // this sql query is used to calculate the month wise volume of a particular insurance payor
         let query = sql`
             SELECT 
                 TO_CHAR(service_date, 'Month YYYY') AS month,
-                CAST(COUNT(*) AS INTEGER) AS volume
+                CAST(COUNT(*) AS INTEGER) AS total_cases
             FROM patient_claims p
             JOIN insurance_payors i 
                 ON p.insurance_payer_id = i.id
