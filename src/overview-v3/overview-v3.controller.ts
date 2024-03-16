@@ -1,6 +1,6 @@
 import { Controller, Get, Res, Query } from '@nestjs/common';
 import { OverviewV3Service } from './overview-v3.service';
-import { SOMETHING_WENT_WRONG, SUCCESS_FETCHED_OVERVIEW_REVNUE, SUCCESS_FETCHED_OVERVIEW_STATS_REVENUE, SUCCESS_FETCHED_OVERVIEW_STATS_VOLUME, SUCCES_FETCHED_OVERVIEW_CASE_TYPES } from 'src/constants/messageConstants';
+import { SOMETHING_WENT_WRONG, SUCCESS_FETCHED_OVERVIEW_CASE_TYPES_REVENUE, SUCCESS_FETCHED_OVERVIEW_CASE_TYPES_VOLUME, SUCCESS_FETCHED_OVERVIEW_REVENUE, SUCCESS_FETCHED_OVERVIEW_REVNUE, SUCCESS_FETCHED_OVERVIEW_STATS_REVENUE, SUCCESS_FETCHED_OVERVIEW_STATS_VOLUME, } from 'src/constants/messageConstants';
 import { FilterHelper } from 'src/helpers/filterHelper';
 
 
@@ -12,49 +12,51 @@ export class OverviewV3Controller {
     constructor(
         private readonly overviewV3Service: OverviewV3Service,
         private readonly filterHelper: FilterHelper
-        ) {}
+    ) { }
+
 
     @Get('stats-revenue')
-    async getRevenueStats(@Res() res:any, @Query() query:any){
+    async getRevenueStats(@Res() res: any, @Query() query: any) {
         try {
 
-			// this filter is used to make the string to date filter
-			const queryString = await this.filterHelper.overviewFilter(query);
+            // this filter is used to make the string to date filter
+            const queryString = await this.filterHelper.overviewFilter(query);
 
-			const data = await this.overviewV3Service.getRevenueStats(queryString);
+            const data = await this.overviewV3Service.getRevenueStats(queryString);
 
-			return res.status(200).json({
-				success: true,
-				message: SUCCESS_FETCHED_OVERVIEW_STATS_REVENUE,
-				data: data     
-			});
-        } 
-		catch (error) {
+            return res.status(200).json({
+                success: true,
+                message: SUCCESS_FETCHED_OVERVIEW_STATS_REVENUE,
+                data: data
+            });
+        }
+        catch (error) {
             console.log({ error });
-			
+
             return res.status(500).json({
                 success: false,
                 message: error || SOMETHING_WENT_WRONG
             });
         }
     }
+
 
     @Get('stats-volume')
-    async getVolumeStats(@Res() res:any, @Query() query:any) {
+    async getVolumeStats(@Res() res: any, @Query() query: any) {
         try {
 
-			// this filter is used to make the string to date filter
-			const queryString = await this.filterHelper.overviewFilter(query);
-			
-			const data = await this.overviewV3Service.getVolumeStats(queryString);
-			
-			return res.status(200).json({
-				success: true,
-				message: SUCCESS_FETCHED_OVERVIEW_STATS_VOLUME,
-				data: data
-			});
-        } 
-		catch (error) {
+            // this filter is used to make the string to date filter
+            const queryString = await this.filterHelper.overviewFilter(query);
+
+            const data = await this.overviewV3Service.getVolumeStats(queryString);
+
+            return res.status(200).json({
+                success: true,
+                message: SUCCESS_FETCHED_OVERVIEW_STATS_VOLUME,
+                data: data
+            });
+        }
+        catch (error) {
             console.log({ error });
 
             return res.status(500).json({
@@ -65,23 +67,48 @@ export class OverviewV3Controller {
     }
 
 
-    @Get('case-types')
-    async getOverallCaseTypes(@Res() res:any, @Query() query:any) {
+    @Get('case-types-revenue')
+    async getOverAllCaseTypesRevenue(@Res() res: any, @Query() query: any) {
         try {
 
-			// this filter is used to make the string to date filter
-			const queryString = await this.filterHelper.overviewFilter(query);
+            // this filter is used to make the string to date filter
+            const queryString = await this.filterHelper.overviewFilter(query);
 
-			const data = await this.overviewV3Service.getOverallCaseTypes(queryString);
+            const data = await this.overviewV3Service.getOverAllCaseTypesRevenue(queryString);
 
-			return res.status(200).json({
-				success: true,
-				message: SUCCES_FETCHED_OVERVIEW_CASE_TYPES,
-				data: data
-			});
-
+            return res.status(200).json({
+                success: true,
+                message: SUCCESS_FETCHED_OVERVIEW_CASE_TYPES_REVENUE,
+                data: data
+            });
         }
-		catch (error) {
+        catch (error) {
+            console.log({ error });
+
+            return res.status(500).json({
+                success: false,
+                message: error || SOMETHING_WENT_WRONG
+            });
+        }
+    }
+
+
+    @Get('case-types-volume')
+    async getOverAllCaseTypesVolume(@Res() res: any, @Query() query: any) {
+        try {
+
+            // this filter is used to make the string to date filter
+            const queryString = await this.filterHelper.overviewFilter(query);
+
+            const data = await this.overviewV3Service.getOverAllCaseTypesVolume(queryString);
+
+            return res.status(200).json({
+                success: true,
+                message: SUCCESS_FETCHED_OVERVIEW_CASE_TYPES_VOLUME,
+                data: data
+            });
+        }
+        catch (error) {
             console.log({ error });
 
             return res.status(500).json({
@@ -93,21 +120,21 @@ export class OverviewV3Controller {
 
 
     @Get('revenue')
-    async getOveriviewRevenueData(@Res() res:any, @Query() query:any){
+    async getOverviewRevenueData(@Res() res: any, @Query() query: any) {
         try {
 
-			// this filter is used to make the string to date filter
-			const queryString = await this.filterHelper.overviewFilter(query);
-			
-			const data = await this.overviewV3Service.getOveriviewRevenueData(queryString);
+            // this filter is used to make the string to date filter
+            const queryString = await this.filterHelper.overviewFilter(query);
 
-			return res.status(200).json({
-				success: true,
-				message: SUCCESS_FETCHED_OVERVIEW_REVNUE,
-				data: data 
-	        });
-        } 
-		catch (error) {
+            const data = await this.overviewV3Service.getOverviewRevenueData(queryString);
+
+            return res.status(200).json({
+                success: true,
+                message: SUCCESS_FETCHED_OVERVIEW_REVENUE,
+                data: data
+            });
+        }
+        catch (error) {
             console.log({ error });
 
             return res.status(500).json({

@@ -30,11 +30,11 @@ export class CaseTypesV3Controller {
 		}
 		catch (err) {
 			console.log({ err });
-			
+
 			return res.status(500).json({
 				success: false,
 				message: err || SOMETHING_WENT_WRONG
-			})
+			});
 		}
 	}
 }

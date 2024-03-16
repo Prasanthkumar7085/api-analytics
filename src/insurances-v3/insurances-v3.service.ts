@@ -92,7 +92,7 @@ export class InsurancesV3Service {
         // here order by is used to show the months in ascending order
         let query = sql`
             SELECT 
-                TO_CHAR(service_date, 'Month YYYY') AS month,
+                TO_CHAR(service_date, 'Mon YYYY') AS month,
                 CAST(ROUND(SUM(cleared_amount)::NUMERIC, 2) AS FLOAT) AS paid_amount
             FROM patient_claims p
             JOIN insurance_payors i 
@@ -100,9 +100,9 @@ export class InsurancesV3Service {
             WHERE p.insurance_payer_id = ${id}
             ${queryString ? sql`AND ${sql.raw(queryString)}` : sql``}
             GROUP BY 
-                TO_CHAR(service_date, 'Month YYYY')
+                TO_CHAR(service_date, 'Mon YYYY')
             ORDER BY
-                TO_DATE(TO_CHAR(service_date, 'Month YYYY'), 'Month YYYY')
+                TO_DATE(TO_CHAR(service_date, 'Mon YYYY'), 'Mon YYYY')
         `;
 
         // Execute the query
@@ -117,7 +117,7 @@ export class InsurancesV3Service {
         // this sql query is used to calculate the month wise volume of a particular insurance payor
         let query = sql`
             SELECT 
-                TO_CHAR(service_date, 'Month YYYY') AS month,
+                TO_CHAR(service_date, 'Mon YYYY') AS month,
                 CAST(COUNT(*) AS INTEGER) AS total_cases
             FROM patient_claims p
             JOIN insurance_payors i 
@@ -125,9 +125,9 @@ export class InsurancesV3Service {
             WHERE p.insurance_payer_id = ${id}
             ${queryString ? sql`AND ${sql.raw(queryString)}` : sql``}
             GROUP BY 
-                TO_CHAR(service_date, 'Month YYYY')
+                TO_CHAR(service_date, 'Mon YYYY')
             ORDER BY
-                TO_DATE(TO_CHAR(service_date, 'Month YYYY'), 'Month YYYY')
+                TO_DATE(TO_CHAR(service_date, 'Mon YYYY'), 'Mon YYYY')
         `;
 
         // Execute the query

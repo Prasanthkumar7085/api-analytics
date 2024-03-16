@@ -19,7 +19,6 @@ export class OverviewV3Service {
             ${queryString ? sql`WHERE ${sql.raw(queryString)}` : sql``}
         `;
 
-        // to execute the query
         const data = await db.execute(query);
 
         return data.rows;
@@ -38,55 +37,80 @@ export class OverviewV3Service {
             ${queryString ? sql`WHERE ${sql.raw(queryString)}` : sql``}
         `;
 
-        // Execute the query
         const data = await db.execute(query);
 
         return data.rows;
     }
 
 
-    async getOverallCaseTypes(queryString: string) {
+    async getOverAllCaseTypesRevenue(queryString: string) {
 
-        // this sql query is used to calculate the case type wise total cases and total revenue
         let query = sql`
             SELECT 
-                case_type_id,
+                c.id AS case_type_id,
                 UPPER(c.name) AS case_type_name,
-                CAST(ROUND(SUM(cleared_amount)::NUMERIC, 2) AS FLOAT) AS paid_amount,
-                CAST(COUNT(*) AS INTEGER) AS total_cases
+                CAST(ROUND(SUM(p.billable_amount)::NUMERIC, 2) AS FLOAT) AS generated_amount,
+				CAST(ROUND(SUM(p.cleared_amount)::NUMERIC, 2) AS FLOAT) AS paid_amount,
+				CAST(ROUND(SUM(p.pending_amount)::NUMERIC, 2) AS FLOAT) AS pending_amount
             FROM patient_claims p
             JOIN case_types c 
                 ON p.case_type_id = c.id
             ${queryString ? sql`WHERE ${sql.raw(queryString)}` : sql``}
             GROUP BY 
-                p.case_type_id, 
+                c.id, 
                 UPPER(c.name)
+            ORDER BY
+                case_type_name
         `;
 
-        // Execute the query
         const data = await db.execute(query);
 
         return data.rows;
     }
 
 
-    async getOveriviewRevenueData(queryString: string) {
+    async getOverAllCaseTypesVolume(queryString: string) {
+
+        let query = sql`
+            SELECT 
+                c.id AS case_type_id,
+                UPPER(c.name) AS case_type_name,
+                CAST(COUNT(*) AS INTEGER) AS total_cases,
+				CAST(COUNT(*) FILTER(WHERE p.is_bill_cleared = TRUE) AS INTEGER) AS completed_cases,
+				CAST(COUNT(*) FILTER (WHERE p.is_bill_cleared = FALSE) AS INTEGER) AS pending_cases
+            FROM patient_claims p
+            JOIN case_types c 
+                ON p.case_type_id = c.id
+            ${queryString ? sql`WHERE ${sql.raw(queryString)}` : sql``}
+            GROUP BY 
+                c.id, 
+                UPPER(c.name)
+            ORDER BY
+                case_type_name
+        `;
+
+        const data = await db.execute(query);
+
+        return data.rows;
+    }
+
+
+    async getOverviewRevenueData(queryString: string) {
 
         // this sql query is used to calculate the overall revenue generated and paid amount
         let query = sql`
             SELECT 
-                TO_CHAR(service_date, 'Month YYYY') AS month,
+                TO_CHAR(service_date, 'Mon YYYY') AS month,
                 CAST(ROUND(SUM(billable_amount)::NUMERIC, 2) AS FLOAT) AS generated_amount,
                 CAST(ROUND(SUM(cleared_amount)::NUMERIC, 2) AS FLOAT) AS paid_amount
             FROM patient_claims
             ${queryString ? sql`WHERE ${sql.raw(queryString)}` : sql``}
             GROUP BY 
-                TO_CHAR(service_date, 'Month YYYY')
+                TO_CHAR(service_date, 'Mon YYYY')
             ORDER BY 
-                TO_DATE(TO_CHAR(service_date, 'Month YYYY'), 'Month YYYY')
+                TO_DATE(TO_CHAR(service_date, 'Mon YYYY'), 'Mon YYYY')
         `;
 
-        // Execute the query
         const data = await db.execute(query);
 
         return data.rows;
