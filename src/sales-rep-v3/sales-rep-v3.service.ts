@@ -180,6 +180,7 @@ export class SalesRepServiceV3 {
 
 		let statement = sql`
 			SELECT 
+				ip.id,
 				ip.name AS insurance_name,
 				CAST(ROUND(SUM(p.billable_amount)::NUMERIC, 2) AS FLOAT) AS generated_amount,
 				CAST(ROUND(SUM(p.cleared_amount)::NUMERIC, 2) AS FLOAT) AS paid_amount,
@@ -190,9 +191,10 @@ export class SalesRepServiceV3 {
             WHERE p.sales_rep_id = ${id}
             ${queryString ? sql`AND ${sql.raw(queryString)}` : sql``}
             GROUP BY 
+                ip.id,
                 insurance_name
             ORDER BY
-                insurance_name
+				insurance_name
         `;
 
 		const data = await db.execute(statement);
@@ -289,6 +291,30 @@ export class SalesRepServiceV3 {
             FROM patient_claims
 			${queryString ? sql`WHERE ${sql.raw(queryString)}` : sql``}
 		`;
+
+		const data = await db.execute(query);
+
+		return data.rows;
+	}
+
+
+	async getOneInsuranceRevenue(sr_id: number, in_id: number, queryString: string) {
+
+		let query = sql`
+			SELECT 
+				TO_CHAR(service_date, 'Mon YYYY') AS month,
+				CAST(ROUND(SUM(cleared_amount)::NUMERIC, 2) AS FLOAT) AS revenue
+			FROM 
+				patient_claims
+			WHERE 
+				sales_rep_id = ${sr_id} 
+				AND insurance_payer_id = ${in_id}
+				${queryString ? sql`AND ${sql.raw(queryString)}` : sql``}
+			GROUP BY 
+				TO_CHAR(service_date, 'Mon YYYY')
+			ORDER BY 
+				TO_DATE(TO_CHAR(service_date, 'Mon YYYY'), 'Mon YYYY');
+		 `;
 
 		const data = await db.execute(query);
 

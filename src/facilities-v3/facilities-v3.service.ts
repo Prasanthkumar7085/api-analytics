@@ -12,6 +12,7 @@ export class FacilitiesV3Service {
 		//this query aggregates the revenue_data and total cases for a facility
 		let statement = sql`
             SELECT
+                f.id,
                 f.name AS facility_name,
                 sr.name AS sales_rep,
                 CAST(ROUND(SUM(p.billable_amount)::NUMERIC, 2) AS FLOAT) AS generated_amount,
@@ -25,6 +26,7 @@ export class FacilitiesV3Service {
                 ON p.sales_rep_id = sr.id
             ${queryString ? sql`WHERE ${sql.raw(queryString)}` : sql``}
             GROUP BY
+                f.id,
 				facility_name,
                 sales_rep
             ORDER BY
