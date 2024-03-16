@@ -12,6 +12,7 @@ export class FacilitiesV3Service {
 		//this query aggregates the revenue_data and total cases for a facility
 		let statement = sql`
             SELECT
+                f.id,
                 f.name AS facility_name,
                 sr.name AS sales_rep,
                 CAST(ROUND(SUM(p.billable_amount)::NUMERIC, 2) AS FLOAT) AS generated_amount,
@@ -25,6 +26,7 @@ export class FacilitiesV3Service {
                 ON p.sales_rep_id = sr.id
             ${queryString ? sql`WHERE ${sql.raw(queryString)}` : sql``}
             GROUP BY
+                f.id,
 				facility_name,
                 sales_rep
             ORDER BY
@@ -105,7 +107,7 @@ export class FacilitiesV3Service {
             SELECT 
                 p.case_type_id,
                 UPPER(c.name) AS case_type_name,
-                CAST(ROUND(SUM(cleared_amount)::NUMERIC, 2) AS FLOAT) AS revenue,
+                CAST(ROUND(SUM(cleared_amount)::NUMERIC, 2) AS FLOAT) AS paid_amount,
                 CAST(COUNT(*) AS INTEGER) AS volume
             FROM patient_claims p
             JOIN case_types c 
@@ -132,7 +134,7 @@ export class FacilitiesV3Service {
                 p.case_type_id,
                 UPPER(c.name) AS case_type_name,
                 TO_CHAR(p.service_date, 'Mon YYYY') AS month,
-                CAST(ROUND(SUM(p.cleared_amount)::NUMERIC, 2) AS FLOAT) AS revenue
+                CAST(ROUND(SUM(p.cleared_amount)::NUMERIC, 2) AS FLOAT) AS paid_amount
             FROM patient_claims p
             JOIN case_types c 
                 ON p.case_type_id = c.id
