@@ -40,7 +40,7 @@ export class FacilitiesV3Controller {
 
 
 	@Get(':id')
-	async getFacilityDetails(@Res() res: any, @Param('id') id: any) {
+	async getFacilityDetails(@Res() res: any, @Param('id') id: number) {
 		try {
 
 			const data = await this.facilitiesV3Service.getFacilityDetails(id);
@@ -63,7 +63,7 @@ export class FacilitiesV3Controller {
 
 
 	@Get(':id/stats-revenue')
-	async getRevenuestats(@Res() res: any, @Param('id') id: any, @Query() query: any) {
+	async getRevenuestats(@Res() res: any, @Param('id') id: number, @Query() query: any) {
 		try {
 
 			const queryString = await this.filterHelper.facilitiesDateFilter(query);
@@ -88,7 +88,7 @@ export class FacilitiesV3Controller {
 
 
 	@Get(':id/stats-volume')
-	async getVolumeStats(@Res() res: any, @Param('id') id: any, @Query() query: any) {
+	async getVolumeStats(@Res() res: any, @Param('id') id: number, @Query() query: any) {
 		try {
 			const queryString = this.filterHelper.facilitiesDateFilter(query);
 
@@ -112,7 +112,7 @@ export class FacilitiesV3Controller {
 
 
 	@Get(':id/case-types')
-	async getOverAllCaseTypes(@Res() res: any, @Param('id') id: any, @Query() query: any) {
+	async getOverAllCaseTypes(@Res() res: any, @Param('id') id: number, @Query() query: any) {
 		try {
 			const queryString = await this.filterHelper.facilitiesDateFilter(query);
 
@@ -137,7 +137,7 @@ export class FacilitiesV3Controller {
 
 
 	@Get(':id/case-types/revenue')
-	async getCaseTypesRevenue(@Res() res: any, @Param('id') id: any, @Query() query: any) {
+	async getCaseTypesRevenue(@Res() res: any, @Param('id') id: number, @Query() query: any) {
 		try {
 
 			const queryString = this.filterHelper.facilitiesDateFilter(query);
@@ -162,7 +162,7 @@ export class FacilitiesV3Controller {
 
 
 	@Get(':id/case-types/volume')
-	async getCaseTypesVolume(@Res() res: any, @Param('id') id: any, @Query() query: any) {
+	async getCaseTypesVolume(@Res() res: any, @Param('id') id: number, @Query() query: any) {
 		try {
 
 			const queryString = this.filterHelper.facilitiesDateFilter(query);
@@ -187,7 +187,7 @@ export class FacilitiesV3Controller {
 
 
 	@Get(':id/insurance-payors')
-	async getInsurancePayers(@Res() res: any, @Param('id') id: any, @Query() query: any) {
+	async getInsurancePayers(@Res() res: any, @Param('id') id: number, @Query() query: any) {
 		try {
 
 			const queryString = this.filterHelper.facilitiesDateFilter(query);
@@ -212,7 +212,7 @@ export class FacilitiesV3Controller {
 
 
 	@Get(':id/trends/revenue')
-	async getRevenueTrends(@Res() res: any, @Param('id') id: any, @Query() query: any) {
+	async getRevenueTrends(@Res() res: any, @Param('id') id: number, @Query() query: any) {
 		try {
 
 			const queryString = this.filterHelper.facilitiesDateFilter(query);
@@ -237,7 +237,7 @@ export class FacilitiesV3Controller {
 
 
 	@Get(':id/trends/volume')
-	async getVolumeTrends(@Res() res: any, @Param('id') id: any, @Query() query: any) {
+	async getVolumeTrends(@Res() res: any, @Param('id') id: number, @Query() query: any) {
 		try {
 
 			const queryString = this.filterHelper.facilitiesDateFilter(query);

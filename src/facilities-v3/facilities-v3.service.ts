@@ -107,7 +107,7 @@ export class FacilitiesV3Service {
             SELECT 
                 p.case_type_id,
                 UPPER(c.name) AS case_type_name,
-                CAST(ROUND(SUM(cleared_amount)::NUMERIC, 2) AS FLOAT) AS revenue,
+                CAST(ROUND(SUM(cleared_amount)::NUMERIC, 2) AS FLOAT) AS paid_amount,
                 CAST(COUNT(*) AS INTEGER) AS volume
             FROM patient_claims p
             JOIN case_types c 
@@ -134,7 +134,7 @@ export class FacilitiesV3Service {
                 p.case_type_id,
                 UPPER(c.name) AS case_type_name,
                 TO_CHAR(p.service_date, 'Mon YYYY') AS month,
-                CAST(ROUND(SUM(p.cleared_amount)::NUMERIC, 2) AS FLOAT) AS revenue
+                CAST(ROUND(SUM(p.cleared_amount)::NUMERIC, 2) AS FLOAT) AS paid_amount
             FROM patient_claims p
             JOIN case_types c 
                 ON p.case_type_id = c.id

@@ -109,6 +109,7 @@ export class SalesRepServiceV3 {
 				p.case_type_id, 
 				UPPER(c.name)
 			ORDER BY
+				case_type_name,
 				p.case_type_id
         `;
 
@@ -126,7 +127,7 @@ export class SalesRepServiceV3 {
                 p.case_type_id,
                 UPPER(c.name) AS case_type_name,
                 TO_CHAR(p.service_date, 'Mon YYYY') AS month,
-                CAST(ROUND(SUM(p.cleared_amount)::NUMERIC, 2) AS FLOAT) AS revenue
+                CAST(ROUND(SUM(p.cleared_amount)::NUMERIC, 2) AS FLOAT) AS paid_amount
             FROM patient_claims p
             JOIN case_types c 
                 ON p.case_type_id = c.id

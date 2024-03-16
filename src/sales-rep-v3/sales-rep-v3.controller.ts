@@ -68,7 +68,7 @@ export class SalesRepControllerV3 {
 
 
 	@Get(':id')
-	async getOne(@Param('id') id: any, @Res() res: any) {
+	async getOne(@Param('id') id: number, @Res() res: any) {
 		try {
 
 			const data = await this.salesRepService.getOne(id);
@@ -91,7 +91,7 @@ export class SalesRepControllerV3 {
 
 
 	@Get(':id/stats-revenue')
-	async getRevenueStats(@Res() res: any, @Param('id') id: any, @Query() query: any) {
+	async getRevenueStats(@Res() res: any, @Param('id') id: number, @Query() query: any) {
 		try {
 
 			const queryString = await this.filterHelper.salesRep(query);
@@ -116,7 +116,7 @@ export class SalesRepControllerV3 {
 
 
 	@Get(':id/stats-volume')
-	async getVolumeStats(@Res() res: any, @Param('id') id: any, @Query() query: any) {
+	async getVolumeStats(@Res() res: any, @Param('id') id: number, @Query() query: any) {
 		try {
 
 			const queryString = this.filterHelper.salesRep(query);
@@ -141,7 +141,7 @@ export class SalesRepControllerV3 {
 
 
 	@Get(':id/case-types')
-	async getOverallCaseTypes(@Res() res: any, @Param('id') id: any, @Query() query: any) {
+	async getOverallCaseTypes(@Res() res: any, @Param('id') id: number, @Query() query: any) {
 		try {
 
 			const queryString = this.filterHelper.salesRep(query);
@@ -166,7 +166,7 @@ export class SalesRepControllerV3 {
 
 
 	@Get(':id/case-types/revenue')
-	async getCaseTypesRevenue(@Res() res: any, @Param('id') id: any, @Query() query: any) {
+	async getCaseTypesRevenue(@Res() res: any, @Param('id') id: number, @Query() query: any) {
 		try {
 
 			const queryString = this.filterHelper.salesRep(query);
@@ -192,7 +192,7 @@ export class SalesRepControllerV3 {
 
 
 	@Get(':id/case-types/volume')
-	async getCaseTypesVolume(@Res() res: any, @Param('id') id: any, @Query() query: any) {
+	async getCaseTypesVolume(@Res() res: any, @Param('id') id: number, @Query() query: any) {
 		try {
 
 			const queryString = this.filterHelper.salesRep(query);
@@ -217,7 +217,7 @@ export class SalesRepControllerV3 {
 
 
 	@Get(':id/insurance-payors')
-	async getInsurancePayers(@Res() res: any, @Param('id') id: any, @Query() query: any) {
+	async getInsurancePayers(@Res() res: any, @Param('id') id: number, @Query() query: any) {
 		try {
 
 			const queryString = this.filterHelper.salesRep(query);
@@ -242,7 +242,7 @@ export class SalesRepControllerV3 {
 
 
 	@Get(':id/facilities')
-	async getFacility(@Res() res: any, @Param('id') id: any, @Query() query: any) {
+	async getFacility(@Res() res: any, @Param('id') id: number, @Query() query: any) {
 		try {
 
 			const queryString = this.filterHelper.salesRep(query);
@@ -267,7 +267,7 @@ export class SalesRepControllerV3 {
 
 
 	@Get(':id/trends/revenue')
-	async getRevenueTrends(@Res() res: any, @Param('id') id: any, @Query() query: any) {
+	async getRevenueTrends(@Res() res: any, @Param('id') id: number, @Query() query: any) {
 		try {
 
 			const queryString = this.filterHelper.salesRep(query);
@@ -292,7 +292,7 @@ export class SalesRepControllerV3 {
 
 
 	@Get(':id/trends/volume')
-	async getVolumeTrends(@Res() res: any, @Param('id') id: any, @Query() query: any) {
+	async getVolumeTrends(@Res() res: any, @Param('id') id: number, @Query() query: any) {
 		try {
 
 			const queryString = this.filterHelper.salesRep(query);
@@ -352,7 +352,7 @@ export class SalesRepControllerV3 {
 				success: true,
 				message: SUCCESS_FETCHED_SALES_REP_INSURANCE_PAYORS_MONTH_WISE_DATA,
 				data: data
-			})
+			});
 		}
 		catch (error) {
 			console.log({ error });
