@@ -279,4 +279,31 @@ export class FacilitiesV3Service {
         return data.rows;
     }
 
+
+    async getOneInsuranceRevenueGraph(facility_id:number, payor_id:number, queryString:string) {
+
+        // this sql query is used to calculate the month wise revenue data of a particular insurance payor
+        let query = sql`
+            SELECT
+                i.name AS insurance_payor_name,
+                TO_CHAR(p.service_date, 'Mon YYYY') AS month,
+                CAST(ROUND(SUM(p.cleared_amount)::NUMERIC, 2) AS FLOAT) AS paid_amount
+            FROM
+                patient_claims p
+            JOIN insurance_payors i
+                ON p.insurance_payer_id = i.id
+            WHERE facility_id = ${facility_id} AND insurance_payer_id = ${payor_id}
+            ${queryString ? sql`AND ${sql.raw(queryString)}` : sql``}
+            GROUP BY
+                i.id,
+                i.name,
+                month
+            ORDER BY
+                TO_DATE(TO_CHAR(service_date, 'Mon YYYY'), 'Mon YYYY')
+        `;
+
+        const data = await db.execute(query);
+
+        return data.rows;
+    }
 }
