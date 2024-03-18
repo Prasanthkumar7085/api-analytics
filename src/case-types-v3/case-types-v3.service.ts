@@ -38,6 +38,7 @@ export class CaseTypesV3Service {
 
     async getCaseTypesMonthWiseData(id: number, queryString: string) {
 
+        //this query is used to aggregates case-types month wise revenue
         let statement = sql`
             SELECT
                 c.id AS case_type_id,
