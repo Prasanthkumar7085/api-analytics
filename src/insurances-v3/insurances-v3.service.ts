@@ -15,12 +15,12 @@ export class InsurancesV3Service {
             SELECT 
                 i.id AS insurance_payor_id,
                 i.name as insurance_payor_name,
-                CAST(COUNT(DISTINCT facility_id) AS INTEGER) AS no_of_facilities,
+                CAST(COUNT(DISTINCT p.facility_id) AS INTEGER) AS no_of_facilities,
                 CAST(COUNT(*) AS INTEGER) AS total_cases,
-                CAST(ROUND(SUM(billable_amount)::NUMERIC, 2) AS FLOAT) AS generated_ammount,
+                CAST(ROUND(SUM(billable_amount)::NUMERIC, 2) AS FLOAT) AS generated_amount,
                 CAST(ROUND(SUM(cleared_amount)::NUMERIC, 2) AS FLOAT) AS paid_amount,
                 CAST(ROUND(SUM(pending_amount)::NUMERIC, 2) AS FLOAT) AS pending_amount
-            FROM patient_claims AS p
+            FROM patient_claims p
             JOIN insurance_payors i 
                 ON p.insurance_payer_id = i.id
             ${queryString ? sql`WHERE ${sql.raw(queryString)}` : sql``}

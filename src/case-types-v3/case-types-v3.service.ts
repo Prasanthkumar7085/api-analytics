@@ -16,7 +16,7 @@ export class CaseTypesV3Service {
                 UPPER(c.name) AS case_type_name,
                 CAST(COUNT(*) AS INTEGER) AS total_cases,
                 CAST(COUNT(DISTINCT(p.facility_id)) AS INTEGER) AS no_of_facilities,
-                CAST(ROUND(SUM(p.billable_amount):: NUMERIC, 2) AS FLOAT) AS genereated_amount,
+                CAST(ROUND(SUM(p.billable_amount):: NUMERIC, 2) AS FLOAT) AS generated_amount,
                 CAST(ROUND(SUM(p.cleared_amount):: NUMERIC, 2) AS FLOAT) AS paid_amount,
                 CAST(ROUND(SUM(p.pending_amount):: NUMERIC, 2) AS FLOAT) AS pending_amount
             FROM patient_claims p
