@@ -34,4 +34,31 @@ export class CaseTypesV3Service {
 
         return data.rows;
     }
+
+
+    async getCaseTypesMonthWiseData(id: number, queryString: string) {
+
+        let statement = sql`
+            SELECT
+                c.id AS case_type_id,
+                c.name AS case_type_name,
+                TO_CHAR(p.service_date, 'Mon YYYY') AS month,
+                CAST(ROUND(SUM(p.cleared_amount)::NUMERIC, 2) AS FLOAT) AS paid_amount
+            FROM patient_claims p
+            JOIN case_types c
+                ON p.case_type_id = c.id
+            WHERE p.case_type_id = ${id}
+            ${queryString ? sql`AND ${sql.raw(queryString)}` : sql``}
+            GROUP BY
+                TO_CHAR(service_date, 'Mon YYYY'),
+                c.id,
+                c.name
+            ORDER BY
+				TO_DATE(TO_CHAR(service_date, 'Mon YYYY'), 'Mon YYYY')
+        `;
+
+        const data = await db.execute(statement);
+
+        return data.rows;
+    }
 }

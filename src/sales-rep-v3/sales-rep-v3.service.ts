@@ -325,23 +325,30 @@ export class SalesRepServiceV3 {
 	}
 
 
-	async getOneInsuranceRevenue(sr_id: number, payor_id: number, queryString: string) {
+	async getOneInsuranceRevenue(srId: number, payorId: number, queryString: string) {
 
 		let query = sql`
 			SELECT 
-				TO_CHAR(service_date, 'Mon YYYY') AS month,
-				CAST(ROUND(SUM(cleared_amount)::NUMERIC, 2) AS FLOAT) AS paid_amount
+				i.id AS insurance_id,
+				i.name AS insurance_name,
+				TO_CHAR(p.service_date, 'Mon YYYY') AS month,
+				CAST(ROUND(SUM(p.cleared_amount)::NUMERIC, 2) AS FLOAT) AS paid_amount
 			FROM 
-				patient_claims
+				patient_claims p
+			JOIN 
+				insurance_payors i
+					ON p.insurance_payer_id = i.id
 			WHERE 
-				sales_rep_id = ${sr_id} 
-				AND insurance_payer_id = ${payor_id}
+				p.sales_rep_id = ${srId} 
+				AND p.insurance_payer_id = ${payorId}
 				${queryString ? sql`AND ${sql.raw(queryString)}` : sql``}
 			GROUP BY 
-				TO_CHAR(service_date, 'Mon YYYY')
+				TO_CHAR(service_date, 'Mon YYYY'),
+				i.id,
+				i.name
 			ORDER BY 
-				TO_DATE(TO_CHAR(service_date, 'Mon YYYY'), 'Mon YYYY');
-		 `;
+				TO_DATE(TO_CHAR(service_date, 'Mon YYYY'), 'Mon YYYY')
+		`;
 
 		const data = await db.execute(query);
 
