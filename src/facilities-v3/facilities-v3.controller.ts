@@ -161,7 +161,7 @@ export class FacilitiesV3Controller {
 	}
 
 
-	@Get(':id/case-types/revenue')
+	@Get(':id/case-types/months/revenue')
 	async getCaseTypesRevenue(@Res() res: any, @Param('id') id: number, @Query() query: any) {
 		try {
 
@@ -186,7 +186,7 @@ export class FacilitiesV3Controller {
 	}
 
 
-	@Get(':id/case-types/volume')
+	@Get(':id/case-types/month/volume')
 	async getCaseTypesVolume(@Res() res: any, @Param('id') id: number, @Query() query: any) {
 		try {
 
