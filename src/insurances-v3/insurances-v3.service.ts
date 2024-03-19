@@ -8,30 +8,29 @@ export class InsurancesV3Service {
 
     async getAllInsurancesData(queryString: string) {
 
-        // this sql query is used to get the list of insurance payors and calculating the total cases, generated, paid and pending amounts
-        // here cast is used to convert data type
-        // here round used to round the generated amount decial values to 2 decimal places
+        //This SQL query retrieves data on insurance payors, including case counts and revenue data, 
+        // from the patient_claims table, grouped by insurance payor, and ordered by name.
+        // here cast is used to convert data type and  here round used to round the generated amount decimal values to 2 decimal places
         let query = sql`
             SELECT 
-                i.id AS insurance_payor_id,
+                p.insurance_payer_id AS insurance_payor_id,
                 i.name as insurance_payor_name,
                 CAST(COUNT(DISTINCT p.facility_id) AS INTEGER) AS no_of_facilities,
                 CAST(COUNT(*) AS INTEGER) AS total_cases,
-                CAST(ROUND(SUM(billable_amount)::NUMERIC, 2) AS FLOAT) AS generated_amount,
-                CAST(ROUND(SUM(cleared_amount)::NUMERIC, 2) AS FLOAT) AS paid_amount,
-                CAST(ROUND(SUM(pending_amount)::NUMERIC, 2) AS FLOAT) AS pending_amount
+                CAST(ROUND(SUM(p.billable_amount)::NUMERIC, 2) AS FLOAT) AS generated_amount,
+                CAST(ROUND(SUM(p.cleared_amount)::NUMERIC, 2) AS FLOAT) AS paid_amount,
+                CAST(ROUND(SUM(p.pending_amount)::NUMERIC, 2) AS FLOAT) AS pending_amount
             FROM patient_claims p
             JOIN insurance_payors i 
                 ON p.insurance_payer_id = i.id
             ${queryString ? sql`WHERE ${sql.raw(queryString)}` : sql``}
             GROUP BY 
-                i.id, 
+                p.insurance_payer_id, 
                 i.name
             ORDER BY
-                insurance_payor_name
+                i.name
         `;
 
-        // Execute the query
         const data = await db.execute(query);
 
         return data.rows;
@@ -56,18 +55,18 @@ export class InsurancesV3Service {
 
     async getInsurancePayorCaseTypeWiseData(id: any, queryString: string) {
 
-        // this sql query is used to calculate the case type wise revenue data and cases volume data
+        // this sql query is used to calculate the case type wise revenue data and total no.of cases
         let query = sql`
             SELECT 
-                case_type_id,
+                p.case_type_id,
                 UPPER(c.name) AS case_type_name,
                 CAST(COUNT(*) AS INTEGER) AS total_cases,
                 CAST(COUNT(*) FILTER (WHERE is_bill_cleared = TRUE) AS INTEGER) AS completed_cases,
-                CAST(ROUND(SUM(expected_amount)::NUMERIC, 2) AS FLOAT) AS expected_amount,
-                CAST(ROUND(SUM(billable_amount)::NUMERIC, 2) AS FLOAT) AS generated_amount,
-                CAST(ROUND(SUM(cleared_amount)::NUMERIC, 2) AS FLOAT) AS paid_amount,
-                CAST(ROUND(SUM(pending_amount)::NUMERIC, 2) AS FLOAT) AS pending_amount,
-                CAST(COUNT(*) FILTER (WHERE is_bill_cleared = FALSE) AS INTEGER) AS pending_cases
+                CAST(ROUND(SUM(p.expected_amount)::NUMERIC, 2) AS FLOAT) AS expected_amount,
+                CAST(ROUND(SUM(p.billable_amount)::NUMERIC, 2) AS FLOAT) AS generated_amount,
+                CAST(ROUND(SUM(p.cleared_amount)::NUMERIC, 2) AS FLOAT) AS paid_amount,
+                CAST(ROUND(SUM(p.pending_amount)::NUMERIC, 2) AS FLOAT) AS pending_amount,
+                CAST(COUNT(*) FILTER (WHERE p.is_bill_cleared = FALSE) AS INTEGER) AS pending_cases
             FROM patient_claims p
             JOIN insurance_payors i 
                 ON p.insurance_payer_id = i.id
@@ -76,13 +75,12 @@ export class InsurancesV3Service {
             WHERE p.insurance_payer_id = ${id}
             ${queryString ? sql`AND ${sql.raw(queryString)}` : sql``}
             GROUP BY 
-                case_type_id,
+                p.case_type_id,
                 case_type_name
             ORDER BY
                 case_type_name
         `;
 
-        // Execute the query
         const data = await db.execute(query);
 
         return data.rows;
@@ -97,10 +95,8 @@ export class InsurancesV3Service {
             SELECT 
                 TO_CHAR(service_date, 'Mon YYYY') AS month,
                 CAST(ROUND(SUM(cleared_amount)::NUMERIC, 2) AS FLOAT) AS paid_amount
-            FROM patient_claims p
-            JOIN insurance_payors i 
-                ON p.insurance_payer_id = i.id
-            WHERE p.insurance_payer_id = ${id}
+            FROM patient_claims 
+            WHERE insurance_payer_id = ${id}
             ${queryString ? sql`AND ${sql.raw(queryString)}` : sql``}
             GROUP BY 
                 TO_CHAR(service_date, 'Mon YYYY')
@@ -108,7 +104,6 @@ export class InsurancesV3Service {
                 TO_DATE(TO_CHAR(service_date, 'Mon YYYY'), 'Mon YYYY')
         `;
 
-        // Execute the query
         const data = await db.execute(query);
 
         return data.rows;
@@ -122,10 +117,8 @@ export class InsurancesV3Service {
             SELECT 
                 TO_CHAR(service_date, 'Mon YYYY') AS month,
                 CAST(COUNT(*) AS INTEGER) AS total_cases
-            FROM patient_claims p
-            JOIN insurance_payors i 
-                ON p.insurance_payer_id = i.id
-            WHERE p.insurance_payer_id = ${id}
+            FROM patient_claims
+            WHERE insurance_payer_id = ${id}
             ${queryString ? sql`AND ${sql.raw(queryString)}` : sql``}
             GROUP BY 
                 TO_CHAR(service_date, 'Mon YYYY')
@@ -133,7 +126,6 @@ export class InsurancesV3Service {
                 TO_DATE(TO_CHAR(service_date, 'Mon YYYY'), 'Mon YYYY')
         `;
 
-        // Execute the query
         const data = await db.execute(query);
 
         return data.rows;

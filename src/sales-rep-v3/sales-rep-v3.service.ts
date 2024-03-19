@@ -39,8 +39,8 @@ export class SalesRepServiceV3 {
 
 	async getOne(id: number) {
 
-		//SELF JOIN
-		let statement = sql`
+		//SELF JOIN on sales-reps reporting_to to id
+		let query = sql`
 			SELECT 
 				sr.name AS sales_rep,
 				m.name AS manager 
@@ -50,7 +50,7 @@ export class SalesRepServiceV3 {
 			WHERE 
 				sr.id = ${id}`;
 
-		const result = await db.execute(statement);
+		const result = await db.execute(query);
 
 		return result.rows;
 	}
@@ -58,7 +58,8 @@ export class SalesRepServiceV3 {
 
 	async getRevenueStats(id: number, queryString: string) {
 
-		let statement = sql`
+		//gets revenue statistics for a single sales rep
+		let query = sql`
             SELECT 
 				CAST(ROUND(SUM(p.billable_amount)::NUMERIC, 2) AS FLOAT) AS generated_amount,
 				CAST(ROUND(SUM(p.cleared_amount)::NUMERIC, 2) AS FLOAT) AS paid_amount,
@@ -69,7 +70,7 @@ export class SalesRepServiceV3 {
 		`;
 
 		// Execute the raw SQL query
-		const data = await db.execute(statement);
+		const data = await db.execute(query);
 
 		return data.rows;
 	}
@@ -77,6 +78,7 @@ export class SalesRepServiceV3 {
 
 	async getVolumeStats(id: number, queryString: string) {
 
+		// This query calculates the total number of cases for a specific sales representative. 
 		let query = sql`
 			SELECT
 				CAST(COUNT(*) AS INTEGER) AS total_cases,
@@ -95,6 +97,7 @@ export class SalesRepServiceV3 {
 
 	async getOverAllCaseTypesRevenue(id: number, queryString: string) {
 
+		//This query calculates the total revenue statistics grouped by case type for a specific sales representative. 
 		let query = sql`
 			SELECT 
 				p.case_type_id,
@@ -122,6 +125,7 @@ export class SalesRepServiceV3 {
 
 	async getOverAllCaseTypesVolume(id: number, queryString: string) {
 
+		// This query calculates the total number of cases grouped by case type for a specific sales representative. 
 		let query = sql`
 			SELECT 
 				p.case_type_id,
@@ -149,6 +153,7 @@ export class SalesRepServiceV3 {
 
 	async getCaseTypesRevenue(id: number, queryString: string) {
 
+		// This query calculates the paid_amount grouped by month and case-type for a specific sales representative.
 		let query = sql`
             SELECT 
                 p.case_type_id,
@@ -178,6 +183,7 @@ export class SalesRepServiceV3 {
 
 	async getCaseTypesVolume(id: number, queryString: string) {
 
+		// This query calculates the total no.of cases, grouped by month and case-type for a specific sales representative.
 		let query = sql`
             SELECT 
                 p.case_type_id,
@@ -206,7 +212,8 @@ export class SalesRepServiceV3 {
 
 	async getInsurancePayers(id: number, queryString: string) {
 
-		let statement = sql`
+		// This query calculates the revenue statistics grouped by insurance for a specific sales representative.
+		let query = sql`
 			SELECT 
 				ip.id AS insurance_id,
 				ip.name AS insurance_name,
@@ -225,13 +232,15 @@ export class SalesRepServiceV3 {
 				insurance_name
         `;
 
-		const data = await db.execute(statement);
+		const data = await db.execute(query);
 
 		return data.rows;
 	}
 
 
 	async getFacility(id: number, queryString: string) {
+
+		// This query calculates the revenue data grouped by insurances for a specific sales representative.
 		let query = sql`
             SELECT 
                 f.id AS facility_id,
@@ -260,6 +269,7 @@ export class SalesRepServiceV3 {
 
 	async getRevenueTrends(id: number, queryString: string) {
 
+		// This query calculates the paid_amount grouped by month for a specific sales representative.
 		let query = sql`
             SELECT 
                 TO_CHAR(service_date, 'Mon YYYY') AS month,
@@ -281,6 +291,7 @@ export class SalesRepServiceV3 {
 
 	async getVolumeTrends(id: number, queryString: string) {
 
+		// This query calculates the total no.of cases grouped by month for a specific sales representative.
 		let query = sql`
 			SELECT 
 				TO_CHAR(service_date, 'Mon YYYY') AS month,
@@ -302,6 +313,7 @@ export class SalesRepServiceV3 {
 
 	async dropTable() {
 
+		// Thisq query deletes the data in patient_claims table in data base.
 		let query = sql`TRUNCATE TABLE patient_claims`;
 
 		const data = await db.execute(query);
@@ -312,6 +324,7 @@ export class SalesRepServiceV3 {
 
 	async getPatientClaimsTotalCount(queryString) {
 
+		// This query calculates and return the total count of patient_claims in the db with data filter.
 		let query = sql`
             SELECT 
                 COUNT(*) AS count 
@@ -327,6 +340,7 @@ export class SalesRepServiceV3 {
 
 	async getOneInsuranceRevenue(srId: number, payorId: number, queryString: string) {
 
+		// This query calculates the paid_amount of a specific insurance payor grouped by month for a specific sales representative.
 		let query = sql`
 			SELECT 
 				i.id AS insurance_id,
