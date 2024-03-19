@@ -9,7 +9,8 @@ export class FacilitiesV3Service {
 
     async getAllFacilities(queryString: string) {
 
-        //this query aggregates the revenue_data and total cases for a facility
+        // This query calculates the revenue_data and total no.of cases of facilities grouped by facility.
+        // along with date filter on service date.
         let statement = sql`
             SELECT
                 f.id AS facility_id,
@@ -45,6 +46,7 @@ export class FacilitiesV3Service {
 
     async getFacilityDetails(id: number) {
 
+        // This query returns the facility_name and asociated sales_rep_name for a specific facility.
         let statement = sql`
             SELECT 
                 f.id AS facility_id,
@@ -65,6 +67,7 @@ export class FacilitiesV3Service {
 
     async getRevenueStats(id: number, queryString: string) {
 
+        // This query calculated revenue data of a specific facility.
         let statement = sql`
             SELECT     
                 CAST(ROUND(SUM(p.billable_amount)::NUMERIC, 2) AS FLOAT) AS generated_amount,
@@ -86,6 +89,7 @@ export class FacilitiesV3Service {
 
     async getVolumeStats(id: number, queryString: string) {
 
+        // This query calculates no.of cases received for a specific facility.
         let statement = sql`
             SELECT
                 CAST(COUNT(*) AS INTEGER) AS total_cases,
@@ -105,6 +109,7 @@ export class FacilitiesV3Service {
 
     async getOverAllCaseTypesRevenue(id: number, queryString: string) {
 
+        // This query calculates the revenue data grouped by case-type of a specific facility.
         let query = sql`
 			SELECT 
 				p.case_type_id,
@@ -132,6 +137,7 @@ export class FacilitiesV3Service {
 
     async getOverAllCaseTypesVolume(id: number, queryString: string) {
 
+        // This query calculates the total no.of cases data grouped by case-type of a specific facility.
         let query = sql`
 			SELECT 
 				p.case_type_id,
@@ -159,6 +165,7 @@ export class FacilitiesV3Service {
 
     async getCaseTypesRevenue(id: number, queryString: string) {
 
+        // This query calculates paid_amount grouped by case-type and month for a specific facility.
         let statement = sql`
             SELECT 
                 p.case_type_id,
@@ -187,6 +194,7 @@ export class FacilitiesV3Service {
 
     async getCaseTypesVolume(id: number, queryString: string) {
 
+        // This query calculates total_cases grouped by case-type and month for a specific facility.
         let statement = sql`
             SELECT
                 p.case_type_id,
@@ -215,6 +223,7 @@ export class FacilitiesV3Service {
 
     async getInsurancePayors(id: number, queryString: string) {
 
+        // This query calculates revenue data grouped by insurance for a specific facility.
         let statement = sql`
             SELECT 
                 ip.name AS insurance_name,
@@ -240,6 +249,7 @@ export class FacilitiesV3Service {
 
     async getRevenueTrends(id: number, queryString: string) {
 
+        // This query calculates the paid_amount grouped by month for a specific facility.
         let statement = sql`
             SELECT 
                 TO_CHAR(service_date, 'Mon YYYY') AS month,
@@ -261,6 +271,7 @@ export class FacilitiesV3Service {
 
     async getVolumeTrends(id: number, queryString: string) {
 
+        // This query calculates the total_cases grouped by month for a specific facility.
         let statement = sql`
             SELECT 
                 TO_CHAR(service_date, 'Mon YYYY') AS month,
