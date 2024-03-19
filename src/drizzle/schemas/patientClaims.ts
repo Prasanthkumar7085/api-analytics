@@ -24,6 +24,7 @@ export const patient_claims = pgTable('patient_claims', {
     insurnaceTargetPrice: doublePrecision('insurnace_target_price').default(0.0),
     patientId: varchar("patient_id", { length: 30 }),
     isPartialPaid: boolean("is_partial_paid").default(false),
+    billingDate: date('billing_date')
 },
     (table: any) => {
         return {
