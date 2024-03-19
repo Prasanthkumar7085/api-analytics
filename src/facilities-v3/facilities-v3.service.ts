@@ -13,7 +13,7 @@ export class FacilitiesV3Service {
         // along with date filter on service date.
         let statement = sql`
             SELECT
-                f.id AS facility_id,
+                p.facility_id AS facility_id,
                 f.name AS facility_name,
                 sr.id AS sales_rep_id,
                 sr.name AS sales_rep_name,
@@ -28,7 +28,7 @@ export class FacilitiesV3Service {
                 ON p.sales_rep_id = sr.id
             ${queryString ? sql`WHERE ${sql.raw(queryString)}` : sql``}
             GROUP BY
-                f.id,
+                p.facility_id,
 				f.name,
                 sr.id,
                 sr.name
@@ -93,8 +93,8 @@ export class FacilitiesV3Service {
         let statement = sql`
             SELECT
                 CAST(COUNT(*) AS INTEGER) AS total_cases,
-                CAST(COUNT(*) FILTER(WHERE is_bill_cleared = TRUE) AS INTEGER) AS completed_cases,
-                CAST(COUNT(*) FILTER (WHERE is_bill_cleared = FALSE) AS INTEGER) AS pending_cases
+                CAST(COUNT(*) FILTER(WHERE reports_finalized = TRUE) AS INTEGER) AS completed_cases,
+                CAST(COUNT(*) FILTER (WHERE reports_finalized = FALSE) AS INTEGER) AS pending_cases
             FROM patient_claims
             WHERE facility_id = ${id}
             ${queryString ? sql`AND ${sql.raw(queryString)}` : sql``};
@@ -143,8 +143,8 @@ export class FacilitiesV3Service {
 				p.case_type_id,
 				UPPER(c.name) AS case_type_name,
 				CAST(COUNT(*) AS INTEGER) AS total_cases,
-				CAST(COUNT(*) FILTER(WHERE is_bill_cleared = TRUE) AS INTEGER) AS completed_cases,
-				CAST(COUNT(*) FILTER (WHERE is_bill_cleared = FALSE) AS INTEGER) AS pending_cases
+				CAST(COUNT(*) FILTER(WHERE p.reports_finalized = TRUE) AS INTEGER) AS completed_cases,
+				CAST(COUNT(*) FILTER (WHERE p.reports_finalized = FALSE) AS INTEGER) AS pending_cases
 			FROM patient_claims p
 			JOIN case_types c
 				ON p.case_type_id = c.id
@@ -246,7 +246,7 @@ export class FacilitiesV3Service {
         return data.rows;
     }
 
-    async getOneInsuranceRevenueMonthWiseData(facilityId: number, payorId: number, queryString:string) {
+    async getOneInsuranceRevenueMonthWiseData(facilityId: number, payorId: number, queryString: string) {
 
         // this sql query is used to calculate the month wise revenue data of a particular insurance payor
         let query = sql`
@@ -254,12 +254,12 @@ export class FacilitiesV3Service {
                 i.name AS insurance_payor_name,
                 TO_CHAR(p.service_date, 'Mon YYYY') AS month,
                 CAST(ROUND(SUM(p.cleared_amount)::NUMERIC, 2) AS FLOAT) AS paid_amount
-            FROM
-                patient_claims p
+            FROM patient_claims p
             JOIN insurance_payors i
                 ON p.insurance_payer_id = i.id
-            WHERE facility_id = ${facilityId} AND insurance_payer_id = ${payorId}
-            ${queryString ? sql`AND ${sql.raw(queryString)}` : sql``}
+            WHERE facility_id = ${facilityId} 
+                AND insurance_payer_id = ${payorId}
+                ${queryString ? sql`AND ${sql.raw(queryString)}` : sql``}
             GROUP BY
                 i.id,
                 i.name,

@@ -82,8 +82,8 @@ export class SalesRepServiceV3 {
 		let query = sql`
 			SELECT
 				CAST(COUNT(*) AS INTEGER) AS total_cases,
-				CAST(COUNT(*) FILTER(WHERE is_bill_cleared = TRUE) AS INTEGER) AS completed_cases,
-				CAST(COUNT(*) FILTER (WHERE is_bill_cleared = FALSE) AS INTEGER) AS pending_cases
+				CAST(COUNT(*) FILTER(WHERE reports_finalized = TRUE) AS INTEGER) AS completed_cases,
+				CAST(COUNT(*) FILTER (WHERE reports_finalized = FALSE) AS INTEGER) AS pending_cases
 			FROM patient_claims
 			WHERE sales_rep_id = ${id}
 			${queryString ? sql`AND ${sql.raw(queryString)}` : sql``};
@@ -131,8 +131,8 @@ export class SalesRepServiceV3 {
 				p.case_type_id,
 				UPPER(c.name) AS case_type_name,
 				CAST(COUNT(*) AS INTEGER) AS total_cases,
-				CAST(COUNT(*) FILTER(WHERE is_bill_cleared = TRUE) AS INTEGER) AS completed_cases,
-				CAST(COUNT(*) FILTER (WHERE is_bill_cleared = FALSE) AS INTEGER) AS pending_cases
+				CAST(COUNT(*) FILTER(WHERE p.reports_finalized = TRUE) AS INTEGER) AS completed_cases,
+				CAST(COUNT(*) FILTER (WHERE p.reports_finalized = FALSE) AS INTEGER) AS pending_cases
 			FROM patient_claims p
 			JOIN case_types c
 				ON p.case_type_id = c.id
@@ -166,11 +166,11 @@ export class SalesRepServiceV3 {
 			WHERE p.sales_rep_id = ${id}
 			${queryString ? sql`AND ${sql.raw(queryString)}` : sql``}
 			GROUP BY
-				TO_CHAR(service_date, 'Mon YYYY'),
+				TO_CHAR(p.service_date, 'Mon YYYY'),
 				p.case_type_id,
 				case_type_name
 			ORDER BY
-				TO_DATE(TO_CHAR(service_date, 'Mon YYYY'), 'Mon YYYY'),
+				TO_DATE(TO_CHAR(p.service_date, 'Mon YYYY'), 'Mon YYYY'),
 				case_type_name
         `;
 
