@@ -186,7 +186,7 @@ export class FacilitiesV3Controller {
 	}
 
 
-	@Get(':id/case-types/month/volume')
+	@Get(':id/case-types/months/volume')
 	async getCaseTypesVolume(@Res() res: any, @Param('id') id: number, @Query() query: any) {
 		try {
 
@@ -231,6 +231,35 @@ export class FacilitiesV3Controller {
 			return res.status(500).json({
 				success: false,
 				message: err.message || SOMETHING_WENT_WRONG
+			});
+		}
+	}
+
+	@Get(':id/insurance-payors/:payor_id')
+	async getOneInsuranceRevenueMonthWiseData(@Param() param: any, @Res() res: any, @Query() query: any) {
+		try {
+
+			const facilityId = param.id;
+
+			const payorId = param.payor_id;
+
+			// here filter is used to make a string for date filter.
+			const queryString = this.filterHelper.facilitiesDateFilter(query);
+
+			const data = await this.facilitiesV3Service.getOneInsuranceRevenueMonthWiseData(facilityId, payorId, queryString)
+
+			return res.status(200).json({
+				success: true,
+				message: SUCCESS_FETCHED_FACILITY_INSURANCE_REVENUE_DATA,
+				data: data
+			});
+		}
+		catch (error) {
+			console.log({ error });
+
+			return res.status(500).json({
+				success: false,
+				message: error || SOMETHING_WENT_WRONG
 			});
 		}
 	}
@@ -284,34 +313,5 @@ export class FacilitiesV3Controller {
 			});
 		}
 	}
-
-	@Get(':id/insurance-payors/:payor_id')
-	async getOneInsuranceRevenueGraph(@Param() param: any, @Res() res: any, @Query() query: any) {
-		try {
-			const facilityId = param.id;
-
-			const payorId = param.payor_id;
-
-			// here filter is used to make a string for date filter.
-			const queryString = this.filterHelper.facilitiesDateFilter(query);
-
-			const data = await this.facilitiesV3Service.getOneInsuranceRevenueGraph(facilityId, payorId, queryString)
-
-			return res.status(200).json({
-				success: true,
-				message: SUCCESS_FETCHED_FACILITY_INSURANCE_REVENUE_DATA,
-				data: data
-			});
-		}
-		catch (error) {
-			console.log({ error });
-
-			return res.status(500).json({
-				success: false,
-				message: error || SOMETHING_WENT_WRONG
-			});
-		}
-	}
-
 }
 
