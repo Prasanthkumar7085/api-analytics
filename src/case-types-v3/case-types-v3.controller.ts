@@ -1,7 +1,7 @@
 import { Controller, Get, Param, Query, Res } from '@nestjs/common';
 import { CaseTypesV3Service } from './case-types-v3.service';
 import { FilterHelper } from 'src/helpers/filterHelper';
-import { SOMETHING_WENT_WRONG, SUCCESS_FETCHED_CASE_TYEPS_MONTH_WISE_REVENUE_DATA, SUCCESS_FETCHED_CASE_TYPES } from 'src/constants/messageConstants';
+import { SOMETHING_WENT_WRONG, SUCCESS_FETCHED_CASE_TYEPS_MONTH_WISE_REVENUE_DATA, SUCCESS_FETCHED_CASE_TYEPS_MONTH_WISE_VOLUME_DATA, SUCCESS_FETCHED_CASE_TYPES } from 'src/constants/messageConstants';
 
 @Controller({
 	version: '3.0',
@@ -39,17 +39,42 @@ export class CaseTypesV3Controller {
 	}
 
 
-	@Get(':id')
-	async getCaseTypesMonthWiseData(@Param('id') id: number, @Res() res: any, @Query() query: any) {
+	@Get('months/revenue')
+	async getCaseTypesMonthWiseData(@Res() res: any, @Query() query: any) {
 		try {
 
 			const queryString = await this.filterHelper.facilitiesDateFilter(query);
 
-			const data = await this.caseTypesV3Service.getCaseTypesMonthWiseData(id, queryString)
+			const data = await this.caseTypesV3Service.getCaseTypesMonthWiseRevenueData(queryString)
 
 			return res.status(200).json({
 				success: true,
 				message: SUCCESS_FETCHED_CASE_TYEPS_MONTH_WISE_REVENUE_DATA,
+				data: data
+			});
+		}
+		catch (error) {
+			console.log({ error });
+
+			return res.status(500).json({
+				success: false,
+				message: error || SOMETHING_WENT_WRONG
+			});
+		}
+	}
+
+
+	@Get('months/volume')
+	async getCaseTypesMonthWiseOverallData(@Res() res: any, @Query() query: any) {
+		try {
+
+			const queryString = await this.filterHelper.facilitiesDateFilter(query);
+
+			const data = await this.caseTypesV3Service.getCaseTypesMonthWiseVolumeData(queryString)
+
+			return res.status(200).json({
+				success: true,
+				message: SUCCESS_FETCHED_CASE_TYEPS_MONTH_WISE_VOLUME_DATA,
 				data: data
 			});
 		}
