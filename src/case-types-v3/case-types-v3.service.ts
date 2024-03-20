@@ -36,26 +36,54 @@ export class CaseTypesV3Service {
     }
 
 
-    async getCaseTypesMonthWiseData(id: number, queryString: string) {
+    async getCaseTypesMonthWiseRevenueData(queryString: string) {
 
-        //this query is used to aggregates case-types month wise revenue
+        //this query is used to calculate revenue data grouped by month and case-type for overall case-types
         let statement = sql`
             SELECT
-                c.id AS case_type_id,
-                c.name AS case_type_name,
+                p.case_type_id AS case_type_id,
+                UPPER(c.name) AS case_type_name,
                 TO_CHAR(p.service_date, 'Mon YYYY') AS month,
                 CAST(ROUND(SUM(p.cleared_amount)::NUMERIC, 2) AS FLOAT) AS paid_amount
             FROM patient_claims p
             JOIN case_types c
                 ON p.case_type_id = c.id
-            WHERE p.case_type_id = ${id}
+            ${queryString ? sql`WHERE ${sql.raw(queryString)}` : sql``}
+            GROUP BY
+                TO_CHAR(service_date, 'Mon YYYY'),
+                p.case_type_id,
+                case_type_name
+            ORDER BY
+				TO_DATE(TO_CHAR(service_date, 'Mon YYYY'), 'Mon YYYY'),
+                case_type_name
+        `;
+
+        const data = await db.execute(statement);
+
+        return data.rows;
+    }
+
+
+    async getCaseTypesMonthWiseVolumeData(queryString: string) {
+
+        //this query is used to calculate total no.of cases grouped by case-types and month for overall case-types
+        let statement = sql`
+            SELECT
+                p.case_type_id AS case_type_id,
+                UPPER(c.name) AS case_type_name,
+                TO_CHAR(p.service_date, 'Mon YYYY') AS month,
+                CAST(COUNT(*) AS INTEGER) AS total_cases
+            FROM patient_claims p
+            JOIN case_types c
+                ON p.case_type_id = c.id
             ${queryString ? sql`AND ${sql.raw(queryString)}` : sql``}
             GROUP BY
                 TO_CHAR(service_date, 'Mon YYYY'),
-                c.id,
-                c.name
+                p.case_type_id,
+                case_type_name
             ORDER BY
-				TO_DATE(TO_CHAR(service_date, 'Mon YYYY'), 'Mon YYYY')
+				TO_DATE(TO_CHAR(service_date, 'Mon YYYY'), 'Mon YYYY'),
+                case_type_name
         `;
 
         const data = await db.execute(statement);
