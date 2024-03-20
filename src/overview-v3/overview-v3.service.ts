@@ -31,8 +31,8 @@ export class OverviewV3Service {
         let query = sql`
             SELECT 
                 CAST(COUNT(*) AS INTEGER) AS total_cases,
-                CAST(COUNT(*) FILTER (WHERE is_bill_cleared = TRUE) AS INTEGER) AS completed_cases,
-                CAST(COUNT(*) FILTER (WHERE is_bill_cleared = FALSE) AS INTEGER) AS pending_cases
+                CAST(COUNT(*) FILTER (WHERE reports_finalized = TRUE) AS INTEGER) AS completed_cases,
+                CAST(COUNT(*) FILTER (WHERE reports_finalized = FALSE) AS INTEGER) AS pending_cases
             FROM patient_claims
             ${queryString ? sql`WHERE ${sql.raw(queryString)}` : sql``}
         `;
@@ -76,8 +76,8 @@ export class OverviewV3Service {
                 c.id AS case_type_id,
                 UPPER(c.name) AS case_type_name,
                 CAST(COUNT(*) AS INTEGER) AS total_cases,
-				CAST(COUNT(*) FILTER(WHERE p.is_bill_cleared = TRUE) AS INTEGER) AS completed_cases,
-				CAST(COUNT(*) FILTER (WHERE p.is_bill_cleared = FALSE) AS INTEGER) AS pending_cases
+				CAST(COUNT(*) FILTER(WHERE p.reports_finalized = TRUE) AS INTEGER) AS completed_cases,
+				CAST(COUNT(*) FILTER (WHERE p.reports_finalized = FALSE) AS INTEGER) AS pending_cases
             FROM patient_claims p
             JOIN case_types c 
                 ON p.case_type_id = c.id
