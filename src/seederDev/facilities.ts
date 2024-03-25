@@ -64,10 +64,10 @@ async function seedFacilitiesData() {
 
         console.log(mappedData);
 
-        // const result = await db.insert(facilities).values(mappedData).returning();
+        const result = await db.insert(facilities).values(mappedData).returning();
 
-        // console.log(result)
-        // console.log(result.length)
+        console.log(result)
+        console.log(result.length)
     }
     catch (error) {
         console.log(error)

@@ -81,15 +81,3 @@ async function getSalesRepsData() {
 // getSalesRepsData();
 
 console.log('End of script.');
-
-
-
-async function deleteSalesReps() {
-
-    const result = await db.execute(sql`DELETE FROM sales_reps`)
-
-    console.log(result)
-}
-
-
-// deleteSalesReps()

@@ -67,12 +67,3 @@ async function seedInsurancePayorsdata() {
 
 
 // seedInsurancePayorsdata()
-
-async function getData() {
-
-    const data = await db.execute(sql`SELECT * FROM insurance_payors`)
-
-    console.log(data)
-}
-
-// getData()
