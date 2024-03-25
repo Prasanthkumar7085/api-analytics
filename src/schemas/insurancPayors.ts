@@ -9,4 +9,4 @@ const InsuranceSchema = new Schema(
     }
 )
 
-export const InsuranceModel = mongoose.model<any>(' ')
+export const InsuranceModel = mongoose.model<any>('Insurance', InsuranceSchema, 'insurance_payors')

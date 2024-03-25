@@ -6,6 +6,8 @@ import { sql } from 'drizzle-orm';
 import { db } from '../seeders/db';
 import { sales_reps } from '../drizzle/schemas/salesReps';
 
+
+
 async function getSalesRepsData() {
     try {
         console.log('Fetching sales reps data...');

@@ -7,8 +7,7 @@ import { ConfigService } from '@nestjs/config';
 
 
 
-
-(async function () {
+async function getFacilitiesData() {
     try {
 
         console.log('start')
@@ -38,25 +37,4 @@ import { ConfigService } from '@nestjs/config';
     catch (err) {
         console.error("Error while connecting to mongoose", err);
     }
-})();
-
-// [
-//     //     { id: 1, name: 'COVID' },
-//     //     { id: 2, name: 'RESPIRATORY_PATHOGEN_PANEL' },
-//     //     { id: 3, name: 'CLINICAL_CHEMISTRY' },
-//     //     { id: 4, name: 'UTI' },
-//     //     { id: 5, name: 'URINALYSIS' },
-//     //     { id: 6, name: 'PGX_TEST' },
-//     //     { id: 7, name: 'WOUND' },
-//     //     { id: 8, name: 'NAIL' },
-//     //     { id: 9, name: 'COVID_FLU' },
-//     //     { id: 10, name: 'CGX_PANEL' },
-//     //     { id: 11, name: 'CARDIAC' },
-//     //     { id: 12, name: 'DIABETES' },
-//     //     { id: 13, name: 'GASTRO' },
-//     //     { id: 14, name: 'PAD_ALZHEIMERS' },
-//     //     { id: 15, name: 'PULMONARY_PANEL' },
-//     //     { id: 16, name: 'GTI_STI' },
-//     //     { id: 17, name: 'GTI_WOMENS_HEALTH' },
-//     //     { id: 18, name: 'TOXICOLOGY' }
-//     //   ]
+}
