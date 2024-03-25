@@ -62,8 +62,8 @@ async function getSalesRepsData() {
         console.log(dataList)
 
         //inserting into database
-        // const result = await db.insert(sales_reps).values(dataList).returning()
-        // console.log(result)
+        const result = await db.insert(sales_reps).values(dataList).returning()
+        console.log(result)
 
         // Disconnect from MongoDB
         await mongoose.disconnect();
@@ -78,7 +78,18 @@ async function getSalesRepsData() {
 }
 
 // Call the function
-getSalesRepsData();
+// getSalesRepsData();
 
 console.log('End of script.');
 
+
+
+async function deleteSalesReps() {
+
+    const result = await db.execute(sql`DELETE FROM sales_reps`)
+
+    console.log(result)
+}
+
+
+// deleteSalesReps()
