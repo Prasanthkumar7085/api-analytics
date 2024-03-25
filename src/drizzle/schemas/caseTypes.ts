@@ -3,5 +3,6 @@ import { integer, serial, text, pgTable, boolean, varchar, doublePrecision, date
 
 export const case_types = pgTable('case_types', {
     id: serial('id').primaryKey(),
-    name: text('name')
+    name: text('name'),
+    displayName: text('display_name')
 });

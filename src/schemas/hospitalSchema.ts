@@ -1,5 +1,5 @@
 import { Schema, model } from "mongoose";
-import { HOSPITAL_STATUS } from "src/constants/lisConstants";
+import { HOSPITAL_STATUS } from "../constants/lisConstants";
 
 
 const reportingSettings = new Schema(

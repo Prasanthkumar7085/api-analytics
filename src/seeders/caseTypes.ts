@@ -1,3 +1,4 @@
+import { sql } from 'drizzle-orm';
 import { case_types } from '../drizzle/schemas/caseTypes'
 import { db } from './db'
 
