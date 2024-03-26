@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { db } from '../seeders/db';
 import { sql } from 'drizzle-orm';
+import { sales_reps } from 'src/drizzle/schemas/salesReps';
 
 
 @Injectable()
@@ -369,4 +370,25 @@ export class SalesRepServiceV3 {
 		return data.rows;
 	}
 
+
+	async seedSalesRepsManager(data){
+
+		if (data.length>0){
+			const insertedData = db.insert(sales_reps).values(data).returning();
+			const updateManagerData = await db.execute(sql`UPDATE sales_reps SET reporting_to = id WHERE reporting_to != id AND role_id = 2;`)
+			return updateManagerData
+		}
+		return []
+
+        
+    }
+
+	// async updateManagersData(){
+	// 	const allIds = await db.select().from(sales_reps)
+	// 	const data = allIds.map(item => item.id)
+	// 	// console.log(data)
+	// 	const updateManagerData = await db.execute(sql`UPDATE sales_reps SET reporting_to = id WHERE reporting_to != id AND role_id = 2;`)
+	// 	console.log(updateManagerData) 
+	// 	return allIds
+	// }
 }
