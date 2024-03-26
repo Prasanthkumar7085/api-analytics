@@ -5,6 +5,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { UserSchema } from 'src/schemas/userSchema';
 import { CaseSchema } from 'src/schemas/caseSchema';
 import { insurancePayorsSchema } from 'src/schemas/insurancPayors';
+import { testPanelsDataSchema } from 'src/schemas/testPanelSchema';
 
 @Module({
   controllers: [LisController],
@@ -13,7 +14,8 @@ import { insurancePayorsSchema } from 'src/schemas/insurancPayors';
     MongooseModule.forFeature([
       { name: 'User', schema: UserSchema },
       { name: 'Case', schema: CaseSchema },
-      { name: 'Insurance_Payors', schema: insurancePayorsSchema }
+      { name: 'Insurance_Payors', schema: insurancePayorsSchema },
+      { name: 'Test_Panels', schema: testPanelsDataSchema },
     ]),
   ]
 })

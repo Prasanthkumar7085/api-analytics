@@ -3,6 +3,7 @@ import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 import { CaseModel } from "src/schemas/caseSchema";
 import { InsurancePayorsModel } from "src/schemas/insurancPayors";
+import { LabTestPanelModel } from "src/schemas/testPanelSchema";
 import { UserModel } from "src/schemas/userSchema";
 
 
@@ -12,7 +13,8 @@ export class LisService {
     constructor(
         @InjectModel('User') private userModel: typeof UserModel,
         @InjectModel('Case') private caseModel: typeof CaseModel,
-        @InjectModel('Insurance_Payors') private insuranceModel: typeof InsurancePayorsModel
+        @InjectModel('Insurance_Payors') private insuranceModel: typeof InsurancePayorsModel,
+        @InjectModel('Test_Panels') private labTestPanelModel: typeof LabTestPanelModel,
     ) { }
 
 
@@ -28,6 +30,7 @@ export class LisService {
         });
     }
 
+
     // Fetch insurance data from lis
     async getInsurancePayors() {
 
@@ -37,19 +40,10 @@ export class LisService {
     }
 
 
-    async insertInsurancePayors() {
+    async getCaseTypes(query: any) {
 
-        const data = {
-            "status": "ACTIVE",
-            "name": "sample insurance name",
-            "payor_electronic_id": "ABCV",
-            "health_insurance_type": "OTHER",
-            "primary_claim_filling_method": "Electronic",
-            "secondary_claim_filling_method": "Electronic",
-            "insurance_verification_code": "0010339",
-        }
-
-        return await this.insuranceModel.create(data)
+        return await this.labTestPanelModel.find(query).select('name code');
     }
+
 }
 

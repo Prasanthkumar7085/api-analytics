@@ -11,6 +11,7 @@ import { StatsHelper } from 'src/helpers/statsHelper';
 import { LisService } from 'src/lis/lis.service';
 import { CaseSchema } from 'src/schemas/caseSchema';
 import { insurancePayorsSchema } from 'src/schemas/insurancPayors';
+import { testPanelsDataSchema } from 'src/schemas/testPanelSchema';
 
 
 @Module({
@@ -21,8 +22,8 @@ import { insurancePayorsSchema } from 'src/schemas/insurancPayors';
     MongooseModule.forFeature([
       { name: 'User', schema: UserSchema },
       { name: 'Case', schema: CaseSchema },
-      { name: 'Insurance_Payors', schema: insurancePayorsSchema }
-
+      { name: 'Insurance_Payors', schema: insurancePayorsSchema },
+      { name: 'Test_Panels', schema: testPanelsDataSchema },
     ]),
   ]
 })

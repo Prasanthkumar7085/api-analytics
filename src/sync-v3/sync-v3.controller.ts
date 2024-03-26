@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Res } from '@nestjs/common';
 import { SyncV3Service } from './sync-v3.service';
 import { LisService } from 'src/lis/lis.service';
-import { SOMETHING_WENT_WRONG, SUCCESS_SYNCED_INSURANCE_PAYORS } from 'src/constants/messageConstants';
+import { SOMETHING_WENT_WRONG, SUCCESS_SYNCED_CASE_TYPES, SUCCESS_SYNCED_INSURANCE_PAYORS } from 'src/constants/messageConstants';
 import { syncHelpers } from 'src/helpers/syncHelper';
 
 @Controller({
@@ -24,7 +24,7 @@ export class SyncV3Controller {
 
       const result = await this.synchelpers.insertNewInsurancePayorsIntoAnalyticsDb(data);
 
-      return res.status(200).json({ success: true, message: SUCCESS_SYNCED_INSURANCE_PAYORS, data: result })
+      return res.status(200).json({ success: true, message: SUCCESS_SYNCED_INSURANCE_PAYORS, data: result });
     }
     catch (err) {
       console.log({ err });
@@ -32,22 +32,37 @@ export class SyncV3Controller {
       return res.status(500).json({
         success: false,
         message: err || SOMETHING_WENT_WRONG
-      })
+      });
     }
 
   }
 
 
-  @Post('insert')
-  async insertInsurancePayor(@Res() res: any) {
+  @Get('case-types')
+  async syncCaseTypes(@Res() res: any) {
     try {
-      const result = await this.lisService.insertInsurancePayors();
+      // const datesObj = this.synchelpers.getFromAndToDates(365);
 
-      return res.status(200).json({ success: true, message: 'success', data: result });
+      const query = {
+        lab: "5fd0f8b70c8b4b71e275a2b7",
+        // created_at: {
+        //   $gte: datesObj.fromDate,
+        //   $lte: datesObj.toDate
+        // }
+      };
+
+      const data = await this.lisService.getCaseTypes(query);
+
+      const result = await this.synchelpers.insertNewCaseTypesIntoAnalyticsDb(data);
+
+      return res.status(200).json({ success: true, message: SUCCESS_SYNCED_CASE_TYPES, data: result });
 
     }
     catch (error) {
-      return res.status(500).json({ success: false, message: error || SOMETHING_WENT_WRONG })
+      console.log({ error });
+
+      return res.status(500).json({ success: false, message: error || SOMETHING_WENT_WRONG });
     }
   }
+
 }

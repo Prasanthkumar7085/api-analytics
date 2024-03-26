@@ -37,7 +37,7 @@ async function getInsurancePayors() {
         return null;
     }
 }
-getInsurancePayors()
+// getInsurancePayors()
 
 async function seedInsurancePayorsdata() {
 
