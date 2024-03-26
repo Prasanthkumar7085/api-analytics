@@ -21,7 +21,7 @@ async function getInsurancePayors() {
         //fetching data from insurance payors lis data
         const data = await InsurancePayorsModel.find().select('_id name')
 
-        console.log(data.length);
+        console.log(data);
 
         // console.log(data[0]);
 
@@ -37,7 +37,7 @@ async function getInsurancePayors() {
         return null;
     }
 }
-
+getInsurancePayors()
 
 async function seedInsurancePayorsdata() {
 

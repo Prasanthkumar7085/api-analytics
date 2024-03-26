@@ -1,6 +1,6 @@
 import { Schema, model } from 'mongoose'
 
-const insurancePayorsSchema = new Schema({
+export const insurancePayorsSchema = new Schema({
     payor_electronic_id: {
         type: String
     },
@@ -25,4 +25,4 @@ const insurancePayorsSchema = new Schema({
     }
 })
 
-export const InsurancePayorsModel = model('InsurancePayors', insurancePayorsSchema, 'insurance_payors')
+export const InsurancePayorsModel = model('Insurance_Payors', insurancePayorsSchema, 'insurance_payors')

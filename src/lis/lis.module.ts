@@ -4,6 +4,7 @@ import { LisController } from './lis.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { UserSchema } from 'src/schemas/userSchema';
 import { CaseSchema } from 'src/schemas/caseSchema';
+import { insurancePayorsSchema } from 'src/schemas/insurancPayors';
 
 @Module({
   controllers: [LisController],
@@ -11,8 +12,9 @@ import { CaseSchema } from 'src/schemas/caseSchema';
   imports: [
     MongooseModule.forFeature([
       { name: 'User', schema: UserSchema },
-      { name: 'Case', schema: CaseSchema }
+      { name: 'Case', schema: CaseSchema },
+      { name: 'Insurance_Payors', schema: insurancePayorsSchema }
     ]),
   ]
 })
-export class LisModule {}
+export class LisModule { }
