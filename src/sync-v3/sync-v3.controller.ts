@@ -19,16 +19,16 @@ export class SyncV3Controller {
 
 
 	@Get('managers')
-	async getSalesRepsManagersData(@Res() res: any){
+	async syncSalesRepsManagers(@Res() res: any){
 		try {
 
-			const dates = this.syncHelper.getFromAndToDates(7)
+			const datesObj = this.syncHelper.getFromAndToDates(7)
 
 			const query = {
 				user_type: "HOSPITAL_MARKETING_MANAGER",
 				created_at: {
-					$gte:  dates.fromDate,
-					$lte:  dates.toDate
+					$gte:  datesObj.fromDate,
+					$lte:  datesObj.toDate
 				}
 			};
 
