@@ -383,12 +383,11 @@ export class SalesRepServiceV3 {
         
     }
 
-	// async updateManagersData(){
-	// 	const allIds = await db.select().from(sales_reps)
-	// 	const data = allIds.map(item => item.id)
-	// 	// console.log(data)
-	// 	const updateManagerData = await db.execute(sql`UPDATE sales_reps SET reporting_to = id WHERE reporting_to != id AND role_id = 2;`)
-	// 	console.log(updateManagerData) 
-	// 	return allIds
-	// }
+	async seedSalesReps(data){
+		if (data.length>0){
+			const insertedData = db.insert(sales_reps).values(data).returning();
+			return insertedData
+		}
+		return []
+	}
 }

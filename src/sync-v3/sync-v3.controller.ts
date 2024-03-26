@@ -3,7 +3,7 @@ import { SyncV3Service } from './sync-v3.service';
 import { LisService } from 'src/lis/lis.service';
 import { syncHelpers } from 'src/helpers/syncHelper';
 import { SalesRepServiceV3 } from 'src/sales-rep-v3/sales-rep-v3.service';
-import { SUCCUSS_SEEDED_MARKETING_MANAGERS } from 'src/constants/messageConstants';
+import { SUCCUSS_SEEDED_MARKETING_MANAGERS, SUCCUSS_SEEDED_SALES_REPS } from 'src/constants/messageConstants';
 
 @Controller({
   version: '3.0',
@@ -34,9 +34,9 @@ export class SyncV3Controller {
 
 			const salesRepsManagersData = await this.lisService.getUsers(query)
 
-			const finalSalesRepsManagersdata = await this.syncHelper.getNewSalesRepsManagersData(salesRepsManagersData)
+			const finalSalesRepsManagersData = await this.syncHelper.getNewSalesRepsManagersData(salesRepsManagersData)
 
-			const insertedData = await this.salesRepService.seedSalesRepsManager(finalSalesRepsManagersdata)
+			const insertedData = await this.salesRepService.seedSalesRepsManager(finalSalesRepsManagersData)
 
 			return res.status(200).json({success:true, message:SUCCUSS_SEEDED_MARKETING_MANAGERS, data: insertedData})
 		}
@@ -46,4 +46,34 @@ export class SyncV3Controller {
 		}
 	}
 
+
+	@Get('marketer')
+	async syncSalesRepsMarketers(@Res() res:any){
+		try {
+
+			const datesObj = this.syncHelper.getFromAndToDates(7)
+
+			const query = {
+				user_type: "MARKETER",
+				created_at: {
+					$gte:  datesObj.fromDate,
+					$lte:  datesObj.toDate
+				}
+			};
+
+			const salesRepsMarketersData = await this.lisService.getUsers(query)
+
+			const finalSalesRepsMarketersData = await this.syncHelper.getNewSalesRepsData(salesRepsMarketersData)
+			
+			
+			const insertedData = await this.salesRepService.seedSalesReps(finalSalesRepsMarketersData)
+
+			return res.status(200).json({success:true, message:SUCCUSS_SEEDED_SALES_REPS, data: insertedData})
+
+		}
+		catch (error){
+			console.log({error})
+			return res.status(500).json({success:false, error:error})
+		}
+	}
 }
