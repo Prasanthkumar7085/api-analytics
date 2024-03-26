@@ -50,54 +50,46 @@ export class syncHelpers {
     return finalObj;
   }
 
-  async getNewSalesRepsData(marketersData) {
-    const finalObj = [];
-    const managerIds = []
+    async getNewSalesRepsData(marketersData) {
+        const finalObj = [];
+        const managerIds = []
 
-    const data = marketersData.map((item) => item._id.toString());
+        const data = marketersData.map((item) => item._id.toString());
 
-    const matchedIdsResult = await db.execute(
-      sql`SELECT ref_id FROM sales_reps WHERE ref_id IN ${data}`,
-    );
+        const matchedIdsResult = await db.execute(sql`SELECT ref_id FROM sales_reps WHERE ref_id IN ${data}`);
 
-    const refIdValues = matchedIdsResult.rows.map((obj) => obj.ref_id);
+        const refIdValues = matchedIdsResult.rows.map((obj) => obj.ref_id);
 
-    // finding unmatched IDs
-    const unMatchedIds = data.filter((id) => !refIdValues.includes(id));
+        // finding unmatched IDs
+        const unMatchedIds = data.filter((id) => !refIdValues.includes(id));
 
-    // const marketersData1 = [...marketersData];
+        if (unMatchedIds.length>0){
+            const managerIds = marketersData.filter(item => unMatchedIds.includes(item._id.toString()))
+                                            .map(item => item.reporting_to[0].toString());
+                                            
+            const managerData = await db.execute(sql`SELECT id, ref_id FROM sales_reps WHERE ref_id IN ${managerIds}`);
 
-    for (let item of marketersData) {
-      if (unMatchedIds.includes(item._id.toString())) {
-        managerIds.push(item.reporting_to[0].toString())
-      }
-    }
-    const managerData = await db.execute(sql`
-            SELECT id, ref_id
-            FROM sales_reps
-            WHERE ref_id IN ${managerIds}
-        `);
+            const dataList = marketersData.map(marketer => {
+                let reportingTo = 2; // Default reportingTo value
 
-    const dataList = marketersData.map(marketer => {
-        let reportingTo = 2; // Default reportingTo value
-
-        // Check if hospital_marketing_manager exists and has at least one item
-        if (marketer.reporting_to.length > 0) {
-            // Find corresponding manager data
-            const manager = managerData.rows.find(row => row.ref_id === marketer.reporting_to[0].toString());
-            if (manager) {
-                reportingTo = manager.id as number;
-            }
+                // Check if hospital_marketing_manager exists and has at least one item
+                if (marketer.reporting_to.length > 0) {
+                    // Find corresponding manager data
+                    const manager = managerData.rows.find(row => row.ref_id === marketer.reporting_to[0].toString());
+                    if (manager) {
+                        reportingTo = manager.id as number;
+                    }
+                }
+                finalObj.push({
+                    name: marketer.first_name,
+                    refId: marketer._id.toString(),
+                    reportingTo:reportingTo,
+                    roleId: 1
+                    });
+            })
+        } else {
+            return []
         }
-        finalObj.push({
-            name: marketer.first_name,
-            refId: marketer._id.toString(),
-            reportingTo:reportingTo,
-            roleId: 2,
-          });
-    })
-
-    
-    return finalObj;
-  }
+        return finalObj;
+    }
 }
