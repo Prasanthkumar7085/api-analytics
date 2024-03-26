@@ -1,7 +1,7 @@
 import { ConfigService } from "@nestjs/config";
 import mongoose from "mongoose";
 import { Configuration } from "../config/config.service";
-import { InsuranceModel } from "../schemas/insurancPayors";
+import { InsurancePayorsModel } from "../schemas/insurancPayors";
 import { insurance_payors } from "../drizzle/schemas/insurancePayors";
 import { db } from "../seeders/db";
 import { sql } from "drizzle-orm";
@@ -19,7 +19,7 @@ async function getInsurancePayors() {
         await mongoose.connect(mongoDb);
 
         //fetching data from insurance payors lis data
-        const data = await InsuranceModel.find().select('_id name')
+        const data = await InsurancePayorsModel.find().select('_id name')
 
         console.log(data.length);
 

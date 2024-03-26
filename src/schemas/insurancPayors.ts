@@ -1,12 +1,28 @@
-import * as mongoose from 'mongoose';
-import { Schema, model } from 'mongoose';
+import { Schema, model } from 'mongoose'
 
-
-const InsuranceSchema = new Schema(
-    {
-        _id: { type: String },
-        name: { type: String }
+const insurancePayorsSchema = new Schema({
+    payor_electronic_id: {
+        type: String
+    },
+    insurance_verification_code: {
+        type: String
+    },
+    name: {
+        type: String
+    },
+    health_insurance_type: {
+        type: String
+    },
+    primary_claim_filling_method: {
+        type: String
+    },
+    secondary_claim_filling_method: {
+        type: String
+    },
+    status: {
+        type: String,
+        default: 'ACTIVE'
     }
-)
+})
 
-export const InsuranceModel = mongoose.model<any>('Insurance', InsuranceSchema, 'insurance_payors')
+export const InsurancePayorsModel = model('InsurancePayors', insurancePayorsSchema, 'insurance_payors')
