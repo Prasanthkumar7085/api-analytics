@@ -2,6 +2,7 @@ import { Injectable, InternalServerErrorException } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 import { CaseModel } from "src/schemas/caseSchema";
+import { HospitalModel } from "src/schemas/hospitalSchema";
 import { InsurancePayorsModel } from "src/schemas/insurancPayors";
 import { LabTestPanelModel } from "src/schemas/testPanelSchema";
 import { UserModel } from "src/schemas/userSchema";
@@ -15,6 +16,7 @@ export class LisService {
         @InjectModel('Case') private caseModel: typeof CaseModel,
         @InjectModel('Insurance_Payors') private insuranceModel: typeof InsurancePayorsModel,
         @InjectModel('Test_Panels') private labTestPanelModel: typeof LabTestPanelModel,
+        @InjectModel('Hospital') private hospitalModel: typeof HospitalModel,
     ) { }
 
 
@@ -43,6 +45,11 @@ export class LisService {
     async getCaseTypes(query: any) {
 
         return await this.labTestPanelModel.find(query).select('name code');
+    }
+
+
+    async getFacilities() {
+        return await this.hospitalModel.find().select('_id name');
     }
 
 }

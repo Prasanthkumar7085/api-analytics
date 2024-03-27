@@ -47,7 +47,7 @@ export class syncHelpers {
 
             console.log({ dataToBeInserted });
             // Inserting data into analytics db
-            const response = await db.insert(insurance_payors).values(dataToBeInserted);
+            const response = db.insert(insurance_payors).values(dataToBeInserted);
 
             console.log({ response });
 
@@ -80,12 +80,30 @@ export class syncHelpers {
 
             console.log({ dataToBeInserted });
             // Inserting data into analytics db
-            const response = await db.insert(case_types).values(dataToBeInserted);
+            const response = db.insert(case_types).values(dataToBeInserted);
             console.log({ response });
 
             return dataToBeInserted;
         }
         return result;
+    }
+
+
+    getHospitalsWithNoManagers(facilitiesData, marketersData) {
+
+        const facilitiesDataArray = facilitiesData.map(item => item._id.toString());
+        console.log(facilitiesDataArray)
+        console.log('faicliteis legnth =', facilitiesDataArray.length)
+
+
+        console.log('marketers length = ', marketersData.length)
+        // const marketersDataArray = marketersData.map(item => item.hospitals[0].toString());
+        // console.log(marketersDataArray.length)
+
+        const result = facilitiesDataArray.filter(item => !marketersData.includes(item));
+        console.log('result length = ', result.length)
+
+        return null;
     }
 
 }

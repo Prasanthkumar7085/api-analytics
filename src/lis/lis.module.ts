@@ -6,6 +6,7 @@ import { UserSchema } from 'src/schemas/userSchema';
 import { CaseSchema } from 'src/schemas/caseSchema';
 import { insurancePayorsSchema } from 'src/schemas/insurancPayors';
 import { testPanelsDataSchema } from 'src/schemas/testPanelSchema';
+import { HospitalSchema } from 'src/schemas/hospitalSchema';
 
 @Module({
   controllers: [LisController],
@@ -16,6 +17,7 @@ import { testPanelsDataSchema } from 'src/schemas/testPanelSchema';
       { name: 'Case', schema: CaseSchema },
       { name: 'Insurance_Payors', schema: insurancePayorsSchema },
       { name: 'Test_Panels', schema: testPanelsDataSchema },
+      { name: 'Hospital', schema: HospitalSchema }
     ]),
   ]
 })

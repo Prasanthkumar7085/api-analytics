@@ -3,7 +3,7 @@ import { SyncV3Service } from './sync-v3.service';
 import { LisService } from 'src/lis/lis.service';
 import { SOMETHING_WENT_WRONG, SUCCESS_SYNCED_CASE_TYPES, SUCCESS_SYNCED_INSURANCE_PAYORS } from 'src/constants/messageConstants';
 import { syncHelpers } from 'src/helpers/syncHelper';
-
+import * as fs from 'fs';
 @Controller({
   version: '3.0',
   path: 'sync'
@@ -54,6 +54,32 @@ export class SyncV3Controller {
 
       return res.status(200).json({ success: true, message: SUCCESS_SYNCED_CASE_TYPES, data: result });
 
+    }
+    catch (error) {
+      console.log({ error });
+
+      return res.status(500).json({ success: false, message: error || SOMETHING_WENT_WRONG });
+    }
+  }
+
+
+  @Get('facilities')
+  async getFacilitiesWithNoMarketers(@Res() res: any) {
+    try {
+      const facilitiesData = await this.lisService.getFacilities();
+
+      // const query = { user_type: 'MARKETER' };
+
+      // const projection = { _id: 1, hospitals: 1 };
+
+      // const marketersData = await this.lisService.getUsers(query, projection);
+      const marketersDataJson = fs.readFileSync('sales_reps_hospitalsIds.json', 'utf-8');
+
+      const marketersData = JSON.parse(marketersDataJson)
+
+      const data = await this.synchelpers.getHospitalsWithNoManagers(facilitiesData, marketersData);
+
+      return res.status(200).json({ success: true, message: 'Success', data: data });
     }
     catch (error) {
       console.log({ error });
