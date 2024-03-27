@@ -10,6 +10,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { StatsHelper } from 'src/helpers/statsHelper';
 import { LisService } from 'src/lis/lis.service';
 import { CaseSchema } from 'src/schemas/caseSchema';
+import { HospitalSchema } from 'src/schemas/hospitalSchema';
 
 
 @Module({
@@ -19,7 +20,8 @@ import { CaseSchema } from 'src/schemas/caseSchema';
     PrismaModule,
     MongooseModule.forFeature([
       { name: 'User', schema: UserSchema },
-      { name: 'Case', schema: CaseSchema }
+      { name: 'Case', schema: CaseSchema },
+      { name: 'hospitals', schema: HospitalSchema }
     ]),
   ]
 })

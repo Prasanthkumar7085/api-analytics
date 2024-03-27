@@ -14,6 +14,7 @@ import { PaginationHelper } from 'src/helpers/paginationHelper';
 import { StatsHelper } from 'src/helpers/statsHelper';
 import { StatsService } from 'src/stats/stats.service';
 import { SortHelper } from 'src/helpers/sortHelper';
+import { HospitalSchema } from 'src/schemas/hospitalSchema';
 
 @Module({
   controllers: [RevenueStatsController],
@@ -21,7 +22,8 @@ import { SortHelper } from 'src/helpers/sortHelper';
   imports: [
     MongooseModule.forFeature([
       { name: 'User', schema: UserSchema },
-      { name: 'Case', schema: CaseSchema }
+      { name: 'Case', schema: CaseSchema },
+      { name: 'hospitals', schema: HospitalSchema }
     ]),
   ]
 })

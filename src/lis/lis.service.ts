@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { CaseModel } from 'src/schemas/caseSchema';
+import { HospitalModel } from 'src/schemas/hospitalSchema';
 import { UserModel } from 'src/schemas/userSchema';
 
 @Injectable()
@@ -8,6 +9,7 @@ export class LisService {
   constructor(
     @InjectModel('User') private userModel: typeof UserModel,
     @InjectModel('Case') private caseModel: typeof CaseModel,
+	@InjectModel('hospitals') private hospitalModel: typeof HospitalModel
   ) {}
 
   async getUsers(query, projection = {}) {
@@ -27,4 +29,9 @@ export class LisService {
       'patient_info.last_name': 1,
     });
   }
+
+
+  	async getHospitalsData(query){
+		return await this.hospitalModel.find(query)
+	}
 }

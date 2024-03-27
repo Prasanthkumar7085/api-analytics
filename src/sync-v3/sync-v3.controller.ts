@@ -3,7 +3,8 @@ import { SyncV3Service } from './sync-v3.service';
 import { LisService } from 'src/lis/lis.service';
 import { syncHelpers } from 'src/helpers/syncHelper';
 import { SalesRepServiceV3 } from 'src/sales-rep-v3/sales-rep-v3.service';
-import { SUCCUSS_SEEDED_MARKETING_MANAGERS, SUCCUSS_SEEDED_SALES_REPS } from 'src/constants/messageConstants';
+import { SUCCESS_SEEDED_FACILICES, SUCCUSS_SEEDED_MARKETING_MANAGERS, SUCCUSS_SEEDED_SALES_REPS } from 'src/constants/messageConstants';
+import { FacilitiesV3Service } from 'src/facilities-v3/facilities-v3.service';
 
 @Controller({
   version: '3.0',
@@ -14,7 +15,8 @@ export class SyncV3Controller {
 		private readonly syncV3Service: SyncV3Service,
 		private readonly lisService: LisService,
 		private readonly syncHelper: syncHelpers,
-		private readonly salesRepService: SalesRepServiceV3
+		private readonly salesRepService: SalesRepServiceV3,
+		private readonly faciliticesService: FacilitiesV3Service
 		) {}
 
 
@@ -38,11 +40,11 @@ export class SyncV3Controller {
 
 			const insertedData = await this.salesRepService.seedSalesRepsManager(finalSalesRepsManagersData)
 
-			return res.status(200).json({success:true, message:SUCCUSS_SEEDED_MARKETING_MANAGERS, data: insertedData})
+			return res.status(200).json({success: true, message: SUCCUSS_SEEDED_MARKETING_MANAGERS, data: insertedData})
 		}
 		catch (error){
 			console.log({error})
-			return res.status(500).json({success:false, error:error})
+			return res.status(500).json({success: false, message: error})
 		}
 	}
 
@@ -68,12 +70,53 @@ export class SyncV3Controller {
 			
 			const insertedData = await this.salesRepService.seedSalesReps(finalSalesRepsMarketersData)
 
-			return res.status(200).json({success:true, message:SUCCUSS_SEEDED_SALES_REPS, data: insertedData})
+			return res.status(200).json({success: true, message: SUCCUSS_SEEDED_SALES_REPS, data: insertedData})
 
 		}
 		catch (error){
 			console.log({error})
-			return res.status(500).json({success:false, error:error})
+			return res.status(500).json({success: false, message: error})
+		}
+	}
+
+
+	@Get('facilities')
+	async syncFacilities(@Res() res:any){
+		try {
+
+			const datesObj = this.syncHelper.getFromAndToDates(7)
+
+			const query = {
+				user_type: "MARKETER",
+				created_at: {
+					$gte:  datesObj.fromDate,
+					$lte:  datesObj.toDate
+				}
+			};
+
+			const salesRepsData = await this.lisService.getUsers(query)
+
+			const facilitiesIdsData = await this.syncHelper.getFacilitiesDataFromSalesReps(salesRepsData)
+
+			const hospitalQuery = { 
+				_id: { $in: facilitiesIdsData.unMatchedFacilitiesIds }, 
+				created_at: {
+					$gte:  datesObj.fromDate,
+					$lte:  datesObj.toDate
+				}
+			}
+
+			const faciliticesData = await this.lisService.getHospitalsData(hospitalQuery)
+			
+			const finalObjs = await this.syncHelper.getFacilitiesIds(faciliticesData, facilitiesIdsData.salesRepsAndFacilityData)
+
+			const insertedData = await this.faciliticesService.seedFacilities(finalObjs)
+
+			return res.status(200).json({success: true, message: SUCCESS_SEEDED_FACILICES, data: insertedData})
+		}
+		catch (error){
+			console.log({error})
+			return res.status(500).json({success: false, message: error})
 		}
 	}
 }

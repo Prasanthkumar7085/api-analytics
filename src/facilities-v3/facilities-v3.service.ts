@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { sql } from 'drizzle-orm';
+import { facilities } from 'src/drizzle/schemas/facilities';
 import { db } from 'src/seeders/db';
 
 
@@ -315,5 +316,13 @@ export class FacilitiesV3Service {
         const data = await db.execute(statement);
 
         return data.rows;
+    }
+
+    async seedFacilities(data){
+        if (data.length>0){
+			const insertedData = db.insert(facilities).values(data).returning();
+			return insertedData
+		}
+		return []
     }
 }
