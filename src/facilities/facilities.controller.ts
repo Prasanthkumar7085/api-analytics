@@ -45,7 +45,6 @@ export class FacilitiesController {
     @Query() query: any
   ) {
     try {
-      console.log("pras")
       const fromDate = query.from_date;
       const toDate = query.to_date;
 
@@ -88,7 +87,7 @@ export class FacilitiesController {
     }
   }
 
-
+  @UseGuards(AuthGuard)
   @Get(':id/trends/volume')
   async getVolumeTrend(@Res() res: any, @Param() param: any, @Query() query: any) {
     try {
@@ -112,7 +111,7 @@ export class FacilitiesController {
     }
   }
 
-
+  @UseGuards(AuthGuard)
   @Get(':id/stats-revenue')
   async getRevenuestatsData(@Res() res: any, @Param() param: any, @Query() query: any) {
     try {
@@ -139,7 +138,7 @@ export class FacilitiesController {
     }
   }
 
-
+  @UseGuards(AuthGuard)
   @Get(':id/stats-volume')
   async getVolumeStatsData(@Res() res: any, @Param() param: any, @Query() query: any) {
     try {
@@ -165,7 +164,7 @@ export class FacilitiesController {
       })
     }
   }
-
+  @UseGuards(AuthGuard)
   @Get(':id/case-types/volume')
   async caseTypesVolumeMonthWise(@Res() res: any, @Param() param: any, @Query() query: any) {
     try {
