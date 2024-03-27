@@ -1,5 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { CaseTypesV3Service } from "src/case-types-v3/case-types-v3.service";
+import { ARCHIVED } from "src/constants/lisConstants";
 import { FacilitiesV3Service } from "src/facilities-v3/facilities-v3.service";
 import { InsurancesV3Service } from "src/insurances-v3/insurances-v3.service";
 import { LisService } from "src/lis/lis.service";
@@ -218,5 +219,29 @@ export class syncHelpers {
             this.syncV3Service.insertPatientClaims(notExistedData);
         }
 
+    }
+
+
+    async getArchivedCases(fromDate, toDate) {
+        try {
+            let query = {
+                created_at: {
+                    $gte: fromDate,
+                    $lte: toDate,
+                },
+                status: ARCHIVED
+            };
+
+            const select = {
+                accession_id: 1,
+                status: 1
+            };
+
+            const cases = await this.lisService.getCases(query, select);
+
+            return cases;
+        } catch (err) {
+            throw err;
+        }
     }
 }

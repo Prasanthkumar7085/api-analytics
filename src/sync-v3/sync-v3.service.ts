@@ -7,20 +7,20 @@ import { db } from 'src/seeders/db';
 export class SyncV3Service {
 
 
-    async insertPatientClaims(data) {
-        return db.insert(patient_claims).values(data).returning();
-    }
+  async insertPatientClaims(data) {
+    return db.insert(patient_claims).values(data).returning();
+  }
 
 
-    async getPatientClaims(accesionids) {
-        const data = await db.execute(sql`SELECT accession_id FROM patient_claims WHERE accession_id IN ${accesionids}`);
+  async getPatientClaims(accesionids) {
+    const data = await db.execute(sql`SELECT accession_id FROM patient_claims WHERE accession_id IN ${accesionids}`);
 
-        return data.rows;
-    }
+    return data.rows;
+  }
 
-    async updateManyPatientClaims(queryString) {
+  async updateManyPatientClaims(queryString) {
 
-        const rawQuery = sql`
+    const rawQuery = sql`
         UPDATE patient_claims AS t
         SET
           accession_id = u.accessionId,
@@ -38,8 +38,13 @@ export class SyncV3Service {
 
         ${sql.raw(queryString)}
         ) as u(accessionId, serviceDate, collectionDate, caseTypeId, patientId, reportsFinalized, physicianId, facilityId, salesRepId, insurancePayerId)
-        WHERE t.accession_id = u.accessionId`
+        WHERE t.accession_id = u.accessionId`;
 
-        return db.execute(rawQuery);
-    }
+    return db.execute(rawQuery);
+  }
+
+
+  async removePatientClaims(accesionids) {
+    return await db.execute(sql`DELETE FROM patient_claims WHERE accession_id IN ${accesionids}`);
+  }
 }
