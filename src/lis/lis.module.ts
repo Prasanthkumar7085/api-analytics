@@ -4,10 +4,11 @@ import { LisController } from './lis.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { UserSchema } from 'src/schemas/userSchema';
 import { CaseSchema } from 'src/schemas/caseSchema';
+import { JwtService } from '@nestjs/jwt';
 
 @Module({
   controllers: [LisController],
-  providers: [LisService],
+  providers: [LisService, JwtService],
   imports: [
     MongooseModule.forFeature([
       { name: 'User', schema: UserSchema },
@@ -15,4 +16,4 @@ import { CaseSchema } from 'src/schemas/caseSchema';
     ]),
   ]
 })
-export class LisModule {}
+export class LisModule { }

@@ -1,7 +1,8 @@
-import { Controller, Get, Post, Param, Res, Query } from '@nestjs/common';
+import { Controller, Get, Post, Param, Res, Query, UseGuards } from '@nestjs/common';
 import { FacilitiesService } from './facilities.service';
 import { SOMETHING_WENT_WRONG, SUCCESS_FETCHED_FACILITIES, SUCCESS_FETCHED_FACILITY, SUCCESS_VOLUME_TREND, SUCCESS_FETCHED_FACILITIES_REVENUE_STATS, SUCCESS_FETCHED_FACILITIES_VOLUME_STATS, SUCCESSS_FETCHED_FACILITIES_CASES_TYPES_VOLUME, SUCCESS_FETCHED_CASE_TYPES_REVENUE, SUCCESS_FETCHED_REVENUE_MONTH_WISE_TRENDS, SUCCESS_FETCHED_FACILITY_CASE_TYPE_VOLUME_AND_REVENUE } from 'src/constants/messageConstants';
 import { FacilitiesHelper } from 'src/helpers/facilitiesHelper';
+import { AuthGuard } from 'src/guards/auth.guard';
 
 
 @Controller({
@@ -37,14 +38,14 @@ export class FacilitiesController {
     }
   }
 
-
+  @UseGuards(AuthGuard)
   @Get()
   async getAllFacilities(
     @Res() res: any,
     @Query() query: any
   ) {
     try {
-
+      console.log("pras")
       const fromDate = query.from_date;
       const toDate = query.to_date;
 
