@@ -1,7 +1,8 @@
-import { Controller, Get, Res, Query } from '@nestjs/common';
+import { Controller, Get, Res, Query, UseGuards } from '@nestjs/common';
 import { OverviewV3Service } from './overview-v3.service';
 import { SOMETHING_WENT_WRONG, SUCCESS_FETCHED_OVERVIEW_CASE_TYPES_REVENUE, SUCCESS_FETCHED_OVERVIEW_CASE_TYPES_VOLUME, SUCCESS_FETCHED_OVERVIEW_REVENUE, SUCCESS_FETCHED_OVERVIEW_REVNUE, SUCCESS_FETCHED_OVERVIEW_STATS_REVENUE, SUCCESS_FETCHED_OVERVIEW_STATS_VOLUME, } from 'src/constants/messageConstants';
 import { FilterHelper } from 'src/helpers/filterHelper';
+import { AuthGuard } from 'src/guards/auth.guard';
 
 
 @Controller({
@@ -15,6 +16,7 @@ export class OverviewV3Controller {
     ) { }
 
 
+    @UseGuards(AuthGuard)
     @Get('stats-revenue')
     async getRevenueStats(@Res() res: any, @Query() query: any) {
         try {
@@ -40,7 +42,7 @@ export class OverviewV3Controller {
         }
     }
 
-
+    @UseGuards(AuthGuard)
     @Get('stats-volume')
     async getVolumeStats(@Res() res: any, @Query() query: any) {
         try {
@@ -66,7 +68,7 @@ export class OverviewV3Controller {
         }
     }
 
-
+    @UseGuards(AuthGuard)
     @Get('case-types-revenue')
     async getOverAllCaseTypesRevenue(@Res() res: any, @Query() query: any) {
         try {
@@ -92,7 +94,7 @@ export class OverviewV3Controller {
         }
     }
 
-
+    @UseGuards(AuthGuard)
     @Get('case-types-volume')
     async getOverAllCaseTypesVolume(@Res() res: any, @Query() query: any) {
         try {
@@ -118,7 +120,7 @@ export class OverviewV3Controller {
         }
     }
 
-
+    @UseGuards(AuthGuard)
     @Get('revenue')
     async getOverviewRevenueData(@Res() res: any, @Query() query: any) {
         try {
