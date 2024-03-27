@@ -318,11 +318,10 @@ export class FacilitiesV3Service {
         return data.rows;
     }
 
-    async seedFacilities(data){
-        if (data.length>0){
-			const insertedData = db.insert(facilities).values(data).returning();
-			return insertedData
-		}
-		return []
+    async insertfacilities(data){
+        
+        const insertedData = db.insert(facilities).values(data).returning();
+        
+        return insertedData
     }
 }

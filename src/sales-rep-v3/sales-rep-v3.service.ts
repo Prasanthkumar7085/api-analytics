@@ -370,29 +370,19 @@ export class SalesRepServiceV3 {
 		return data.rows;
 	}
 
-	// REVIEW: CHANGE THIS CODE INTO helpers or controllers in services we have only DB get data
-	async seedSalesRepsManager(data) {
 
-		// REVIEW: change the response format
-		if (data.length > 0) {
-			// REVIEW: remove unsused vaiables
-			const insertedData = db.insert(sales_reps).values(data).returning();
+	async insertSalesRepsManagers(data){
 
-			// REVIEW: remove awiats at non dependent db lines
-			const updateManagerData = await db.execute(sql`UPDATE sales_reps SET reporting_to = id WHERE reporting_to != id AND role_id = 2;`);
-			return updateManagerData;
-		}
-		return [];
+		const insertedData = db.insert(sales_reps).values(data).returning();
 
-
+		return insertedData
 	}
 
-	async seedSalesReps(data) {
-		// write proper
-		if (data.length > 0) {
-			const insertedData = db.insert(sales_reps).values(data).returning();
-			return insertedData;
-		}
-		return [];
+
+	insertSalesReps(finalData){
+
+		const insertedData = db.insert(sales_reps).values(finalData).returning();
+
+		return insertedData
 	}
 }

@@ -1,5 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { sql } from 'drizzle-orm';
+import { facilities } from 'src/drizzle/schemas/facilities';
+import { sales_reps } from 'src/drizzle/schemas/salesReps';
 import { db } from 'src/seeders/db';
 
 @Injectable()
@@ -19,147 +21,170 @@ export class syncHelpers {
         };
     }
 
-    async getNewSalesRepsManagersData(managersData) {
-        // REVIEW: update the name
-        const finalObj = [];
 
-        // REVIEW: change the vairable name and move below 4 lines into one function
-        // fetching all marketing managers id's
-        const data = managersData.map((item) => item._id.toString());
+    async getNotExistingIds(data){
+
+		// fetching all marketing managers id's
+        const mappedSalesRepsIds = data.map((item) => item._id.toString());
 
         // fetching matching id's from analytics db
-        const matchedIdsResult = await db.execute(
-            sql`SELECT ref_id FROM sales_reps WHERE ref_id IN ${data}`,
-        );
+        const matchedIdsIds = await db.execute(sql`SELECT ref_id FROM sales_reps WHERE ref_id IN ${mappedSalesRepsIds}`);
 
         // Extracts the 'ref_id' values from the rows returned by the database query and stores them in the values in array
-        const refIdValues = matchedIdsResult.rows.map((obj) => obj.ref_id);
+        const refIdValues = matchedIdsIds.rows.map((obj) => obj.ref_id);
 
-        // finding unmatched IDs
-        const unMatchedIds = data.filter((id) => !refIdValues.includes(id));
+        const unMatchedIds = mappedSalesRepsIds.filter((id) => !refIdValues.includes(id)); // finding unmatched IDs
+
+        return unMatchedIds
+    }
+
+
+    async getFinalManagersData(managersData) {
+        // REVIEW: update the name
+        const finalArray = [];
+        // REVIEW: change the vairable name and move below 4 lines into one function
+
+        const notExistedIds =  await this.getNotExistingIds(managersData)
 
         // constructing the final object by taking data from lis data
         managersData.forEach((item) => {
-            if (unMatchedIds.includes(item._id.toString())) {
-                finalObj.push({
-                    name: item.first_name,
-                    refId: item._id.toString(),
-                    roleId: 2,
-                });
+
+            if (notExistedIds.includes(item._id.toString())) {
+
+				finalArray.push({
+						name: item.first_name,
+						refId: item._id.toString(),
+						roleId: 2,
+					});
             }
         });
 
-        return finalObj;
+        return finalArray;
     }
 
-    async getNewSalesRepsData(marketersData) {
+    updateSalesRepsManagersData(){		
+
+		const updatedData = db.execute(sql`UPDATE sales_reps SET reporting_to = id WHERE reporting_to != id AND role_id = 2;`);
+		
+		return updatedData
+    }
+
+    async getFinalSalesRepsData(marketersData) {
         // REVIEW: move this below code into seperate functions
-        const finalObj = [];
+        const finalArray = [];
 
-        const data = marketersData.map((item) => item._id.toString());
+		const notExistedIds = await this.getNotExistingIds(marketersData)
 
-        const matchedIdsResult = await db.execute(
-            sql`SELECT ref_id FROM sales_reps WHERE ref_id IN ${data}`,
-        );
 
-        const refIdValues = matchedIdsResult.rows.map((obj) => obj.ref_id);
+		const marketersIds = marketersData
+			.filter((item) => notExistedIds.includes(item._id.toString()))
+			.map((item) => item.reporting_to[0].toString());
 
-        // finding unmatched IDs
-        const unMatchedIds = data.filter((id) => !refIdValues.includes(id));
+		const salesRepsData = await db.execute(sql`SELECT id, ref_id FROM sales_reps WHERE ref_id IN ${marketersIds}`);
 
-        if (unMatchedIds.length > 0) {
-            const marketersIds = marketersData
-                .filter((item) => unMatchedIds.includes(item._id.toString()))
-                .map((item) => item.reporting_to[0].toString());
+		marketersData.map((marketer) => {
+			let reportingTo = 2;
 
-            const managerData = await db.execute(
-                sql`SELECT id, ref_id FROM sales_reps WHERE ref_id IN ${marketersIds}`,
-            );
+			// Check if hospital_marketing_manager exists
+			if (marketer.reporting_to.length > 0) {
+				// Find corresponding manager data
+				const matchedObj = salesRepsData.rows.find((row) => row.ref_id === marketer.reporting_to[0].toString());
 
-            const dataList = marketersData.map((marketer) => {
-                let reportingTo = 2; // Default reportingTo value
+				if (matchedObj) {
+					reportingTo = matchedObj.id as number;
+				}
+			}
 
-                // Check if hospital_marketing_manager exists and has at least one item
-                if (marketer.reporting_to.length > 0) {
-                    // Find corresponding manager data
-                    const manager = managerData.rows.find(
-                        (row) => row.ref_id === marketer.reporting_to[0].toString(),
-                    );
-                    if (manager) {
-                        reportingTo = manager.id as number;
-                    }
-                }
-                finalObj.push({
-                    name: marketer.first_name,
-                    refId: marketer._id.toString(),
-                    reportingTo: reportingTo,
-                    roleId: 1,
-                });
-            });
-        } else {
-            return [];
-        }
-        return finalObj;
+			finalArray.push({
+				name: marketer.first_name,
+				refId: marketer._id.toString(),
+				reportingTo: reportingTo,
+				roleId: 1,
+			});
+		});
+
+        return finalArray;
     }
 
-    //   REVIEW: i need a function within 50 lines only and i need to understand code properly while im seeing. so, use multiple functions if required
-    async getFacilitiesDataFromSalesReps(SalesRepsData) {
-        const salesRepsAndFacilityData = [];
+
+	async getFacilitiesData(salesRepsData){
+
+		const salesRepsAndFacilitiesData = [];
         const hospitalsData = new Set();
 
-        // fetching selas rep id and hospitals data from mongo db
-        const data = SalesRepsData.map((item) => ({
+		const idsArray = salesRepsData.map((item) => ({
             hospitals: item.hospitals,
             id: item._id.toString(),
         }));
 
-        data.forEach((item) => {
+		idsArray.forEach((item) => {
             item.hospitals.forEach((hospital) => {
                 const hospitalId = hospital.toString();
                 const itemId = item.id;
 
-                // Check if the hospital has already been added
-                if (!hospitalsData.has(hospitalId)) {
-                    // stoing sales_reps id and facility id
-                    salesRepsAndFacilityData.push({
+                if (!hospitalsData.has(hospitalId)) { // Check if the hospital has already been added
+                    
+                    salesRepsAndFacilitiesData.push({
                         id: itemId,
                         hospital: hospitalId,
-                    });
-                    hospitalsData.add(hospitalId);
+					});
+					hospitalsData.add(hospitalId);
                 }
             });
         });
-        const hospitalIds = salesRepsAndFacilityData.map((item) => item.hospital); // fetching hospital id's
 
-        const salesRepsIds = salesRepsAndFacilityData.map((item) => item.id); // fetching sales reps id's
+		return salesRepsAndFacilitiesData
+	}
 
-        const salesRepsData = await db.execute(
-            sql`SELECT id, ref_id FROM sales_reps WHERE ref_id IN ${salesRepsIds}`,
-        ); // fetching sales reps id and ref_id from analytics db
+	async getFacilitiesNotExistingIds(facilitiesData){
+		const hospitalIds = facilitiesData.map((item) => item.hospital);
 
-        const matchedIdsResult = await db.execute(
-            sql`SELECT ref_id FROM facilities WHERE ref_id IN ${hospitalIds}`,
-        ); // fetching matched facilities id from analytics db
+		const matchedIdsResult = await db.execute(sql`SELECT ref_id FROM facilities WHERE ref_id IN ${hospitalIds}`); // fetching matched facilities id from analytics db
 
-        const refIdValues = matchedIdsResult.rows.map((obj) => obj.ref_id);
+		const refIdValues = matchedIdsResult.rows.map((obj) => obj.ref_id);
 
-        const unMatchedFacilitiesIds = hospitalIds.filter(
-            (id) => !refIdValues.includes(id),
-        ); // fetching un-matched id of facilities
+		const unMatchedFacilitiesIds = hospitalIds.filter((id) => !refIdValues.includes(id)); // fetching un-matched id of facilities
 
-        // Storing sales reps IDs related to hospital object
-        salesRepsData.rows.forEach((row) => {
-            salesRepsAndFacilityData.find((item) => {
+		return unMatchedFacilitiesIds
+	}
+
+
+	async getSalesRepsIdsandRefIds(salesRepsData){
+
+		const salesRepsIds = salesRepsData.map((item) => item.id); // fetching sales reps id's
+
+		const salesRepsIdsAndRefIdsData = await db.execute(sql`SELECT id, ref_id FROM sales_reps WHERE ref_id IN ${salesRepsIds}`); // fetching sales reps id and ref_id from analytics db
+
+		return salesRepsIdsAndRefIdsData.rows
+	}
+
+
+    //   REVIEW: i need a function within 50 lines only and i need to understand code properly while im seeing. so, use multiple functions if required
+    async getSalesRepsAndFAcilitiesIds(SalesRepsData) {
+
+		const salesRepsAndFacilitiesData = await this.getFacilitiesData(SalesRepsData)
+
+		const unMatchedFacilitiesIds = await this.getFacilitiesNotExistingIds(salesRepsAndFacilitiesData)
+
+		const salesRepsIdsAndRefIds = await this.getSalesRepsIdsandRefIds(salesRepsAndFacilitiesData)
+
+        salesRepsIdsAndRefIds.forEach((row) => {
+
+            salesRepsAndFacilitiesData.find((item) => {
+
                 if (item.id === row.ref_id.toString()) {
-                    item.salesRepsIdsData = row.id;
+
+                    item.salesRepsId = row.id;
                 }
             });
         });
-        return { salesRepsAndFacilityData, unMatchedFacilitiesIds };
+        return { salesRepsAndFacilitiesData, unMatchedFacilitiesIds };
     }
 
-    async getFacilitiesIds(data, salesRepsAndFacilityData) {
-        const finalObj = [];
+
+    async getFinalArray(data, salesRepsAndFacilityData) {
+
+        const finalArray = [];
 
         const facilitiesIds = data.map((item) => item._id.toString()); // fetching facilitiec id from hospitals data
 
@@ -173,16 +198,16 @@ export class syncHelpers {
                 );
 
                 if (matchingObject) {
-                    finalObj.push({
+                    finalArray.push({
                         name: matchingObject.name,
                         refId: matchingObject._id.toString(),
-                        salesRepId: item.salesRepsIdsData,
+                        salesRepId: item.salesRepsId,
                     });
                 }
 
             }
         });
 
-        return finalObj;
+        return finalArray;
     }
 }

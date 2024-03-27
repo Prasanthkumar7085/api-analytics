@@ -3,12 +3,12 @@ import { SyncV3Service } from './sync-v3.service';
 import { LisService } from 'src/lis/lis.service';
 import { syncHelpers } from 'src/helpers/syncHelper';
 import { SalesRepServiceV3 } from 'src/sales-rep-v3/sales-rep-v3.service';
-import { SUCCESS_SEEDED_FACILICES, SUCCUSS_SEEDED_MARKETING_MANAGERS, SUCCUSS_SEEDED_SALES_REPS } from 'src/constants/messageConstants';
+import { HOSPITAL_MARKETING_MANAGER, MARKETER, SALES_REPS_NOT_FOUND, FACILITIES_NOT_FOUND, SUCCESS_SEEDED_FACILICES, SUCCUSS_SEEDED_MARKETING_MANAGERS, SUCCUSS_SEEDED_SALES_REPS, SOMETHING_WENT_WRONG} from 'src/constants/messageConstants';
 import { FacilitiesV3Service } from 'src/facilities-v3/facilities-v3.service';
 
 @Controller({
   version: '3.0',
-  path: 'sync'
+  path: 'sync',
 })
 export class SyncV3Controller {
   constructor(
@@ -16,117 +16,136 @@ export class SyncV3Controller {
     private readonly lisService: LisService,
     private readonly syncHelper: syncHelpers,
     private readonly salesRepService: SalesRepServiceV3,
-    private readonly faciliticesService: FacilitiesV3Service
-  ) { }
+    private readonly faciliticesService: FacilitiesV3Service,
+  ) {}
 
+	@Get('managers')
+	async syncSalesRepsManagers(@Res() res: any) {
+		try {
 
-  @Get('managers')
-  async syncSalesRepsManagers(@Res() res: any) {
-    try {
+			const datesFileter = this.syncHelper.getFromAndToDates(7);
 
-      const datesObj = this.syncHelper.getFromAndToDates(7);
+			const query = {
+				user_type: HOSPITAL_MARKETING_MANAGER,
+				created_at: {
+				$gte: datesFileter.fromDate,
+				$lte: datesFileter.toDate,
+				},
+			};
 
-      // REVIEW: Move HOSPITAL_MARKETING_MANAGER into constants
-      const query = {
-        user_type: "HOSPITAL_MARKETING_MANAGER",
-        created_at: {
-          $gte: datesObj.fromDate,
-          $lte: datesObj.toDate
-        }
-      };
+			const salesRepsManagersData = await this.lisService.getUsers(query);
 
-      const salesRepsManagersData = await this.lisService.getUsers(query);
+			if (salesRepsManagersData.length === 0) {
+				return res.status(200).json({success:true, message: SALES_REPS_NOT_FOUND});
+			}
 
-      // REVIEW: change function name getNewSalesRepsManagersData
-      const finalSalesRepsManagersData = await this.syncHelper.getNewSalesRepsManagersData(salesRepsManagersData);
+			const finalManagersData = await this.syncHelper.getFinalManagersData(salesRepsManagersData);
 
-      // REVIEW: remove awaits 
-      const insertedData = await this.salesRepService.seedSalesRepsManager(finalSalesRepsManagersData);
+			if (finalManagersData.length === 0) {
+				return res.status(200).json({success:true, message: SALES_REPS_NOT_FOUND});
+			}
 
-      // REVIEW: remove data
-      return res.status(200).json({ success: true, message: SUCCUSS_SEEDED_MARKETING_MANAGERS, data: insertedData });
-    }
-    catch (error) {
-      console.log({ error });
-      return res.status(500).json({ success: false, message: error });
-    }
-  }
+			this.salesRepService.insertSalesRepsManagers(finalManagersData)
 
+			this.syncHelper.updateSalesRepsManagersData();
 
-  @Get('marketer')
-  async syncSalesRepsMarketers(@Res() res: any) {
-    try {
-      // REVIEW: change vaieable name
-      const datesObj = this.syncHelper.getFromAndToDates(7);
+			return res.status(200).json({ success: true, message: SUCCUSS_SEEDED_MARKETING_MANAGERS });
+		}
+		catch (error) {
+			console.log({ error });
+			
+			return res.status(500).json({ success: false, message: error.message || SOMETHING_WENT_WRONG });
+		}
+	}
 
-      // REVIEW: Move MARKETER into constants
-      const query = {
-        user_type: "MARKETER",
-        created_at: {
-          $gte: datesObj.fromDate,
-          $lte: datesObj.toDate
-        }
-      };
+	@Get('marketer')
+	async syncSalesRepsMarketers(@Res() res: any) {
+		try {
 
-      // REVIEW: change vaieable name
-      const salesRepsMarketersData = await this.lisService.getUsers(query);
+			const datesFilter = this.syncHelper.getFromAndToDates(7);
 
-      // REVIEW: change vaieable name and function name
-      const finalSalesRepsMarketersData = await this.syncHelper.getNewSalesRepsData(salesRepsMarketersData);
+			const query = {
+				user_type: MARKETER,
+				created_at: {
+				$gte: datesFilter.fromDate,
+				$lte: datesFilter.toDate,
+				},
+			};
 
-      // REVIEW: remove await and change function name
-      const insertedData = await this.salesRepService.seedSalesReps(finalSalesRepsMarketersData);
+			const salesRepsData = await this.lisService.getUsers(query);
 
-      return res.status(200).json({ success: true, message: SUCCUSS_SEEDED_SALES_REPS, data: insertedData });
+			if (salesRepsData.length===0){
+				return res.status(200).json({success:true, message: SALES_REPS_NOT_FOUND});
+			}
 
-    }
-    catch (error) {
-      console.log({ error });
-      return res.status(500).json({ success: false, message: error });
-    }
-  }
+			const finalSalesRepsData = await this.syncHelper.getFinalSalesRepsData(salesRepsData);
 
+			
+			if (finalSalesRepsData.length === 0){
+				return res.status(200).json({success:true, message: SALES_REPS_NOT_FOUND});
+			}
 
-  @Get('facilities')
-  async syncFacilities(@Res() res: any) {
-    try {
-      // REVIEW: change vaieable name
-      const datesObj = this.syncHelper.getFromAndToDates(7);
+			this.salesRepService.insertSalesReps(finalSalesRepsData)
 
-      // REVIEW: Move MARKETER into constants
-      const query = {
-        user_type: "MARKETER",
-        created_at: {
-          $gte: datesObj.fromDate,
-          $lte: datesObj.toDate
-        }
-      };
+			return res.status(200).json({success: true, message: SUCCUSS_SEEDED_SALES_REPS });
+		} 
+		catch (error) {
+			console.log({ error });
+			
+			return res.status(500).json({ success: false, message: error.message || SOMETHING_WENT_WRONG });
+		}
+	}
 
-      const salesRepsData = await this.lisService.getUsers(query);
+	@Get('facilities')
+	async syncFacilities(@Res() res: any) {
+		try {
 
-      const facilitiesIdsData = await this.syncHelper.getFacilitiesDataFromSalesReps(salesRepsData);
+			const datesFilter = this.syncHelper.getFromAndToDates(7);
 
-      const hospitalQuery = {
-        _id: { $in: facilitiesIdsData.unMatchedFacilitiesIds },
-        created_at: {
-          $gte: datesObj.fromDate,
-          $lte: datesObj.toDate
-        }
-      };
+			const query = {
+				user_type: MARKETER,
+				created_at: {
+				$gte: datesFilter.fromDate,
+				$lte: datesFilter.toDate,
+				},
+			};
 
-      const faciliticesData = await this.lisService.getHospitalsData(hospitalQuery);
+			const salesRepsData = await this.lisService.getUsers(query);
 
-      // REVIEW: How i know if faciliticesData is not came
+			if (salesRepsData.length === 0){
+				return res.status(200).json({success:true, message: SALES_REPS_NOT_FOUND});
+			}
 
-      const finalObjs = await this.syncHelper.getFacilitiesIds(faciliticesData, facilitiesIdsData.salesRepsAndFacilityData);
+			const salesRepsAndfacilitiesIdsData = await this.syncHelper.getSalesRepsAndFAcilitiesIds(salesRepsData);
 
-      const insertedData = await this.faciliticesService.seedFacilities(finalObjs);
+			if (salesRepsAndfacilitiesIdsData.salesRepsAndFacilitiesData.length === 0){
+				return res.status(200).json({success:true, message: SALES_REPS_NOT_FOUND});
+			}
 
-      return res.status(200).json({ success: true, message: SUCCESS_SEEDED_FACILICES, data: insertedData });
-    }
-    catch (error) {
-      console.log({ error });
-      return res.status(500).json({ success: false, message: error });
-    }
-  }
+			const hospitalQuery = {
+				_id: { $in: salesRepsAndfacilitiesIdsData.unMatchedFacilitiesIds },
+				created_at: {
+				$gte: datesFilter.fromDate,
+				$lte: datesFilter.toDate,
+				},
+			};
+
+			const faciliticesData = await this.lisService.getHospitalsData(hospitalQuery);
+
+			if (faciliticesData.length === 0){
+				return res.status(200).json({success:true, message: FACILITIES_NOT_FOUND});
+			}
+
+			const finalArray = await this.syncHelper.getFinalArray(faciliticesData, salesRepsAndfacilitiesIdsData.salesRepsAndFacilitiesData);
+
+			this.faciliticesService.insertfacilities(finalArray)
+
+			return res.status(200).json({success: true, message: SUCCESS_SEEDED_FACILICES});
+		}
+		catch (error) {
+			console.log({ error });
+			
+			return res.status(500).json({ success: false, message: error.message || SOMETHING_WENT_WRONG });
+		}
+	}
 }
