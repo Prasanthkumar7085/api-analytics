@@ -11,112 +11,122 @@ import { FacilitiesV3Service } from 'src/facilities-v3/facilities-v3.service';
   path: 'sync'
 })
 export class SyncV3Controller {
-	constructor(
-		private readonly syncV3Service: SyncV3Service,
-		private readonly lisService: LisService,
-		private readonly syncHelper: syncHelpers,
-		private readonly salesRepService: SalesRepServiceV3,
-		private readonly faciliticesService: FacilitiesV3Service
-		) {}
+  constructor(
+    private readonly syncV3Service: SyncV3Service,
+    private readonly lisService: LisService,
+    private readonly syncHelper: syncHelpers,
+    private readonly salesRepService: SalesRepServiceV3,
+    private readonly faciliticesService: FacilitiesV3Service
+  ) { }
 
 
-	@Get('managers')
-	async syncSalesRepsManagers(@Res() res: any){
-		try {
+  @Get('managers')
+  async syncSalesRepsManagers(@Res() res: any) {
+    try {
 
-			const datesObj = this.syncHelper.getFromAndToDates(7)
+      const datesObj = this.syncHelper.getFromAndToDates(7);
 
-			const query = {
-				user_type: "HOSPITAL_MARKETING_MANAGER",
-				created_at: {
-					$gte:  datesObj.fromDate,
-					$lte:  datesObj.toDate
-				}
-			};
+      // REVIEW: Move HOSPITAL_MARKETING_MANAGER into constants
+      const query = {
+        user_type: "HOSPITAL_MARKETING_MANAGER",
+        created_at: {
+          $gte: datesObj.fromDate,
+          $lte: datesObj.toDate
+        }
+      };
 
-			const salesRepsManagersData = await this.lisService.getUsers(query)
+      const salesRepsManagersData = await this.lisService.getUsers(query);
 
-			const finalSalesRepsManagersData = await this.syncHelper.getNewSalesRepsManagersData(salesRepsManagersData)
+      // REVIEW: change function name getNewSalesRepsManagersData
+      const finalSalesRepsManagersData = await this.syncHelper.getNewSalesRepsManagersData(salesRepsManagersData);
 
-			const insertedData = await this.salesRepService.seedSalesRepsManager(finalSalesRepsManagersData)
+      // REVIEW: remove awaits 
+      const insertedData = await this.salesRepService.seedSalesRepsManager(finalSalesRepsManagersData);
 
-			return res.status(200).json({success: true, message: SUCCUSS_SEEDED_MARKETING_MANAGERS, data: insertedData})
-		}
-		catch (error){
-			console.log({error})
-			return res.status(500).json({success: false, message: error})
-		}
-	}
-
-
-	@Get('marketer')
-	async syncSalesRepsMarketers(@Res() res:any){
-		try {
-
-			const datesObj = this.syncHelper.getFromAndToDates(7)
-
-			const query = {
-				user_type: "MARKETER",
-				created_at: {
-					$gte:  datesObj.fromDate,
-					$lte:  datesObj.toDate
-				}
-			};
-
-			const salesRepsMarketersData = await this.lisService.getUsers(query)
-
-			const finalSalesRepsMarketersData = await this.syncHelper.getNewSalesRepsData(salesRepsMarketersData)
-			
-			
-			const insertedData = await this.salesRepService.seedSalesReps(finalSalesRepsMarketersData)
-
-			return res.status(200).json({success: true, message: SUCCUSS_SEEDED_SALES_REPS, data: insertedData})
-
-		}
-		catch (error){
-			console.log({error})
-			return res.status(500).json({success: false, message: error})
-		}
-	}
+      // REVIEW: remove data
+      return res.status(200).json({ success: true, message: SUCCUSS_SEEDED_MARKETING_MANAGERS, data: insertedData });
+    }
+    catch (error) {
+      console.log({ error });
+      return res.status(500).json({ success: false, message: error });
+    }
+  }
 
 
-	@Get('facilities')
-	async syncFacilities(@Res() res:any){
-		try {
+  @Get('marketer')
+  async syncSalesRepsMarketers(@Res() res: any) {
+    try {
+      // REVIEW: change vaieable name
+      const datesObj = this.syncHelper.getFromAndToDates(7);
 
-			const datesObj = this.syncHelper.getFromAndToDates(7)
+      // REVIEW: Move MARKETER into constants
+      const query = {
+        user_type: "MARKETER",
+        created_at: {
+          $gte: datesObj.fromDate,
+          $lte: datesObj.toDate
+        }
+      };
 
-			const query = {
-				user_type: "MARKETER",
-				created_at: {
-					$gte:  datesObj.fromDate,
-					$lte:  datesObj.toDate
-				}
-			};
+      // REVIEW: change vaieable name
+      const salesRepsMarketersData = await this.lisService.getUsers(query);
 
-			const salesRepsData = await this.lisService.getUsers(query)
+      // REVIEW: change vaieable name and function name
+      const finalSalesRepsMarketersData = await this.syncHelper.getNewSalesRepsData(salesRepsMarketersData);
 
-			const facilitiesIdsData = await this.syncHelper.getFacilitiesDataFromSalesReps(salesRepsData)
+      // REVIEW: remove await and change function name
+      const insertedData = await this.salesRepService.seedSalesReps(finalSalesRepsMarketersData);
 
-			const hospitalQuery = { 
-				_id: { $in: facilitiesIdsData.unMatchedFacilitiesIds }, 
-				created_at: {
-					$gte:  datesObj.fromDate,
-					$lte:  datesObj.toDate
-				}
-			}
+      return res.status(200).json({ success: true, message: SUCCUSS_SEEDED_SALES_REPS, data: insertedData });
 
-			const faciliticesData = await this.lisService.getHospitalsData(hospitalQuery)
-			
-			const finalObjs = await this.syncHelper.getFacilitiesIds(faciliticesData, facilitiesIdsData.salesRepsAndFacilityData)
+    }
+    catch (error) {
+      console.log({ error });
+      return res.status(500).json({ success: false, message: error });
+    }
+  }
 
-			const insertedData = await this.faciliticesService.seedFacilities(finalObjs)
 
-			return res.status(200).json({success: true, message: SUCCESS_SEEDED_FACILICES, data: insertedData})
-		}
-		catch (error){
-			console.log({error})
-			return res.status(500).json({success: false, message: error})
-		}
-	}
+  @Get('facilities')
+  async syncFacilities(@Res() res: any) {
+    try {
+      // REVIEW: change vaieable name
+      const datesObj = this.syncHelper.getFromAndToDates(7);
+
+      // REVIEW: Move MARKETER into constants
+      const query = {
+        user_type: "MARKETER",
+        created_at: {
+          $gte: datesObj.fromDate,
+          $lte: datesObj.toDate
+        }
+      };
+
+      const salesRepsData = await this.lisService.getUsers(query);
+
+      const facilitiesIdsData = await this.syncHelper.getFacilitiesDataFromSalesReps(salesRepsData);
+
+      const hospitalQuery = {
+        _id: { $in: facilitiesIdsData.unMatchedFacilitiesIds },
+        created_at: {
+          $gte: datesObj.fromDate,
+          $lte: datesObj.toDate
+        }
+      };
+
+      const faciliticesData = await this.lisService.getHospitalsData(hospitalQuery);
+
+      // REVIEW: How i know if faciliticesData is not came
+
+      const finalObjs = await this.syncHelper.getFacilitiesIds(faciliticesData, facilitiesIdsData.salesRepsAndFacilityData);
+
+      const insertedData = await this.faciliticesService.seedFacilities(finalObjs);
+
+      return res.status(200).json({ success: true, message: SUCCESS_SEEDED_FACILICES, data: insertedData });
+    }
+    catch (error) {
+      console.log({ error });
+      return res.status(500).json({ success: false, message: error });
+    }
+  }
 }
