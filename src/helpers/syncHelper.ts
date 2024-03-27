@@ -80,8 +80,8 @@ export class syncHelpers {
 
             console.log({ dataToBeInserted });
             // Inserting data into analytics db
-            // const response = await db.insert(case_types).values(dataToBeInserted);
-            // console.log({ response });
+            const response = await db.insert(case_types).values(dataToBeInserted);
+            console.log({ response });
 
             return dataToBeInserted;
         }

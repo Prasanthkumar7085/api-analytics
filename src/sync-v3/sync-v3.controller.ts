@@ -29,10 +29,7 @@ export class SyncV3Controller {
     catch (err) {
       console.log({ err });
 
-      return res.status(500).json({
-        success: false,
-        message: err || SOMETHING_WENT_WRONG
-      });
+      return res.status(500).json({ success: false, message: err || SOMETHING_WENT_WRONG });
     }
 
   }
@@ -41,14 +38,14 @@ export class SyncV3Controller {
   @Get('case-types')
   async syncCaseTypes(@Res() res: any) {
     try {
-      // const datesObj = this.synchelpers.getFromAndToDates(365);
+      const datesObj = this.synchelpers.getFromAndToDates(10);
 
       const query = {
         lab: "5fd0f8b70c8b4b71e275a2b7",
-        // created_at: {
-        //   $gte: datesObj.fromDate,
-        //   $lte: datesObj.toDate
-        // }
+        created_at: {
+          $gte: datesObj.fromDate,
+          $lte: datesObj.toDate
+        }
       };
 
       const data = await this.lisService.getCaseTypes(query);
