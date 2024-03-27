@@ -1,95 +1,121 @@
-import { Controller, Get, Post, Res } from '@nestjs/common';
+import { Controller, Get, NotFoundException, Post, Res } from '@nestjs/common';
 import { SyncV3Service } from './sync-v3.service';
 import { LisService } from 'src/lis/lis.service';
-import { SOMETHING_WENT_WRONG, SUCCESS_SYNCED_CASE_TYPES, SUCCESS_SYNCED_INSURANCE_PAYORS } from 'src/constants/messageConstants';
+import { CASE_TYPES_NOT_FOUND, INSURANCE_PAYORS_NOT_FOUND, SOMETHING_WENT_WRONG, SUCCESS_SYNCED_CASE_TYPES, SUCCESS_SYNCED_INSURANCE_PAYORS } from 'src/constants/messageConstants';
 import { syncHelpers } from 'src/helpers/syncHelper';
 import * as fs from 'fs';
+import { Configuration } from 'src/config/config.service';
+
+
 @Controller({
-  version: '3.0',
-  path: 'sync'
+    version: '3.0',
+    path: 'sync'
 })
 
 export class SyncV3Controller {
-  constructor(
-    private readonly syncV3Service: SyncV3Service,
-    private readonly lisService: LisService,
-    private readonly synchelpers: syncHelpers,
-  ) { }
+    constructor(
+        private readonly syncV3Service: SyncV3Service,
+        private readonly lisService: LisService,
+        private readonly synchelpers: syncHelpers,
+        private readonly configuration: Configuration,
+    ) { }
 
-  @Get('insurance-payors')
-  async syncInsurancePayors(@Res() res: any) {
+    @Get('insurance-payors')
+    async syncInsurancePayors(@Res() res: any) {
+        try {
+            const query = {};
 
-    try {
-      const data = await this.lisService.getInsurancePayors();
-      // REVIEW: seperate the below method into two methods
+            const projection = { _id: 1, name: 1 };
 
-      const result = await this.synchelpers.insertNewInsurancePayorsIntoAnalyticsDb(data);
+            const data = await this.lisService.getInsurancePayors(query, projection);
 
-      return res.status(200).json({ success: true, message: SUCCESS_SYNCED_INSURANCE_PAYORS, data: result });
-    }
-    catch (err) {
-      console.log({ err });
+            if (data.length == 0) {
+                return res.status(200).json({ success: true, message: INSURANCE_PAYORS_NOT_FOUND })
+            }
+            // REVIEW: seperate the below method into two methods
+            const modifiedData = await this.synchelpers.modifyInsurancePayors(data);
 
-      return res.status(500).json({ success: false, message: err || SOMETHING_WENT_WRONG });
-    }
+            if (modifiedData.length == 0) {
+                return res.status(200).json({ success: true, message: INSURANCE_PAYORS_NOT_FOUND });
+            }
+            const result = this.synchelpers.insertInsurancePayors(modifiedData, data);
 
-  }
-
-
-  @Get('case-types')
-  async syncCaseTypes(@Res() res: any) {
-    try {
-      const datesObj = this.synchelpers.getFromAndToDates(10);
-
-      // REVIEW: get lab id from env or config
-      const query = {
-        lab: "5fd0f8b70c8b4b71e275a2b7",
-        created_at: {
-          $gte: datesObj.fromDate,
-          $lte: datesObj.toDate
+            return res.status(200).json({ success: true, message: SUCCESS_SYNCED_INSURANCE_PAYORS, result });
         }
-      };
+        catch (err) {
+            console.log({ err });
 
-      const data = await this.lisService.getCaseTypes(query);
-
-      // REVIEW: seperate the below method into two methods
-
-      const result = await this.synchelpers.insertNewCaseTypesIntoAnalyticsDb(data);
-
-      return res.status(200).json({ success: true, message: SUCCESS_SYNCED_CASE_TYPES, data: result });
+            return res.status(500).json({ success: false, message: err || SOMETHING_WENT_WRONG });
+        }
 
     }
-    catch (error) {
-      console.log({ error });
 
-      return res.status(500).json({ success: false, message: error || SOMETHING_WENT_WRONG });
+
+    @Get('case-types')
+    async syncCaseTypes(@Res() res: any) {
+        try {
+
+            const { lab_id } = this.configuration.getConfig();
+
+            const datesObj = this.synchelpers.getFromAndToDates(10);
+
+
+            // REVIEW: get lab id from env or config
+            const query = {
+                lab: lab_id,
+                created_at: {
+                    $gte: datesObj.fromDate,
+                    $lte: datesObj.toDate
+                }
+            };
+
+            const projection = { name: 1, code: 1 }
+
+            const data = await this.lisService.getCaseTypes(query, projection);
+
+            if (data.length == 0) {
+                return res.status(200).json({ success: true, message: CASE_TYPES_NOT_FOUND })
+            }
+            // REVIEW: seperate the below method into two methods
+            const modifiedData = await this.synchelpers.modifyCaseTypes(data);
+
+            if (modifiedData.length == 0) {
+                return res.status(200).json({ success: true, message: CASE_TYPES_NOT_FOUND })
+            }
+            const result = this.synchelpers.insertCaseTypes(modifiedData, data);
+
+            return res.status(200).json({ success: true, message: SUCCESS_SYNCED_CASE_TYPES });
+        }
+        catch (error) {
+            console.log({ error });
+
+            return res.status(500).json({ success: false, message: error || SOMETHING_WENT_WRONG });
+        }
     }
-  }
 
 
-  @Get('facilities')
-  async getFacilitiesWithNoMarketers(@Res() res: any) {
-    try {
-      const facilitiesData = await this.lisService.getFacilities();
+    @Get('facilities')
+    async getFacilitiesWithNoMarketers(@Res() res: any) {
+        try {
+            const query = {};
 
-      // const query = { user_type: 'MARKETER' };
+            const projection = { _id: 1, name: 1 };
 
-      // const projection = { _id: 1, hospitals: 1 };
+            const facilitiesData = await this.lisService.getFacilities(query, projection);
 
-      // const marketersData = await this.lisService.getUsers(query, projection);
-      const marketersDataJson = fs.readFileSync('sales_reps_hospitalsIds.json', 'utf-8');
+            const marketersDataJson = fs.readFileSync('sales_reps_hospitalsIds.json', 'utf-8');
 
-      const marketersData = JSON.parse(marketersDataJson)
+            const marketersData = JSON.parse(marketersDataJson)
 
-      const data = await this.synchelpers.getHospitalsWithNoManagers(facilitiesData, marketersData);
+            const data = await this.synchelpers.getHospitalsWithNoManagers(facilitiesData, marketersData);
 
-      return res.status(200).json({ success: true, message: 'Success', data: data });
+            return res.status(200).json({ success: true, message: 'Success', data: data });
+        }
+        catch (error) {
+            console.log({ error });
+
+            return res.status(500).json({ success: false, message: error || SOMETHING_WENT_WRONG });
+        }
     }
-    catch (error) {
-      console.log({ error });
-
-      return res.status(500).json({ success: false, message: error || SOMETHING_WENT_WRONG });
-    }
-  }
 
 }

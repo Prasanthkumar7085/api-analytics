@@ -25,7 +25,7 @@ export class syncHelpers {
     }
 
 
-    async insertNewInsurancePayorsIntoAnalyticsDb(data) {
+    async modifyInsurancePayors(data) {
         // Extracting _id values from data
         const lisInsurancePayorsIdsArray = data.map(item => item._id.toString());
 
@@ -36,30 +36,26 @@ export class syncHelpers {
         // Finding the difference
         const result = lisInsurancePayorsIdsArray.filter(item => !pgInsurancePayorsIdsArray.includes(item));
 
-        // REVIEW: REMOVE consoles
-        console.log({ result });
-        // Creating data to be inserted into analytics db
-        // If there are new insurances to be inserted
-        if (result.length > 0) {
-            // Creating data to be inserted into analytics db
-            const dataToBeInserted = data
-                .filter(element => result.includes(element._id.toString()))
-                .map(element => ({ name: element.name, refId: element._id.toString() }));
-
-            console.log({ dataToBeInserted });
-            // Inserting data into analytics db
-            const response = db.insert(insurance_payors).values(dataToBeInserted);
-
-            console.log({ response });
-
-            return dataToBeInserted;
-        }
         return result;
-
     }
 
 
-    async insertNewCaseTypesIntoAnalyticsDb(data) {
+    insertInsurancePayors(modifiedData, data) {
+
+        // Creating data to be inserted into analytics db
+        const dataToBeInserted = data
+            .filter(element => modifiedData.includes(element._id.toString()))
+            .map(element => ({ name: element.name, refId: element._id.toString() }));
+
+        // Inserting data into analytics db
+        const response = db.insert(insurance_payors).values(dataToBeInserted);
+        console.log({ response })
+
+        return dataToBeInserted;
+    }
+
+
+    async modifyCaseTypes(data) {
 
         //need to check if case-type code is in the analytics db or not
         const lisCaseTypeCodesArray = data.map(item => item.code);
@@ -72,43 +68,33 @@ export class syncHelpers {
         // Finding the difference
         const result = lisCaseTypeCodesArray.filter(item => !pgCasetypesArray.includes(item));
 
-
-        if (result.length > 0) {
-            // Creating data to be inserted into analytics db
-            const dataToBeInserted = data
-                .filter(element => result.includes(element.code))
-                .map(element => ({ name: element.code, displayName: element.code }));
-
-            // REVIEW: REMOVE consoles
-
-            console.log({ dataToBeInserted });
-            // Inserting data into analytics db
-            const response = db.insert(case_types).values(dataToBeInserted);
-            // REVIEW: REMOVE awaits at non dependent db lines
-
-            console.log({ response });
-
-            return dataToBeInserted;
-        }
         return result;
+    }
+
+
+    insertCaseTypes(modifiedData, data) {
+
+        // Creating data to be inserted into analytics db
+        const dataToBeInserted = data
+            .filter(element => modifiedData.includes(element.code))
+            .map(element => ({ name: element.code, displayName: element.code }));
+
+        console.log({ dataToBeInserted });
+        // Inserting data into analytics db
+        const response = db.insert(case_types).values(dataToBeInserted);
+        console.log({ response })
+
+        return dataToBeInserted;
     }
 
 
     getHospitalsWithNoManagers(facilitiesData, marketersData) {
 
         const facilitiesDataArray = facilitiesData.map(item => item._id.toString());
-        console.log(facilitiesDataArray)
-        console.log('faicliteis legnth =', facilitiesDataArray.length)
-
-
-        console.log('marketers length = ', marketersData.length)
-        // const marketersDataArray = marketersData.map(item => item.hospitals[0].toString());
-        // console.log(marketersDataArray.length)
 
         const result = facilitiesDataArray.filter(item => !marketersData.includes(item));
-        console.log('result length = ', result.length)
 
-        return null;
+        return result;
     }
 
 }

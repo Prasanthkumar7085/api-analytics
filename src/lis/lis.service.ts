@@ -34,22 +34,22 @@ export class LisService {
 
 
     // Fetch insurance data from lis
-    async getInsurancePayors() {
+    async getInsurancePayors(query = {}, projection = {}) {
 
         //need to get the last 10 days data
-        return await this.insuranceModel.find().select('_id name');
+        return await this.insuranceModel.find(query).select(projection);
 
     }
 
     // REVIEW: convert select as dynamically
-    async getCaseTypes(query: any) {
+    async getCaseTypes(query = {}, projection = {}) {
 
-        return await this.labTestPanelModel.find(query).select('name code');
+        return await this.labTestPanelModel.find(query).select(projection);
     }
 
 
-    async getFacilities() {
-        return await this.hospitalModel.find().select('_id name');
+    async getFacilities(query, projection) {
+        return await this.hospitalModel.find(query).select(projection);
     }
 
 }

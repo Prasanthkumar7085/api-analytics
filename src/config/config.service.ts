@@ -11,7 +11,7 @@ export class Configuration {
 
         const envFilePath = `.env`;
         const existsPath = fs.existsSync(envFilePath);
-        
+
         if (existsPath) {
             dotenv.config({ path: envFilePath });
         }
@@ -20,8 +20,13 @@ export class Configuration {
             dotenv.config({ path: '.env.example' });  // you can specify a default env file
         }
     }
-    
+
     getConfig() {
-        return this.configService.get<string>('LIS_DB_URL');
+
+        const lis_db_url = this.configService.get<string>('LIS_DB_URL');
+        const lab_id = this.configService.get<string>('LAB_ID');
+
+        return { lis_db_url, lab_id };
     }
+
 }
