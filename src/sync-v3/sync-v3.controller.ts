@@ -21,6 +21,7 @@ export class SyncV3Controller {
 
     try {
       const data = await this.lisService.getInsurancePayors();
+      // REVIEW: seperate the below method into two methods
 
       const result = await this.synchelpers.insertNewInsurancePayorsIntoAnalyticsDb(data);
 
@@ -40,6 +41,7 @@ export class SyncV3Controller {
     try {
       const datesObj = this.synchelpers.getFromAndToDates(10);
 
+      // REVIEW: get lab id from env or config
       const query = {
         lab: "5fd0f8b70c8b4b71e275a2b7",
         created_at: {
@@ -49,6 +51,8 @@ export class SyncV3Controller {
       };
 
       const data = await this.lisService.getCaseTypes(query);
+
+      // REVIEW: seperate the below method into two methods
 
       const result = await this.synchelpers.insertNewCaseTypesIntoAnalyticsDb(data);
 

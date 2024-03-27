@@ -36,7 +36,8 @@ export class syncHelpers {
         // Finding the difference
         const result = lisInsurancePayorsIdsArray.filter(item => !pgInsurancePayorsIdsArray.includes(item));
 
-        console.log({ result })
+        // REVIEW: REMOVE consoles
+        console.log({ result });
         // Creating data to be inserted into analytics db
         // If there are new insurances to be inserted
         if (result.length > 0) {
@@ -66,7 +67,7 @@ export class syncHelpers {
         // Fetching matching data from analytics db
         const matchingData = await db.execute(sql`SELECT * FROM case_types WHERE name IN ${lisCaseTypeCodesArray}`);
 
-        const pgCasetypesArray = matchingData.rows.map(item => item.name)
+        const pgCasetypesArray = matchingData.rows.map(item => item.name);
 
         // Finding the difference
         const result = lisCaseTypeCodesArray.filter(item => !pgCasetypesArray.includes(item));
@@ -78,9 +79,13 @@ export class syncHelpers {
                 .filter(element => result.includes(element.code))
                 .map(element => ({ name: element.code, displayName: element.code }));
 
+            // REVIEW: REMOVE consoles
+
             console.log({ dataToBeInserted });
             // Inserting data into analytics db
             const response = db.insert(case_types).values(dataToBeInserted);
+            // REVIEW: REMOVE awaits at non dependent db lines
+
             console.log({ response });
 
             return dataToBeInserted;
