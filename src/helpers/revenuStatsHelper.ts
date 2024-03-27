@@ -181,8 +181,13 @@ export class RevenueStatsHelpers {
             }
         }
 
+        const select = {
+            accession_id: 1, _id: 1, case_types: 1, hospital: 1, hospital_marketers: 1,
+            'patient_info._id': 1, 'patient_info.first_name': 1, 'patient_info.middle_name': 1, 'patient_info.last_name': 1
+        }
+
         // Get the hospital, marketers and case_type based on the accession_ids from modified data
-        const caseDataArray = await this.lisService.getCaseByAccessionId(query);
+        const caseDataArray = await this.lisService.getCases(query, select);
 
         let mergedArray: any = [];
         if (caseDataArray.length) {

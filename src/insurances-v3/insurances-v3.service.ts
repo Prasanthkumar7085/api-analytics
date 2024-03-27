@@ -1,10 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { sql } from 'drizzle-orm';
+import { insurance_payors } from 'src/drizzle/schemas/insurancePayors';
 import { db } from 'src/seeders/db';
 
 @Injectable()
 export class InsurancesV3Service {
 
+
+    async getAllInsurances(){
+        return await db.select().from(insurance_payors)
+    }
 
     async getAllInsurancesData(queryString: string) {
 

@@ -1,9 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { sql } from 'drizzle-orm';
+import { case_types } from 'src/drizzle/schemas/caseTypes';
 import { db } from 'src/seeders/db';
 
 @Injectable()
 export class CaseTypesV3Service {
+
+    async getAllCaseTypes(){
+        return await db.select().from(case_types);
+    }
 
     async getCaseTypeStatsData(queryString: string) {
 

@@ -1,10 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { sql } from 'drizzle-orm';
+import { facilities } from 'src/drizzle/schemas/facilities';
 import { db } from 'src/seeders/db';
 
 
 @Injectable()
 export class FacilitiesV3Service {
+
+    
+    async getAllFacilitiesData(){
+        return await db.select().from(facilities);
+    }
 
 
     async getAllFacilities(queryString: string) {

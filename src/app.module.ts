@@ -22,6 +22,7 @@ import { CaseTypesV3Module } from './case-types-v3/case-types-v3.module';
 import { OverviewV3Module } from './overview-v3/overview-v3.module';
 import { InsurancesV3Module } from './insurances-v3/insurances-v3.module';
 import { SyncV3Module } from './sync-v3/sync-v3.module';
+import { insurancePayorsSchema } from './schemas/insurancPayors';
 
 
 @Module({
@@ -29,8 +30,7 @@ import { SyncV3Module } from './sync-v3/sync-v3.module';
     ConfigModule.forRoot({
       load: [configuration],
     }),
-    MongooseModule.forFeature([{ name: 'UserSchema', schema: UserSchema }]),
-    MongooseModule.forRoot(process.env.LIS_DB_URL + '?authSource=admin'),
+    MongooseModule.forRoot(process.env.LIS_DB_URL + '&authSource=admin'),
     StatsModule, PrismaModule, LisModule, RevenueStatsModule, SalesRepModule, OverviewModule, FacilitiesModule, CaseTypesModule,
     DrizzleModule, SalesRepModuleV3, FacilitiesV3Module, CaseTypesV3Module, OverviewV3Module, InsurancesV3Module, SyncV3Module],
   controllers: [AppController],

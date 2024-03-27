@@ -1,6 +1,8 @@
-import { Schema, model } from 'mongoose'
+import * as mongoose from 'mongoose';
+import { Schema, model } from 'mongoose';
 
-const insurancePayorsSchema = new Schema({
+
+export const insurancePayorsSchema = new Schema({
     payor_electronic_id: {
         type: String
     },
@@ -23,6 +25,6 @@ const insurancePayorsSchema = new Schema({
         type: String,
         default: 'ACTIVE'
     }
-})
+});
 
-export const InsurancePayorsModel = model('InsurancePayors', insurancePayorsSchema, 'insurance_payors')
+export const InsurancePayorsModel = mongoose.model<any>('InsurancePayors', insurancePayorsSchema, 'insurance_payors');
