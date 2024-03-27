@@ -41,4 +41,23 @@ export class LisController {
       })
     }
   }
+
+  @Get("users/:user_id")
+  async getUsersById(@Param('user_id') userId: string, @Res() res: any) {
+    try {
+      let userData = await this.lisService.getUserById(userId);
+
+      return res.status(200).json({
+        success: true,
+        message: "User Details Fetched Successfully",
+        data: userData
+      })
+    } catch (err) {
+      console.log({ err });
+      return res.status(500).json({
+        success: false,
+        message: err.message || SOMETHING_WENT_WRONG
+      })
+    }
+  }
 }

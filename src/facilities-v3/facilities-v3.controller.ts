@@ -1,7 +1,8 @@
-import { Controller, Get, Param, Res, Query } from '@nestjs/common';
+import { Controller, Get, Param, Res, Query, UseGuards } from '@nestjs/common';
 import { FacilitiesV3Service } from './facilities-v3.service';
 import { SOMETHING_WENT_WRONG, SUCCESSS_FETCHED_FACILITIES_CASES_TYPES_REVENUE, SUCCESSS_FETCHED_FACILITIES_CASES_TYPES_VOLUME, SUCCESS_FETCHED_FACILITIES, SUCCESS_FETCHED_FACILITIES_REVENUE_STATS, SUCCESS_FETCHED_FACILITIES_TRENDS_REVENUE, SUCCESS_FETCHED_FACILITIES_TRENDS_VOLUME, SUCCESS_FETCHED_FACILITIES_VOLUME_STATS, SUCCESS_FETCHED_FACILITY, SUCCESS_FETCHED_FACILITY_CASE_TYPES_OVERALL_REVENUE, SUCCESS_FETCHED_FACILITY_CASE_TYPES_OVERALL_VOLUME, SUCCESS_FETCHED_FACILITY_INSURANCE_PAYORS, SUCCESS_FETCHED_FACILITY_INSURANCE_REVENUE_DATA } from 'src/constants/messageConstants';
 import { FilterHelper } from 'src/helpers/filterHelper';
+import { AuthGuard } from 'src/guards/auth.guard';
 
 @Controller({
 	version: '3.0',
@@ -13,7 +14,7 @@ export class FacilitiesV3Controller {
 		private readonly filterHelper: FilterHelper
 	) { }
 
-
+	@UseGuards(AuthGuard)
 	@Get()
 	async getAllFacilities(@Res() res: any, @Query() query: any) {
 		try {
@@ -39,6 +40,7 @@ export class FacilitiesV3Controller {
 	}
 
 
+	@UseGuards(AuthGuard)
 	@Get(':id')
 	async getFacilityDetails(@Res() res: any, @Param('id') id: number) {
 		try {
@@ -61,7 +63,7 @@ export class FacilitiesV3Controller {
 		}
 	}
 
-
+	@UseGuards(AuthGuard)
 	@Get(':id/stats-revenue')
 	async getRevenueStats(@Res() res: any, @Param('id') id: number, @Query() query: any) {
 		try {
@@ -86,7 +88,7 @@ export class FacilitiesV3Controller {
 		}
 	}
 
-
+	@UseGuards(AuthGuard)
 	@Get(':id/stats-volume')
 	async getVolumeStats(@Res() res: any, @Param('id') id: number, @Query() query: any) {
 		try {
@@ -110,7 +112,7 @@ export class FacilitiesV3Controller {
 		}
 	}
 
-
+	@UseGuards(AuthGuard)
 	@Get(':id/case-types-revenue')
 	async getOverAllCaseTypesRevenue(@Res() res: any, @Param('id') id: number, @Query() query: any) {
 		try {
@@ -135,7 +137,7 @@ export class FacilitiesV3Controller {
 		}
 	}
 
-
+	@UseGuards(AuthGuard)
 	@Get(':id/case-types-volume')
 	async getOverAllCaseTypesVolume(@Res() res: any, @Param('id') id: number, @Query() query: any) {
 		try {
@@ -160,7 +162,7 @@ export class FacilitiesV3Controller {
 		}
 	}
 
-
+	@UseGuards(AuthGuard)
 	@Get(':id/case-types/months/revenue')
 	async getCaseTypesRevenue(@Res() res: any, @Param('id') id: number, @Query() query: any) {
 		try {
@@ -185,7 +187,7 @@ export class FacilitiesV3Controller {
 		}
 	}
 
-
+	@UseGuards(AuthGuard)
 	@Get(':id/case-types/months/volume')
 	async getCaseTypesVolume(@Res() res: any, @Param('id') id: number, @Query() query: any) {
 		try {
@@ -210,7 +212,7 @@ export class FacilitiesV3Controller {
 		}
 	}
 
-
+	@UseGuards(AuthGuard)
 	@Get(':id/insurance-payors')
 	async getInsurancePayors(@Res() res: any, @Param('id') id: number, @Query() query: any) {
 		try {
@@ -234,7 +236,7 @@ export class FacilitiesV3Controller {
 			});
 		}
 	}
-
+	@UseGuards(AuthGuard)
 	@Get(':id/insurance-payors/:payor_id')
 	async getOneInsuranceRevenueMonthWiseData(@Param() param: any, @Res() res: any, @Query() query: any) {
 		try {
@@ -264,7 +266,7 @@ export class FacilitiesV3Controller {
 		}
 	}
 
-
+	@UseGuards(AuthGuard)
 	@Get(':id/trends/revenue')
 	async getRevenueTrends(@Res() res: any, @Param('id') id: number, @Query() query: any) {
 		try {
@@ -289,7 +291,7 @@ export class FacilitiesV3Controller {
 		}
 	}
 
-
+	@UseGuards(AuthGuard)
 	@Get(':id/trends/volume')
 	async getVolumeTrends(@Res() res: any, @Param('id') id: number, @Query() query: any) {
 		try {

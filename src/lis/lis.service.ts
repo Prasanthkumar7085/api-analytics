@@ -20,11 +20,25 @@ export class LisService {
     }
 
 
+    async getUserById(userId, projection = {}) {
+        return await this.userModel.findById(userId).select(projection);
+    }
+
+
     async getCases(query, select = {}) {
         return await this.caseModel.find(query).select(select);
     }
 
-    async getInsurancePayors(){
+
+    async getInsurancePayors() {
         return await this.insurancePayorModel.find();
+    }
+
+
+    async getCaseByAccessionId(query) {
+        return await this.caseModel.find(query).select({
+            accession_id: 1, _id: 1, case_types: 1, hospital: 1, hospital_marketers: 1,
+            'patient_info._id': 1, 'patient_info.first_name': 1, 'patient_info.middle_name': 1, 'patient_info.last_name': 1
+        });
     }
 }

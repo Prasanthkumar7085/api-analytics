@@ -1,7 +1,8 @@
-import { Controller, Get, Param, Delete, Res, Query, Post } from '@nestjs/common';
+import { Controller, Get, Param, Delete, Res, Query, Post, UseGuards } from '@nestjs/common';
 import { SOMETHING_WENT_WRONG, SUCCESS_DELETED_DATA_IN_TABLE, SUCCESS_FECTED_SALE_REP_REVENUE_STATS, SUCCESS_FECTED_SALE_REP_VOLUME_STATS, SUCCESS_FETCHED_CASE_TYPES_REVENUE, SUCCESS_FETCHED_ONE_SALES_REP, SUCCESS_FETCHED_PATIENT_CLAIMS_COUNT, SUCCESS_FETCHED_SALES_REP, SUCCESS_FETCHED_SALES_REP_CASE_TYPE_MONTHLY_VOLUME, SUCCESS_FETCHED_SALES_REP_FACILITY_WISE_STATS, SUCCESS_FETCHED_SALES_REP_INSURANCE_PAYORS_DATA, SUCCESS_FETCHED_SALES_REP_INSURANCE_PAYORS_MONTH_WISE_DATA, SUCCESS_FETCHED_SALES_REP_OVERALL_REVENUE, SUCCESS_FETCHED_SALES_REP_OVERALL_VOLUME, SUCCESS_FETCHED_SALES_REP_TREND_REVENUE, SUCCESS_FETCHED_SALES_REP_TREND_VOLUME, SUCCESS_FETCHED_SALES_REP_VOLUME_AND_REVENUE } from 'src/constants/messageConstants';
 import { FilterHelper } from 'src/helpers/filterHelper';
 import { SalesRepServiceV3 } from './sales-rep-v3.service';
+import { AuthGuard } from 'src/guards/auth.guard';
 
 
 @Controller({
@@ -14,7 +15,7 @@ export class SalesRepControllerV3 {
 		private readonly filterHelper: FilterHelper
 	) { }
 
-
+	@UseGuards(AuthGuard)
 	@Get()
 	async getAll(@Res() res: any, @Query() query: any) {
 		try {
@@ -22,7 +23,6 @@ export class SalesRepControllerV3 {
 			const queryString = this.filterHelper.salesRep(query);
 
 			const salesReps = await this.salesRepService.getAll(queryString);
-
 			return res.status(200).json({
 				success: true,
 				message: SUCCESS_FETCHED_SALES_REP,
@@ -39,7 +39,7 @@ export class SalesRepControllerV3 {
 		}
 	}
 
-
+	@UseGuards(AuthGuard)
 	@Get('patient-claims-count')
 	async getPatientClaimsTotalCount(@Query() query: any, @Res() res: any) {
 		try {
@@ -64,7 +64,7 @@ export class SalesRepControllerV3 {
 		}
 	}
 
-
+	@UseGuards(AuthGuard)
 	@Get(':id')
 	async getOne(@Param('id') id: number, @Res() res: any) {
 		try {
@@ -87,7 +87,7 @@ export class SalesRepControllerV3 {
 		}
 	}
 
-
+	@UseGuards(AuthGuard)
 	@Get(':id/stats-revenue')
 	async getRevenueStats(@Res() res: any, @Param('id') id: number, @Query() query: any) {
 		try {
@@ -112,7 +112,7 @@ export class SalesRepControllerV3 {
 		}
 	}
 
-
+	@UseGuards(AuthGuard)
 	@Get(':id/stats-volume')
 	async getVolumeStats(@Res() res: any, @Param('id') id: number, @Query() query: any) {
 		try {
@@ -137,7 +137,7 @@ export class SalesRepControllerV3 {
 		}
 	}
 
-
+	@UseGuards(AuthGuard)
 	@Get(':id/case-types-revenue')
 	async getOverAllCaseTypesRevenue(@Res() res: any, @Param('id') id: number, @Query() query: any) {
 		try {
@@ -162,7 +162,7 @@ export class SalesRepControllerV3 {
 		}
 	}
 
-
+	@UseGuards(AuthGuard)
 	@Get(':id/case-types-volume')
 	async getOverallCaseTypesVolume(@Res() res: any, @Param('id') id: number, @Query() query: any) {
 		try {
@@ -187,7 +187,7 @@ export class SalesRepControllerV3 {
 		}
 	}
 
-
+	@UseGuards(AuthGuard)
 	@Get(':id/case-types/months/revenue')
 	async getCaseTypesRevenue(@Res() res: any, @Param('id') id: number, @Query() query: any) {
 		try {
@@ -213,7 +213,7 @@ export class SalesRepControllerV3 {
 		}
 	}
 
-
+	@UseGuards(AuthGuard)
 	@Get(':id/case-types/months/volume')
 	async getCaseTypesVolume(@Res() res: any, @Param('id') id: number, @Query() query: any) {
 		try {
@@ -238,7 +238,7 @@ export class SalesRepControllerV3 {
 		}
 	}
 
-
+	@UseGuards(AuthGuard)
 	@Get(':id/insurance-payors')
 	async getInsurancePayers(@Res() res: any, @Param('id') id: number, @Query() query: any) {
 		try {
@@ -263,7 +263,7 @@ export class SalesRepControllerV3 {
 		}
 	}
 
-
+	@UseGuards(AuthGuard)
 	@Get(':id/facilities')
 	async getFacility(@Res() res: any, @Param('id') id: number, @Query() query: any) {
 		try {
@@ -288,7 +288,7 @@ export class SalesRepControllerV3 {
 		}
 	}
 
-
+	@UseGuards(AuthGuard)
 	@Get(':id/trends/revenue')
 	async getRevenueTrends(@Res() res: any, @Param('id') id: number, @Query() query: any) {
 		try {
@@ -313,7 +313,7 @@ export class SalesRepControllerV3 {
 		}
 	}
 
-
+	@UseGuards(AuthGuard)
 	@Get(':id/trends/volume')
 	async getVolumeTrends(@Res() res: any, @Param('id') id: number, @Query() query: any) {
 		try {
@@ -337,8 +337,7 @@ export class SalesRepControllerV3 {
 			});
 		}
 	}
-
-
+	@UseGuards(AuthGuard)
 	@Delete('delete')
 	async dropTable(@Res() res: any) {
 		try {
@@ -360,8 +359,7 @@ export class SalesRepControllerV3 {
 			});
 		}
 	}
-
-
+	@UseGuards(AuthGuard)
 	@Get(':id/insurance-payors/:payor_id')
 	async getOneInsuranceRevenue(@Param() param: any, @Res() res: any, @Query() query: any) {
 		try {
