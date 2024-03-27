@@ -39,7 +39,7 @@ export class LisService {
 
     }
 
-
+    // REVIEW: convert select as dynamically
     async getCaseTypes(query: any) {
 
         return await this.labTestPanelModel.find(query).select('name code');
