@@ -27,20 +27,20 @@ export class SyncV3Controller {
 
             const projection = { _id: 1, name: 1 };
 
-            const data = await this.lisService.getInsurancePayors(query, projection);
+            const insurancePayorsData = await this.lisService.getInsurancePayors(query, projection);
 
-            if (data.length == 0) {
+            if (insurancePayorsData.length == 0) {
                 return res.status(200).json({ success: true, message: INSURANCE_PAYORS_NOT_FOUND })
             }
-            // REVIEW: seperate the below method into two methods
-            const modifiedData = await this.synchelpers.modifyInsurancePayors(data);
+
+            const modifiedData = await this.synchelpers.modifyInsurancePayors(insurancePayorsData);
 
             if (modifiedData.length == 0) {
                 return res.status(200).json({ success: true, message: INSURANCE_PAYORS_NOT_FOUND });
             }
-            const result = this.synchelpers.insertInsurancePayors(modifiedData, data);
+            this.synchelpers.insertInsurancePayors(modifiedData);
 
-            return res.status(200).json({ success: true, message: SUCCESS_SYNCED_INSURANCE_PAYORS, result });
+            return res.status(200).json({ success: true, message: SUCCESS_SYNCED_INSURANCE_PAYORS });
         }
         catch (err) {
             console.log({ err });

@@ -2,11 +2,15 @@ import { Injectable } from "@nestjs/common";
 import { sql } from "drizzle-orm";
 import { case_types } from "src/drizzle/schemas/caseTypes";
 import { insurance_payors } from "src/drizzle/schemas/insurancePayors";
+import { InsurancesV3Service } from "src/insurances-v3/insurances-v3.service";
 import { db } from "src/seeders/db";
 
 
 @Injectable()
 export class syncHelpers {
+    constructor(
+        private readonly insurancesV3Service: InsurancesV3Service
+    ) { }
 
 
     getFromAndToDates(days: number) {
@@ -31,27 +35,25 @@ export class syncHelpers {
 
         // Fetching matching data from analytics db
         const matchingData = await db.execute(sql`SELECT ref_id FROM insurance_payors WHERE ref_id IN ${lisInsurancePayorsIdsArray}`);
+
         const pgInsurancePayorsIdsArray = matchingData.rows.map(item => item.ref_id);
 
         // Finding the difference
         const result = lisInsurancePayorsIdsArray.filter(item => !pgInsurancePayorsIdsArray.includes(item));
 
-        return result;
+        const modifiedData = data
+            .filter(element => result.includes(element._id.toString()))
+            .map(element => ({ name: element.name, refId: element._id.toString() }));
+
+        return modifiedData;
     }
 
 
-    insertInsurancePayors(modifiedData, data) {
-
-        // Creating data to be inserted into analytics db
-        const dataToBeInserted = data
-            .filter(element => modifiedData.includes(element._id.toString()))
-            .map(element => ({ name: element.name, refId: element._id.toString() }));
+    insertInsurancePayors(dataToBeInserted) {
 
         // Inserting data into analytics db
-        const response = db.insert(insurance_payors).values(dataToBeInserted);
-        console.log({ response })
+        this.insurancesV3Service.insertInsurancePayors(dataToBeInserted);
 
-        return dataToBeInserted;
     }
 
 

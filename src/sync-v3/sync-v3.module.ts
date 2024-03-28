@@ -11,10 +11,11 @@ import { testPanelsDataSchema } from 'src/schemas/testPanelSchema';
 import { HospitalSchema } from 'src/schemas/hospitalSchema';
 import { Configuration } from 'src/config/config.service';
 import { ConfigService } from '@nestjs/config';
+import { InsurancesV3Service } from 'src/insurances-v3/insurances-v3.service';
 
 @Module({
   controllers: [SyncV3Controller],
-  providers: [SyncV3Service, LisService, syncHelpers, Configuration, ConfigService],
+  providers: [SyncV3Service, LisService, syncHelpers, Configuration, ConfigService, InsurancesV3Service],
   imports: [
     MongooseModule.forFeature([
       { name: 'User', schema: UserSchema },

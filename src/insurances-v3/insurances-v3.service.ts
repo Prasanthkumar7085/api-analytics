@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { sql } from 'drizzle-orm';
+import { insurance_payors } from 'src/drizzle/schemas/insurancePayors';
 import { db } from 'src/seeders/db';
 
 @Injectable()
@@ -129,5 +130,11 @@ export class InsurancesV3Service {
         const data = await db.execute(query);
 
         return data.rows;
+    }
+
+
+    async insertInsurancePayors(data) {
+
+        return await db.insert(insurance_payors).values(data);
     }
 }
