@@ -20,6 +20,6 @@ import { HospitalSchema } from 'src/schemas/hospitalSchema';
       { name: 'Test_Panels', schema: testPanelsDataSchema },
       { name: 'Hospital', schema: HospitalSchema }
     ]),
-  ]
+  ],
 })
 export class LisModule { }

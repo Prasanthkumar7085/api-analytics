@@ -13,11 +13,13 @@ import { Configuration } from 'src/config/config.service';
 import { ConfigService } from '@nestjs/config';
 import { InsurancesV3Service } from 'src/insurances-v3/insurances-v3.service';
 import { CaseTypesV3Service } from 'src/case-types-v3/case-types-v3.service';
+import { SalesRepServiceV3 } from 'src/sales-rep-v3/sales-rep-v3.service';
+
 import { FacilitiesV3Service } from 'src/facilities-v3/facilities-v3.service';
 
 @Module({
   controllers: [SyncV3Controller],
-  providers: [SyncV3Service, LisService, SyncHelpers, Configuration, ConfigService, InsurancesV3Service, FacilitiesV3Service, CaseTypesV3Service],
+  providers: [SyncV3Service, LisService, SyncHelpers, Configuration, ConfigService, InsurancesV3Service, FacilitiesV3Service, CaseTypesV3Service, SalesRepServiceV3],
   imports: [
     MongooseModule.forFeature([
       { name: 'User', schema: UserSchema },

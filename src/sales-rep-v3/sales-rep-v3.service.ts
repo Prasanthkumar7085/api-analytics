@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { db } from '../seeders/db';
 import { sql } from 'drizzle-orm';
+import { sales_reps } from 'src/drizzle/schemas/salesReps';
 
 
 @Injectable()
@@ -8,7 +9,7 @@ export class SalesRepServiceV3 {
 
 
 	async getAll(queryString: string) {
-		console.log('hii')
+		console.log('hii');
 		//This query retrieves all sales reps and counts no_of_facilities there are in and counts total revenues and total cases
 		let query = sql`
             SELECT
@@ -369,4 +370,33 @@ export class SalesRepServiceV3 {
 		return data.rows;
 	}
 
+
+	async getMatchedSalesRepsIds(mappedSalesRepsIds){
+
+		return await db.execute(sql`SELECT ref_id FROM sales_reps WHERE ref_id IN ${mappedSalesRepsIds}`);
+	}
+
+
+	async getSalesRepsIdsAndRefIds(marketersIds){
+		
+		return await db.execute(sql`SELECT id, ref_id FROM sales_reps WHERE ref_id IN ${marketersIds}`);
+	}
+
+
+	async insertSalesRepsManagers(data){
+
+		return await db.insert(sales_reps).values(data).returning();
+	}
+
+
+	async updateSalesRepsManagersData(){
+
+		return await db.execute(sql`UPDATE sales_reps SET reporting_to = id WHERE reporting_to != id AND role_id = 2;`);
+	}
+
+
+	async insertSalesReps(finalData){
+
+		return await db.insert(sales_reps).values(finalData).returning();
+	}
 }

@@ -20,7 +20,7 @@ export class LisService {
 
 
     async getUsers(query, select = {}) {
-        return await this.userModel.find(query).select(select);
+        return await this.userModel.find(query).select(select).lean();
     }
 
 
@@ -62,5 +62,8 @@ export class LisService {
         return await this.hospitalModel.find(query).select(projection);
     }
 
-}
 
+    async getHospitalsData(query) {
+        return await this.hospitalModel.find(query);
+    }
+}
