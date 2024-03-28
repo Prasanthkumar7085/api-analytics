@@ -1,7 +1,7 @@
 import { Controller, Get, NotFoundException, Post, Res } from '@nestjs/common';
 import { SyncV3Service } from './sync-v3.service';
 import { LisService } from 'src/lis/lis.service';
-import { CASE_TYPES_NOT_FOUND_IN_LIS_DATABASE, INSURANCE_PAYORS_NOT_FOUND_IN_LIS_DATABASE, NO_NEW_CASE_TYPES_TO_SYNC_WITH_ANALYTICS, NO_NEW_INSURANCE_PAYORS_TO_SYNC_WITH_ANALYTICS, SOMETHING_WENT_WRONG, SUCCESS_SYNCED_CASE_TYPES, SUCCESS_SYNCED_INSURANCE_PAYORS } from 'src/constants/messageConstants';
+import { CASE_TYPES_NOT_FOUND_IN_LIS_DATABASE, INSURANCE_PAYORS_NOT_FOUND_IN_LIS_DATABASE, CASE_TYPES_NOT_FOUND, INSURANCE_PAYORS_NOT_FOUND, SOMETHING_WENT_WRONG, SUCCESS_SYNCED_CASE_TYPES, SUCCESS_SYNCED_INSURANCE_PAYORS } from 'src/constants/messageConstants';
 import { syncHelpers } from 'src/helpers/syncHelper';
 import * as fs from 'fs';
 import { Configuration } from 'src/config/config.service';
@@ -39,7 +39,7 @@ export class SyncV3Controller {
             const modifiedData = await this.synchelpers.modifyInsurancePayors(insurancePayorsData);
 
             if (modifiedData.length == 0) {
-                return res.status(200).json({ success: true, message: NO_NEW_INSURANCE_PAYORS_TO_SYNC_WITH_ANALYTICS });
+                return res.status(200).json({ success: true, message: INSURANCE_PAYORS_NOT_FOUND });
             }
             // Inserting data into analytics db
             this.insurancesV3Service.insertInsurancePayors(modifiedData);
@@ -82,7 +82,7 @@ export class SyncV3Controller {
             const modifiedData = await this.synchelpers.modifyCaseTypes(caseTypesData);
 
             if (modifiedData.length == 0) {
-                return res.status(200).json({ success: true, message: NO_NEW_CASE_TYPES_TO_SYNC_WITH_ANALYTICS })
+                return res.status(200).json({ success: true, message: CASE_TYPES_NOT_FOUND })
             }
 
             // Inserting data into analytics db
