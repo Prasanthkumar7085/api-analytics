@@ -71,18 +71,19 @@ export class SyncV3Controller {
 
             const projection = { name: 1, code: 1 }
 
-            const data = await this.lisService.getCaseTypes(query, projection);
+            const caseTypesData = await this.lisService.getCaseTypes(query, projection);
 
-            if (data.length == 0) {
+            if (caseTypesData.length == 0) {
                 return res.status(200).json({ success: true, message: CASE_TYPES_NOT_FOUND })
             }
-            // REVIEW: seperate the below method into two methods
-            const modifiedData = await this.synchelpers.modifyCaseTypes(data);
+
+            const modifiedData = await this.synchelpers.modifyCaseTypes(caseTypesData);
 
             if (modifiedData.length == 0) {
                 return res.status(200).json({ success: true, message: CASE_TYPES_NOT_FOUND })
             }
-            const result = this.synchelpers.insertCaseTypes(modifiedData, data);
+
+            this.synchelpers.insertCaseTypes(modifiedData);
 
             return res.status(200).json({ success: true, message: SUCCESS_SYNCED_CASE_TYPES });
         }

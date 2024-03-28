@@ -1,5 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { sql } from "drizzle-orm";
+import { CaseTypesV3Service } from "src/case-types-v3/case-types-v3.service";
 import { case_types } from "src/drizzle/schemas/caseTypes";
 import { insurance_payors } from "src/drizzle/schemas/insurancePayors";
 import { InsurancesV3Service } from "src/insurances-v3/insurances-v3.service";
@@ -9,7 +10,8 @@ import { db } from "src/seeders/db";
 @Injectable()
 export class syncHelpers {
     constructor(
-        private readonly insurancesV3Service: InsurancesV3Service
+        private readonly insurancesV3Service: InsurancesV3Service,
+        private readonly caseTypesV3Service: CaseTypesV3Service
     ) { }
 
 
@@ -70,23 +72,19 @@ export class syncHelpers {
         // Finding the difference
         const result = lisCaseTypeCodesArray.filter(item => !pgCasetypesArray.includes(item));
 
-        return result;
+        const modifiedData = data
+            .filter(element => result.includes(element.code))
+            .map(element => ({ name: element.code, displayName: element.code }));
+
+        return modifiedData;
     }
 
 
-    insertCaseTypes(modifiedData, data) {
+    insertCaseTypes(dataToBeInserted) {
 
-        // Creating data to be inserted into analytics db
-        const dataToBeInserted = data
-            .filter(element => modifiedData.includes(element.code))
-            .map(element => ({ name: element.code, displayName: element.code }));
-
-        console.log({ dataToBeInserted });
         // Inserting data into analytics db
-        const response = db.insert(case_types).values(dataToBeInserted);
-        console.log({ response })
+        this.caseTypesV3Service.insertCasetypes(dataToBeInserted);
 
-        return dataToBeInserted;
     }
 
 

@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { sql } from 'drizzle-orm';
+import { case_types } from 'src/drizzle/schemas/caseTypes';
 import { db } from 'src/seeders/db';
 
 @Injectable()
@@ -89,5 +90,10 @@ export class CaseTypesV3Service {
         const data = await db.execute(statement);
 
         return data.rows;
+    }
+
+    async insertCasetypes(data) {
+
+        return await db.insert(case_types).values(data);
     }
 }
