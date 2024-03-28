@@ -10,29 +10,29 @@ import { sql } from "drizzle-orm";
 async function seedSalesRepsManager() {
     try {
 
-        const configuration =  new Configuration(new ConfigService());
-        
-        const config = configuration.getConfig();
+        const configuration = new Configuration(new ConfigService());
 
-        const dataBase = mongoose.connect(config);
+        const { lis_db_url } = configuration.getConfig();
+
+        const dataBase = mongoose.connect(lis_db_url);
 
         // fetching data from mongoose db of LIS data
-        const data = await UserModel.find({ user_type : "HOSPITAL_MARKETING_MANAGER"})
+        const data = await UserModel.find({ user_type: "HOSPITAL_MARKETING_MANAGER" })
 
         const result_data = [];
 
         data.forEach(item => result_data.push(
-                        {
-                            name:item.first_name,
-                            roleId:2,
-                            refId:item._id.toString()
-                        })
-                    )
-            
+            {
+                name: item.first_name,
+                roleId: 2,
+                refId: item._id.toString()
+            })
+        )
+
         const salesRepsData = await db.insert(sales_reps).values(result_data).returning();
-    
+
         await mongoose.disconnect();
-    
+
         return salesRepsData;
     }
     catch (error) {

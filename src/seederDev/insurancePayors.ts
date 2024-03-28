@@ -14,14 +14,14 @@ async function getInsurancePayors() {
 
         const configuration = new Configuration(new ConfigService());
 
-        const mongoDb = configuration.getConfig()
+        const { lis_db_url } = configuration.getConfig()
 
-        await mongoose.connect(mongoDb);
+        await mongoose.connect(lis_db_url);
 
         //fetching data from insurance payors lis data
         const data = await InsurancePayorsModel.find().select('_id name')
 
-        console.log(data.length);
+        console.log(data);
 
         // console.log(data[0]);
 
@@ -37,7 +37,7 @@ async function getInsurancePayors() {
         return null;
     }
 }
-
+// getInsurancePayors()
 
 async function seedInsurancePayorsdata() {
 

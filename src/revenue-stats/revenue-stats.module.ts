@@ -15,6 +15,8 @@ import { StatsHelper } from 'src/helpers/statsHelper';
 import { StatsService } from 'src/stats/stats.service';
 import { SortHelper } from 'src/helpers/sortHelper';
 import { insurancePayorsSchema } from 'src/schemas/insurancPayors';
+import { testPanelsDataSchema } from 'src/schemas/testPanelSchema';
+import { HospitalSchema } from 'src/schemas/hospitalSchema';
 
 @Module({
   controllers: [RevenueStatsController],
@@ -23,7 +25,9 @@ import { insurancePayorsSchema } from 'src/schemas/insurancPayors';
     MongooseModule.forFeature([
       { name: 'User', schema: UserSchema },
       { name: 'Case', schema: CaseSchema },
-      { name: 'InsurancePayors', schema: insurancePayorsSchema }
+      { name: 'Insurance_Payors', schema: insurancePayorsSchema },
+      { name: 'Test_Panels', schema: testPanelsDataSchema },
+      { name: 'Hospital', schema: HospitalSchema }
     ]),
   ]
 })

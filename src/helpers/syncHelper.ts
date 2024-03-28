@@ -8,7 +8,7 @@ import { SyncV3Service } from "src/sync-v3/sync-v3.service";
 
 
 @Injectable()
-export class syncHelpers {
+export class SyncHelpers {
 
     constructor(
         private readonly lisService: LisService,
@@ -244,4 +244,56 @@ export class syncHelpers {
             throw err;
         }
     }
+
+    
+    async modifyInsurancePayors(data) {
+        // Extracting _id values from data
+        const lisInsurancePayorsIdsArray = data.map(item => item._id.toString());
+
+        // Fetching matching data from analytics db
+        const matchingData = await this.insurancesV3Service.getrefIdsFromInsurancePayors(lisInsurancePayorsIdsArray)
+
+        const AnalyticsInsurancePayorsIdsArray = matchingData.rows.map(item => item.ref_id);
+
+        // Finding the new insurances Ids from labsquire database
+        const result = lisInsurancePayorsIdsArray.filter(item => !AnalyticsInsurancePayorsIdsArray.includes(item));
+
+        const modifiedData = data
+            .filter(element => result.includes(element._id.toString()))
+            .map(element => ({ name: element.name, refId: element._id.toString() }));
+
+        return modifiedData;
+    }
+
+
+    async modifyCaseTypes(data) {
+
+        //need to check if case-type code is in the analytics db or not
+        const lisCaseTypeCodesArray = data.map(item => item.code);
+
+        // Fetching matching data from analytics db
+        const matchingData = await this.caseTypesV3Service.getCaseTypes(lisCaseTypeCodesArray);
+
+        const AnalyticsCasetypesArray = matchingData.rows.map(item => item.name);
+
+        // Finding the new case-types from labsquire database
+        const result = lisCaseTypeCodesArray.filter(item => !AnalyticsCasetypesArray.includes(item));
+
+        const modifiedData = data
+            .filter(element => result.includes(element.code))
+            .map(element => ({ name: element.code, displayName: element.code }));
+
+        return modifiedData;
+    }
+
+
+    getHospitalsWithNoManagers(facilitiesData, marketersData) {
+
+        const facilitiesDataArray = facilitiesData.map(item => item._id.toString());
+
+        const result = facilitiesDataArray.filter(item => !marketersData.includes(item));
+
+        return result;
+    }
+
 }

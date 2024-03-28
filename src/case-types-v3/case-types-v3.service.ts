@@ -95,4 +95,18 @@ export class CaseTypesV3Service {
 
         return data.rows;
     }
+
+
+    async insertCaseTypes(data) {
+
+        return await db.insert(case_types).values(data);
+    }
+
+
+    async getCaseTypes(lisCaseTypeCodesArray) {
+
+        return await db.execute(sql`SELECT * FROM case_types WHERE name IN ${lisCaseTypeCodesArray}`);
+    }
 }
+
+
