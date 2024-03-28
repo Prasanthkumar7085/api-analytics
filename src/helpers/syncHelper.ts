@@ -1,16 +1,14 @@
+import { CaseTypesV3Service } from 'src/case-types-v3/case-types-v3.service';
+import { InsurancesV3Service } from 'src/insurances-v3/insurances-v3.service';
 import { Injectable } from "@nestjs/common";
-import { sql } from "drizzle-orm";
-import { CaseTypesV3Service } from "src/case-types-v3/case-types-v3.service";
-import { case_types } from "src/drizzle/schemas/caseTypes";
-import { insurance_payors } from "src/drizzle/schemas/insurancePayors";
-import { InsurancesV3Service } from "src/insurances-v3/insurances-v3.service";
-import { db } from "src/seeders/db";
+
 
 
 @Injectable()
 export class syncHelpers {
+
     constructor(
-        private readonly insurancesV3Service: InsurancesV3Service,
+        private readonly insuranceV3Service: InsurancesV3Service,
         private readonly caseTypesV3Service: CaseTypesV3Service
     ) { }
 
@@ -36,12 +34,12 @@ export class syncHelpers {
         const lisInsurancePayorsIdsArray = data.map(item => item._id.toString());
 
         // Fetching matching data from analytics db
-        const matchingData = await db.execute(sql`SELECT ref_id FROM insurance_payors WHERE ref_id IN ${lisInsurancePayorsIdsArray}`);
+        const matchingData = await this.insuranceV3Service.getrefIdsFromInsurancePayors(lisInsurancePayorsIdsArray)
 
-        const pgInsurancePayorsIdsArray = matchingData.rows.map(item => item.ref_id);
+        const AnalyticsInsurancePayorsIdsArray = matchingData.rows.map(item => item.ref_id);
 
-        // Finding the difference
-        const result = lisInsurancePayorsIdsArray.filter(item => !pgInsurancePayorsIdsArray.includes(item));
+        // Finding the new insurances Ids from labsquire database
+        const result = lisInsurancePayorsIdsArray.filter(item => !AnalyticsInsurancePayorsIdsArray.includes(item));
 
         const modifiedData = data
             .filter(element => result.includes(element._id.toString()))
@@ -51,40 +49,24 @@ export class syncHelpers {
     }
 
 
-    insertInsurancePayors(dataToBeInserted) {
-
-        // Inserting data into analytics db
-        this.insurancesV3Service.insertInsurancePayors(dataToBeInserted);
-
-    }
-
-
     async modifyCaseTypes(data) {
 
         //need to check if case-type code is in the analytics db or not
         const lisCaseTypeCodesArray = data.map(item => item.code);
 
         // Fetching matching data from analytics db
-        const matchingData = await db.execute(sql`SELECT * FROM case_types WHERE name IN ${lisCaseTypeCodesArray}`);
+        const matchingData = await this.caseTypesV3Service.getCaseTypes(lisCaseTypeCodesArray);
 
-        const pgCasetypesArray = matchingData.rows.map(item => item.name);
+        const AnalyticsCasetypesArray = matchingData.rows.map(item => item.name);
 
-        // Finding the difference
-        const result = lisCaseTypeCodesArray.filter(item => !pgCasetypesArray.includes(item));
+        // Finding the new case-types from labsquire database
+        const result = lisCaseTypeCodesArray.filter(item => !AnalyticsCasetypesArray.includes(item));
 
         const modifiedData = data
             .filter(element => result.includes(element.code))
             .map(element => ({ name: element.code, displayName: element.code }));
 
         return modifiedData;
-    }
-
-
-    insertCaseTypes(dataToBeInserted) {
-
-        // Inserting data into analytics db
-        this.caseTypesV3Service.insertCasetypes(dataToBeInserted);
-
     }
 
 

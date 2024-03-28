@@ -137,4 +137,10 @@ export class InsurancesV3Service {
 
         return await db.insert(insurance_payors).values(data);
     }
+
+
+    async getrefIdsFromInsurancePayors(lisInsurancePayorsIdsArray) {
+
+        return await db.execute(sql`SELECT ref_id FROM insurance_payors WHERE ref_id IN ${lisInsurancePayorsIdsArray}`);
+    }
 }

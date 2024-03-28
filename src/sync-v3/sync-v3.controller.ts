@@ -1,11 +1,12 @@
 import { Controller, Get, NotFoundException, Post, Res } from '@nestjs/common';
 import { SyncV3Service } from './sync-v3.service';
 import { LisService } from 'src/lis/lis.service';
-import { CASE_TYPES_NOT_FOUND, INSURANCE_PAYORS_NOT_FOUND, SOMETHING_WENT_WRONG, SUCCESS_SYNCED_CASE_TYPES, SUCCESS_SYNCED_INSURANCE_PAYORS } from 'src/constants/messageConstants';
+import { CASE_TYPES_NOT_FOUND_IN_LIS_DATABASE, INSURANCE_PAYORS_NOT_FOUND_IN_LIS_DATABASE, NO_NEW_CASE_TYPES_TO_SYNC_WITH_ANALYTICS, NO_NEW_INSURANCE_PAYORS_TO_SYNC_WITH_ANALYTICS, SOMETHING_WENT_WRONG, SUCCESS_SYNCED_CASE_TYPES, SUCCESS_SYNCED_INSURANCE_PAYORS } from 'src/constants/messageConstants';
 import { syncHelpers } from 'src/helpers/syncHelper';
 import * as fs from 'fs';
 import { Configuration } from 'src/config/config.service';
-
+import { InsurancesV3Service } from "src/insurances-v3/insurances-v3.service";
+import { CaseTypesV3Service } from 'src/case-types-v3/case-types-v3.service';
 
 @Controller({
     version: '3.0',
@@ -18,6 +19,8 @@ export class SyncV3Controller {
         private readonly lisService: LisService,
         private readonly synchelpers: syncHelpers,
         private readonly configuration: Configuration,
+        private readonly caseTypesV3Service: CaseTypesV3Service,
+        private readonly insurancesV3Service: InsurancesV3Service,
     ) { }
 
     @Get('insurance-payors')
@@ -30,15 +33,16 @@ export class SyncV3Controller {
             const insurancePayorsData = await this.lisService.getInsurancePayors(query, projection);
 
             if (insurancePayorsData.length == 0) {
-                return res.status(200).json({ success: true, message: INSURANCE_PAYORS_NOT_FOUND })
+                return res.status(200).json({ success: true, message: INSURANCE_PAYORS_NOT_FOUND_IN_LIS_DATABASE })
             }
 
             const modifiedData = await this.synchelpers.modifyInsurancePayors(insurancePayorsData);
 
             if (modifiedData.length == 0) {
-                return res.status(200).json({ success: true, message: INSURANCE_PAYORS_NOT_FOUND });
+                return res.status(200).json({ success: true, message: NO_NEW_INSURANCE_PAYORS_TO_SYNC_WITH_ANALYTICS });
             }
-            this.synchelpers.insertInsurancePayors(modifiedData);
+            // Inserting data into analytics db
+            this.insurancesV3Service.insertInsurancePayors(modifiedData);
 
             return res.status(200).json({ success: true, message: SUCCESS_SYNCED_INSURANCE_PAYORS });
         }
@@ -59,8 +63,6 @@ export class SyncV3Controller {
 
             const datesObj = this.synchelpers.getFromAndToDates(10);
 
-
-            // REVIEW: get lab id from env or config
             const query = {
                 lab: lab_id,
                 created_at: {
@@ -74,16 +76,17 @@ export class SyncV3Controller {
             const caseTypesData = await this.lisService.getCaseTypes(query, projection);
 
             if (caseTypesData.length == 0) {
-                return res.status(200).json({ success: true, message: CASE_TYPES_NOT_FOUND })
+                return res.status(200).json({ success: true, message: CASE_TYPES_NOT_FOUND_IN_LIS_DATABASE })
             }
 
             const modifiedData = await this.synchelpers.modifyCaseTypes(caseTypesData);
 
             if (modifiedData.length == 0) {
-                return res.status(200).json({ success: true, message: CASE_TYPES_NOT_FOUND })
+                return res.status(200).json({ success: true, message: NO_NEW_CASE_TYPES_TO_SYNC_WITH_ANALYTICS })
             }
 
-            this.synchelpers.insertCaseTypes(modifiedData);
+            // Inserting data into analytics db
+            this.caseTypesV3Service.insertCaseTypes(modifiedData);
 
             return res.status(200).json({ success: true, message: SUCCESS_SYNCED_CASE_TYPES });
         }
@@ -110,7 +113,7 @@ export class SyncV3Controller {
 
             const data = await this.synchelpers.getHospitalsWithNoManagers(facilitiesData, marketersData);
 
-            return res.status(200).json({ success: true, message: 'Success', data: data });
+            return res.status(200).json({ success: true, message: 'Success Fetched facilities', data: data });
         }
         catch (error) {
             console.log({ error });

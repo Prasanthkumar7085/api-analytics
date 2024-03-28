@@ -41,7 +41,7 @@ export class LisService {
 
     }
 
-    // REVIEW: convert select as dynamically
+
     async getCaseTypes(query = {}, projection = {}) {
 
         return await this.labTestPanelModel.find(query).select(projection);
@@ -49,6 +49,7 @@ export class LisService {
 
 
     async getFacilities(query, projection) {
+
         return await this.hospitalModel.find(query).select(projection);
     }
 
