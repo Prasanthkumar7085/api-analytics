@@ -19,17 +19,18 @@ export class SyncV3Controller {
     private readonly faciliticesService: FacilitiesV3Service,
   ) {}
 
+
 	@Get('managers')
 	async syncSalesRepsManagers(@Res() res: any) {
 		try {
 
-			const datesFileter = this.syncHelper.getFromAndToDates(7);
+			const datesFilter = this.syncHelper.getFromAndToDates(7);
 
 			const query = {
 				user_type: HOSPITAL_MARKETING_MANAGER,
 				created_at: {
-				$gte: datesFileter.fromDate,
-				$lte: datesFileter.toDate,
+					$gte: datesFilter.fromDate,
+					$lte: datesFilter.toDate,
 				},
 			};
 
@@ -58,6 +59,7 @@ export class SyncV3Controller {
 		}
 	}
 
+
 	@Get('marketer')
 	async syncSalesRepsMarketers(@Res() res: any) {
 		try {
@@ -67,19 +69,25 @@ export class SyncV3Controller {
 			const query = {
 				user_type: MARKETER,
 				created_at: {
-				$gte: datesFilter.fromDate,
-				$lte: datesFilter.toDate,
+					$gte: datesFilter.fromDate,
+					$lte: datesFilter.toDate,
 				},
 			};
 
 			const salesRepsData = await this.lisService.getUsers(query);
 
+			console.log(salesRepsData)
 			if (salesRepsData.length===0){
 				return res.status(200).json({success:true, message: SALES_REPS_NOT_FOUND});
 			}
 
-			const finalSalesRepsData = await this.syncHelper.getFinalSalesRepsData(salesRepsData);
+			const unMatchedSalesRepsIds = await this.syncHelper.getNotExistingIds(salesRepsData)
 
+			if(unMatchedSalesRepsIds.length === 0){
+				return res.status(200).json({success:true, message: SALES_REPS_NOT_FOUND});	
+			}
+
+			const finalSalesRepsData = await this.syncHelper.getFinalSalesRepsData(unMatchedSalesRepsIds);
 			
 			if (finalSalesRepsData.length === 0){
 				return res.status(200).json({success:true, message: SALES_REPS_NOT_FOUND});
@@ -96,6 +104,7 @@ export class SyncV3Controller {
 		}
 	}
 
+
 	@Get('facilities')
 	async syncFacilities(@Res() res: any) {
 		try {
@@ -105,8 +114,8 @@ export class SyncV3Controller {
 			const query = {
 				user_type: MARKETER,
 				created_at: {
-				$gte: datesFilter.fromDate,
-				$lte: datesFilter.toDate,
+					$gte: datesFilter.fromDate,
+					$lte: datesFilter.toDate,
 				},
 			};
 
@@ -116,27 +125,33 @@ export class SyncV3Controller {
 				return res.status(200).json({success:true, message: SALES_REPS_NOT_FOUND});
 			}
 
-			const salesRepsAndfacilitiesIdsData = await this.syncHelper.getSalesRepsAndFAcilitiesIds(salesRepsData);
+			const salesRepsAndFacilitiesData = await this.syncHelper.getFacilitiesData(salesRepsData)
 
-			if (salesRepsAndfacilitiesIdsData.salesRepsAndFacilitiesData.length === 0){
+			const unMatchedFacilitiesIds = await this.syncHelper.getFacilitiesNotExistingIds(salesRepsAndFacilitiesData)
+
+			if(unMatchedFacilitiesIds.length === 0){
+				return res.status(200).json({success:true, message: FACILITIES_NOT_FOUND});
+			}
+
+			const salesRepsIdsAndRefIds = await this.syncHelper.getSalesRepsIdsandRefIds(salesRepsAndFacilitiesData)
+
+			const salesRepsAndfacilitiesIdsData = await this.syncHelper.getSalesRepsAndFacilitiesIds(salesRepsIdsAndRefIds, salesRepsAndFacilitiesData);
+
+			if (salesRepsAndfacilitiesIdsData.length === 0){
 				return res.status(200).json({success:true, message: SALES_REPS_NOT_FOUND});
 			}
 
 			const hospitalQuery = {
-				_id: { $in: salesRepsAndfacilitiesIdsData.unMatchedFacilitiesIds },
+				_id: { $in: unMatchedFacilitiesIds },
 				created_at: {
-				$gte: datesFilter.fromDate,
-				$lte: datesFilter.toDate,
+					$gte: datesFilter.fromDate,
+					$lte: datesFilter.toDate,
 				},
 			};
 
 			const faciliticesData = await this.lisService.getHospitalsData(hospitalQuery);
 
-			if (faciliticesData.length === 0){
-				return res.status(200).json({success:true, message: FACILITIES_NOT_FOUND});
-			}
-
-			const finalArray = await this.syncHelper.getFinalArray(faciliticesData, salesRepsAndfacilitiesIdsData.salesRepsAndFacilitiesData);
+			const finalArray = await this.syncHelper.getFinalArray(faciliticesData, salesRepsAndfacilitiesIdsData);
 
 			this.faciliticesService.insertfacilities(finalArray)
 
@@ -144,7 +159,6 @@ export class SyncV3Controller {
 		}
 		catch (error) {
 			console.log({ error });
-			
 			return res.status(500).json({ success: false, message: error.message || SOMETHING_WENT_WRONG });
 		}
 	}

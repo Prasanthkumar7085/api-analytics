@@ -9,7 +9,7 @@ export class LisService {
   constructor(
     @InjectModel('User') private userModel: typeof UserModel,
     @InjectModel('Case') private caseModel: typeof CaseModel,
-	@InjectModel('hospitals') private hospitalModel: typeof HospitalModel
+	  @InjectModel('hospitals') private hospitalModel: typeof HospitalModel
   ) {}
 
   async getUsers(query, projection = {}) {
@@ -31,7 +31,7 @@ export class LisService {
   }
 
 
-  	async getHospitalsData(query){
-		return await this.hospitalModel.find(query)
+  async getHospitalsData(query){
+    return await this.hospitalModel.find(query)
 	}
 }

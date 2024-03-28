@@ -318,10 +318,9 @@ export class FacilitiesV3Service {
         return data.rows;
     }
 
+    
     async insertfacilities(data){
         
-        const insertedData = db.insert(facilities).values(data).returning();
-        
-        return insertedData
+        return await db.insert(facilities).values(data).returning();
     }
 }

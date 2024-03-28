@@ -373,16 +373,12 @@ export class SalesRepServiceV3 {
 
 	async insertSalesRepsManagers(data){
 
-		const insertedData = db.insert(sales_reps).values(data).returning();
-
-		return insertedData
+		return await db.insert(sales_reps).values(data).returning();
 	}
 
 
-	insertSalesReps(finalData){
+	async insertSalesReps(finalData){
 
-		const insertedData = db.insert(sales_reps).values(finalData).returning();
-
-		return insertedData
+		return await db.insert(sales_reps).values(finalData).returning();
 	}
 }

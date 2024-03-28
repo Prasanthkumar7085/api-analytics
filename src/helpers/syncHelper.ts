@@ -40,9 +40,8 @@ export class syncHelpers {
 
 
     async getFinalManagersData(managersData) {
-        // REVIEW: update the name
+
         const finalArray = [];
-        // REVIEW: change the vairable name and move below 4 lines into one function
 
         const notExistedIds =  await this.getNotExistingIds(managersData)
 
@@ -62,6 +61,7 @@ export class syncHelpers {
         return finalArray;
     }
 
+
     updateSalesRepsManagersData(){		
 
 		const updatedData = db.execute(sql`UPDATE sales_reps SET reporting_to = id WHERE reporting_to != id AND role_id = 2;`);
@@ -69,15 +69,13 @@ export class syncHelpers {
 		return updatedData
     }
 
+
     async getFinalSalesRepsData(marketersData) {
-        // REVIEW: move this below code into seperate functions
+
         const finalArray = [];
 
-		const notExistedIds = await this.getNotExistingIds(marketersData)
-
-
 		const marketersIds = marketersData
-			.filter((item) => notExistedIds.includes(item._id.toString()))
+			.filter((item) => marketersData.includes(item._id.toString()))
 			.map((item) => item.reporting_to[0].toString());
 
 		const salesRepsData = await db.execute(sql`SELECT id, ref_id FROM sales_reps WHERE ref_id IN ${marketersIds}`);
@@ -136,7 +134,9 @@ export class syncHelpers {
 		return salesRepsAndFacilitiesData
 	}
 
+
 	async getFacilitiesNotExistingIds(facilitiesData){
+
 		const hospitalIds = facilitiesData.map((item) => item.hospital);
 
 		const matchedIdsResult = await db.execute(sql`SELECT ref_id FROM facilities WHERE ref_id IN ${hospitalIds}`); // fetching matched facilities id from analytics db
@@ -159,15 +159,8 @@ export class syncHelpers {
 	}
 
 
-    //   REVIEW: i need a function within 50 lines only and i need to understand code properly while im seeing. so, use multiple functions if required
-    async getSalesRepsAndFAcilitiesIds(SalesRepsData) {
-
-		const salesRepsAndFacilitiesData = await this.getFacilitiesData(SalesRepsData)
-
-		const unMatchedFacilitiesIds = await this.getFacilitiesNotExistingIds(salesRepsAndFacilitiesData)
-
-		const salesRepsIdsAndRefIds = await this.getSalesRepsIdsandRefIds(salesRepsAndFacilitiesData)
-
+    async getSalesRepsAndFacilitiesIds(salesRepsIdsAndRefIds, salesRepsAndFacilitiesData) {
+        
         salesRepsIdsAndRefIds.forEach((row) => {
 
             salesRepsAndFacilitiesData.find((item) => {
@@ -178,7 +171,7 @@ export class syncHelpers {
                 }
             });
         });
-        return { salesRepsAndFacilitiesData, unMatchedFacilitiesIds };
+        return salesRepsAndFacilitiesData;
     }
 
 
