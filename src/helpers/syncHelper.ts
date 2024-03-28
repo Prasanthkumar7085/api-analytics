@@ -1,11 +1,19 @@
 import { Injectable } from '@nestjs/common';
-import { sql } from 'drizzle-orm';
-import { facilities } from 'src/drizzle/schemas/facilities';
-import { sales_reps } from 'src/drizzle/schemas/salesReps';
-import { db } from 'src/seeders/db';
+import { MARKETER } from 'src/constants/messageConstants';
+import { FacilitiesV3Service } from 'src/facilities-v3/facilities-v3.service';
+import { LisService } from 'src/lis/lis.service';
+import { SalesRepServiceV3 } from 'src/sales-rep-v3/sales-rep-v3.service';
+
 
 @Injectable()
 export class syncHelpers {
+    constructor(
+        private readonly salesRepsService : SalesRepServiceV3,
+        private readonly facilitiesService : FacilitiesV3Service,
+        private readonly lisService : LisService,
+    ) {}
+
+
     getFromAndToDates(days: number) {
         const currentDate = new Date();
         const previousDate = new Date(currentDate);
@@ -22,16 +30,32 @@ export class syncHelpers {
     }
 
 
+    async getSalesRepsData(datesFilter){
+
+        const query = {
+            user_type: MARKETER,
+            created_at: {
+                $gte: datesFilter.fromDate,
+                $lte: datesFilter.toDate,
+            },
+        };
+
+        const salesRepsData = await this.lisService.getUsers(query);
+
+        return salesRepsData
+    }
+
+
     async getNotExistingIds(data){
 
 		// fetching all marketing managers id's
         const mappedSalesRepsIds = data.map((item) => item._id.toString());
 
         // fetching matching id's from analytics db
-        const matchedIdsIds = await db.execute(sql`SELECT ref_id FROM sales_reps WHERE ref_id IN ${mappedSalesRepsIds}`);
-
+        const matchedIds = await this.salesRepsService.getMatchedSalesRepsIds(mappedSalesRepsIds)
+        
         // Extracts the 'ref_id' values from the rows returned by the database query and stores them in the values in array
-        const refIdValues = matchedIdsIds.rows.map((obj) => obj.ref_id);
+        const refIdValues = matchedIds.rows.map((obj) => obj.ref_id);
 
         const unMatchedIds = mappedSalesRepsIds.filter((id) => !refIdValues.includes(id)); // finding unmatched IDs
 
@@ -62,23 +86,13 @@ export class syncHelpers {
     }
 
 
-    updateSalesRepsManagersData(){		
-
-		const updatedData = db.execute(sql`UPDATE sales_reps SET reporting_to = id WHERE reporting_to != id AND role_id = 2;`);
-		
-		return updatedData
-    }
-
-
     async getFinalSalesRepsData(marketersData) {
 
         const finalArray = [];
 
-		const marketersIds = marketersData
-			.filter((item) => marketersData.includes(item._id.toString()))
-			.map((item) => item.reporting_to[0].toString());
+		const managersIds = marketersData.map((item) => item.reporting_to[0].toString());
 
-		const salesRepsData = await db.execute(sql`SELECT id, ref_id FROM sales_reps WHERE ref_id IN ${marketersIds}`);
+		const managersIdsAndRefIds = await this.salesRepsService.getSalesRepsIdsAndRefIds(managersIds)
 
 		marketersData.map((marketer) => {
 			let reportingTo = 2;
@@ -86,7 +100,7 @@ export class syncHelpers {
 			// Check if hospital_marketing_manager exists
 			if (marketer.reporting_to.length > 0) {
 				// Find corresponding manager data
-				const matchedObj = salesRepsData.rows.find((row) => row.ref_id === marketer.reporting_to[0].toString());
+				const matchedObj = managersIdsAndRefIds.rows.find((row) => row.ref_id === marketer.reporting_to[0].toString());
 
 				if (matchedObj) {
 					reportingTo = matchedObj.id as number;
@@ -100,6 +114,7 @@ export class syncHelpers {
 				roleId: 1,
 			});
 		});
+
 
         return finalArray;
     }
@@ -139,9 +154,9 @@ export class syncHelpers {
 
 		const hospitalIds = facilitiesData.map((item) => item.hospital);
 
-		const matchedIdsResult = await db.execute(sql`SELECT ref_id FROM facilities WHERE ref_id IN ${hospitalIds}`); // fetching matched facilities id from analytics db
+        const matchedFacilitiesIds = await this.facilitiesService.getFacilitiesRefIds(hospitalIds); // fetching matched facilities id from analytics db
 
-		const refIdValues = matchedIdsResult.rows.map((obj) => obj.ref_id);
+		const refIdValues = matchedFacilitiesIds.rows.map((obj) => obj.ref_id);
 
 		const unMatchedFacilitiesIds = hospitalIds.filter((id) => !refIdValues.includes(id)); // fetching un-matched id of facilities
 
@@ -153,14 +168,14 @@ export class syncHelpers {
 
 		const salesRepsIds = salesRepsData.map((item) => item.id); // fetching sales reps id's
 
-		const salesRepsIdsAndRefIdsData = await db.execute(sql`SELECT id, ref_id FROM sales_reps WHERE ref_id IN ${salesRepsIds}`); // fetching sales reps id and ref_id from analytics db
+        const salesRepsIdsAndRefIdsData = await this.salesRepsService.getSalesRepsIdsAndRefIds(salesRepsIds) // fetching sales reps id and ref_id from analytics db
 
 		return salesRepsIdsAndRefIdsData.rows
 	}
 
 
     async getSalesRepsAndFacilitiesIds(salesRepsIdsAndRefIds, salesRepsAndFacilitiesData) {
-        
+
         salesRepsIdsAndRefIds.forEach((row) => {
 
             salesRepsAndFacilitiesData.find((item) => {

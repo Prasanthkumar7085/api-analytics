@@ -371,9 +371,27 @@ export class SalesRepServiceV3 {
 	}
 
 
+	async getMatchedSalesRepsIds(mappedSalesRepsIds){
+
+		return await db.execute(sql`SELECT ref_id FROM sales_reps WHERE ref_id IN ${mappedSalesRepsIds}`);
+	}
+
+
+	async getSalesRepsIdsAndRefIds(marketersIds){
+		
+		return await db.execute(sql`SELECT id, ref_id FROM sales_reps WHERE ref_id IN ${marketersIds}`);
+	}
+
+
 	async insertSalesRepsManagers(data){
 
 		return await db.insert(sales_reps).values(data).returning();
+	}
+
+
+	async updateSalesRepsManagersData(){
+
+		return await db.execute(sql`UPDATE sales_reps SET reporting_to = id WHERE reporting_to != id AND role_id = 2;`);
 	}
 
 

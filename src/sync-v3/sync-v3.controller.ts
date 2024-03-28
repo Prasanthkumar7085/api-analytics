@@ -3,7 +3,7 @@ import { SyncV3Service } from './sync-v3.service';
 import { LisService } from 'src/lis/lis.service';
 import { syncHelpers } from 'src/helpers/syncHelper';
 import { SalesRepServiceV3 } from 'src/sales-rep-v3/sales-rep-v3.service';
-import { HOSPITAL_MARKETING_MANAGER, MARKETER, SALES_REPS_NOT_FOUND, FACILITIES_NOT_FOUND, SUCCESS_SEEDED_FACILICES, SUCCUSS_SEEDED_MARKETING_MANAGERS, SUCCUSS_SEEDED_SALES_REPS, SOMETHING_WENT_WRONG} from 'src/constants/messageConstants';
+import { HOSPITAL_MARKETING_MANAGER, SALES_REPS_NOT_FOUND, FACILITIES_NOT_FOUND, SOMETHING_WENT_WRONG, NEW_SALES_REPS_DATA_NOT_FOUND, SUCCUSS_INSERTED_MARKETING_MANAGERS, SUCCUSS_INSERTED_SALES_REPS, SUCCESS_INSERTED_FACILICES} from 'src/constants/messageConstants';
 import { FacilitiesV3Service } from 'src/facilities-v3/facilities-v3.service';
 
 @Controller({
@@ -43,14 +43,14 @@ export class SyncV3Controller {
 			const finalManagersData = await this.syncHelper.getFinalManagersData(salesRepsManagersData);
 
 			if (finalManagersData.length === 0) {
-				return res.status(200).json({success:true, message: SALES_REPS_NOT_FOUND});
+				return res.status(200).json({success:true, message: NEW_SALES_REPS_DATA_NOT_FOUND});
 			}
 
-			this.salesRepService.insertSalesRepsManagers(finalManagersData)
+			await this.salesRepService.insertSalesRepsManagers(finalManagersData)
 
-			this.syncHelper.updateSalesRepsManagersData();
+			this.salesRepService.updateSalesRepsManagersData();
 
-			return res.status(200).json({ success: true, message: SUCCUSS_SEEDED_MARKETING_MANAGERS });
+			return res.status(200).json({ success: true, message: SUCCUSS_INSERTED_MARKETING_MANAGERS });
 		}
 		catch (error) {
 			console.log({ error });
@@ -66,36 +66,28 @@ export class SyncV3Controller {
 
 			const datesFilter = this.syncHelper.getFromAndToDates(7);
 
-			const query = {
-				user_type: MARKETER,
-				created_at: {
-					$gte: datesFilter.fromDate,
-					$lte: datesFilter.toDate,
-				},
-			};
+			const salesRepsData = await this.syncHelper.getSalesRepsData(datesFilter)
 
-			const salesRepsData = await this.lisService.getUsers(query);
-
-			console.log(salesRepsData)
-			if (salesRepsData.length===0){
+			if (salesRepsData.length === 0){
 				return res.status(200).json({success:true, message: SALES_REPS_NOT_FOUND});
 			}
 
 			const unMatchedSalesRepsIds = await this.syncHelper.getNotExistingIds(salesRepsData)
 
 			if(unMatchedSalesRepsIds.length === 0){
-				return res.status(200).json({success:true, message: SALES_REPS_NOT_FOUND});	
+				return res.status(200).json({success:true, message: NEW_SALES_REPS_DATA_NOT_FOUND});	
 			}
 
-			const finalSalesRepsData = await this.syncHelper.getFinalSalesRepsData(unMatchedSalesRepsIds);
-			
-			if (finalSalesRepsData.length === 0){
-				return res.status(200).json({success:true, message: SALES_REPS_NOT_FOUND});
-			}
+			const salesRepsQuery = {_id: { $in: unMatchedSalesRepsIds }}
+
+			const salesRepsDataToInsert = await this.lisService.getUsers(salesRepsQuery)
+
+
+			const finalSalesRepsData = await this.syncHelper.getFinalSalesRepsData(salesRepsDataToInsert);
 
 			this.salesRepService.insertSalesReps(finalSalesRepsData)
 
-			return res.status(200).json({success: true, message: SUCCUSS_SEEDED_SALES_REPS });
+			return res.status(200).json({success: true, message: SUCCUSS_INSERTED_SALES_REPS });
 		} 
 		catch (error) {
 			console.log({ error });
@@ -111,15 +103,7 @@ export class SyncV3Controller {
 
 			const datesFilter = this.syncHelper.getFromAndToDates(7);
 
-			const query = {
-				user_type: MARKETER,
-				created_at: {
-					$gte: datesFilter.fromDate,
-					$lte: datesFilter.toDate,
-				},
-			};
-
-			const salesRepsData = await this.lisService.getUsers(query);
+			const salesRepsData = await this.syncHelper.getSalesRepsData(datesFilter)
 
 			if (salesRepsData.length === 0){
 				return res.status(200).json({success:true, message: SALES_REPS_NOT_FOUND});
@@ -136,14 +120,10 @@ export class SyncV3Controller {
 			const salesRepsIdsAndRefIds = await this.syncHelper.getSalesRepsIdsandRefIds(salesRepsAndFacilitiesData)
 
 			if (salesRepsIdsAndRefIds.length === 0){
-				return res.status(200).json({success:true, message: SALES_REPS_NOT_FOUND});
+				return res.status(200).json({success:true, message: NEW_SALES_REPS_DATA_NOT_FOUND});
 			}
 
 			const salesRepsAndfacilitiesIdsData = await this.syncHelper.getSalesRepsAndFacilitiesIds(salesRepsIdsAndRefIds, salesRepsAndFacilitiesData);
-
-			if (salesRepsAndfacilitiesIdsData.length === 0){
-				return res.status(200).json({success:true, message: SALES_REPS_NOT_FOUND});
-			}
 
 			const hospitalQuery = {
 				_id: { $in: unMatchedFacilitiesIds },
@@ -155,11 +135,15 @@ export class SyncV3Controller {
 
 			const faciliticesData = await this.lisService.getHospitalsData(hospitalQuery);
 
+			if (faciliticesData.length === 0){
+				return res.status(200).json({success:true, message: FACILITIES_NOT_FOUND});
+			}
+
 			const finalArray = await this.syncHelper.getFinalArray(faciliticesData, salesRepsAndfacilitiesIdsData);
 
 			this.faciliticesService.insertfacilities(finalArray)
 
-			return res.status(200).json({success: true, message: SUCCESS_SEEDED_FACILICES});
+			return res.status(200).json({success: true, message: SUCCESS_INSERTED_FACILICES});
 		}
 		catch (error) {
 			console.log({ error });

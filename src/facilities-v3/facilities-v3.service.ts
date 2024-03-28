@@ -318,7 +318,13 @@ export class FacilitiesV3Service {
         return data.rows;
     }
 
-    
+
+    async getFacilitiesRefIds(hospitalIds){
+
+        return await db.execute(sql`SELECT ref_id FROM facilities WHERE ref_id IN ${hospitalIds}`);
+    }
+
+
     async insertfacilities(data){
         
         return await db.insert(facilities).values(data).returning();
