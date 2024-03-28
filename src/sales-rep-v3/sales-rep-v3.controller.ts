@@ -94,7 +94,7 @@ export class SalesRepControllerV3 {
 
 			const queryString = await this.filterHelper.salesRep(query);
 
-			const data = await this.salesRepService.getRevenueStats(id, queryString)
+			const data = await this.salesRepService.getRevenueStats(id, queryString);
 
 			return res.status(200).json({
 				success: true,
@@ -133,7 +133,7 @@ export class SalesRepControllerV3 {
 			return res.status(500).json({
 				success: false,
 				message: error || SOMETHING_WENT_WRONG
-			})
+			});
 		}
 	}
 
@@ -382,6 +382,25 @@ export class SalesRepControllerV3 {
 			return res.status(500).json({
 				success: false,
 				message: error || SOMETHING_WENT_WRONG
+			});
+		}
+	}
+
+	@Get(":id/ref-id")
+	async getSalesRepByRefId(@Res() res: any, @Param() param: any) {
+		try {
+			const refId = param.id;
+
+			const data = await this.salesRepService.findOneSalesRep(refId);
+			return res.status(200).json({
+				success: true,
+				message: SUCCESS_FETCHED_ONE_SALES_REP,
+				data: data
+			});
+		} catch (err) {
+			return res.status(500).json({
+				success: false,
+				message: err || SOMETHING_WENT_WRONG
 			});
 		}
 	}
