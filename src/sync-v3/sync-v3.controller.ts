@@ -135,6 +135,10 @@ export class SyncV3Controller {
 
 			const salesRepsIdsAndRefIds = await this.syncHelper.getSalesRepsIdsandRefIds(salesRepsAndFacilitiesData)
 
+			if (salesRepsIdsAndRefIds.length === 0){
+				return res.status(200).json({success:true, message: SALES_REPS_NOT_FOUND});
+			}
+
 			const salesRepsAndfacilitiesIdsData = await this.syncHelper.getSalesRepsAndFacilitiesIds(salesRepsIdsAndRefIds, salesRepsAndFacilitiesData);
 
 			if (salesRepsAndfacilitiesIdsData.length === 0){
