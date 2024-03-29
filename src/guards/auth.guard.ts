@@ -95,11 +95,6 @@ export class AuthGuard implements CanActivate {
         }
       }
 
-      if (salesRepData.length > 0 && userDetails.user_type === MARKETER) {
-        const ids = salesRepData.map(e => e.id);
-
-        query.sales_reps = ids;
-      }
       return query;
     } catch (err) {
       console.log({ err });
