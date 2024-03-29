@@ -121,7 +121,7 @@ export class SalesRepControllerV3 {
 	async getRevenueStats(@Res() res: any, @Param('id') id: number, @Query() query: any) {
 		try {
 
-			const queryString = await this.filterHelper.salesRep(query);
+			const queryString = await this.filterHelper.salesRepFacilities(query);
 
 			const data = await this.salesRepService.getRevenueStats(id, queryString);
 
@@ -146,7 +146,7 @@ export class SalesRepControllerV3 {
 	async getVolumeStats(@Res() res: any, @Param('id') id: number, @Query() query: any) {
 		try {
 
-			const queryString = this.filterHelper.salesRep(query);
+			const queryString = this.filterHelper.salesRepFacilities(query);
 
 			const data = await this.salesRepService.getVolumeStats(id, queryString);
 
@@ -171,7 +171,7 @@ export class SalesRepControllerV3 {
 	async getOverAllCaseTypesRevenue(@Res() res: any, @Param('id') id: number, @Query() query: any) {
 		try {
 
-			const queryString = this.filterHelper.salesRep(query);
+			const queryString = this.filterHelper.salesRepFacilities(query);
 
 			const salesReps = await this.salesRepService.getOverAllCaseTypesRevenue(id, queryString);
 
@@ -196,7 +196,7 @@ export class SalesRepControllerV3 {
 	async getOverallCaseTypesVolume(@Res() res: any, @Param('id') id: number, @Query() query: any) {
 		try {
 
-			const queryString = this.filterHelper.salesRep(query);
+			const queryString = this.filterHelper.salesRepFacilities(query);
 
 			const salesReps = await this.salesRepService.getOverAllCaseTypesVolume(id, queryString);
 
@@ -221,7 +221,7 @@ export class SalesRepControllerV3 {
 	async getCaseTypesRevenue(@Res() res: any, @Param('id') id: number, @Query() query: any) {
 		try {
 
-			const queryString = this.filterHelper.salesRep(query);
+			const queryString = this.filterHelper.salesRepFacilities(query);
 
 			const salesReps = await this.salesRepService.getCaseTypesRevenue(id, queryString);
 
@@ -247,7 +247,7 @@ export class SalesRepControllerV3 {
 	async getCaseTypesVolume(@Res() res: any, @Param('id') id: number, @Query() query: any) {
 		try {
 
-			const queryString = this.filterHelper.salesRep(query);
+			const queryString = this.filterHelper.salesRepFacilities(query);
 
 			const salesReps = await this.salesRepService.getCaseTypesVolume(id, queryString);
 
@@ -272,7 +272,7 @@ export class SalesRepControllerV3 {
 	async getInsurancePayers(@Res() res: any, @Param('id') id: number, @Query() query: any) {
 		try {
 
-			const queryString = this.filterHelper.salesRep(query);
+			const queryString = this.filterHelper.salesRepFacilities(query);
 
 			const data = await this.salesRepService.getInsurancePayers(id, queryString);
 
@@ -297,7 +297,7 @@ export class SalesRepControllerV3 {
 	async getFacility(@Res() res: any, @Param('id') id: number, @Query() query: any) {
 		try {
 
-			const queryString = this.filterHelper.salesRep(query);
+			const queryString = this.filterHelper.salesRepFacilities(query);
 
 			const salesReps = await this.salesRepService.getFacility(id, queryString);
 
@@ -322,7 +322,7 @@ export class SalesRepControllerV3 {
 	async getRevenueTrends(@Res() res: any, @Param('id') id: number, @Query() query: any) {
 		try {
 
-			const queryString = this.filterHelper.salesRep(query);
+			const queryString = this.filterHelper.salesRepFacilities(query);
 
 			const data = await this.salesRepService.getRevenueTrends(id, queryString);
 
@@ -347,7 +347,7 @@ export class SalesRepControllerV3 {
 	async getVolumeTrends(@Res() res: any, @Param('id') id: number, @Query() query: any) {
 		try {
 
-			const queryString = this.filterHelper.salesRep(query);
+			const queryString = this.filterHelper.salesRepFacilities(query);
 
 			const data = await this.salesRepService.getVolumeTrends(id, queryString);
 
@@ -395,7 +395,7 @@ export class SalesRepControllerV3 {
 
 			const { id, payor_id } = param;
 
-			const queryString = this.filterHelper.salesRep(query);
+			const queryString = this.filterHelper.salesRepFacilities(query);
 
 			const data = await this.salesRepService.getOneInsuranceRevenue(id, payor_id, queryString);
 
