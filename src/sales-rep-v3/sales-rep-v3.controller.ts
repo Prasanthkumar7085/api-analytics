@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Delete, Res, Query, Post, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, Delete, Res, Query, Post, UseGuards, Req } from '@nestjs/common';
 import { SOMETHING_WENT_WRONG, SUCCESS_DELETED_DATA_IN_TABLE, SUCCESS_FECTED_SALE_REP_REVENUE_STATS, SUCCESS_FECTED_SALE_REP_VOLUME_STATS, SUCCESS_FETCHED_CASE_TYPES_REVENUE, SUCCESS_FETCHED_ONE_SALES_REP, SUCCESS_FETCHED_PATIENT_CLAIMS_COUNT, SUCCESS_FETCHED_SALES_REP, SUCCESS_FETCHED_SALES_REP_CASE_TYPE_MONTHLY_VOLUME, SUCCESS_FETCHED_SALES_REP_FACILITY_WISE_STATS, SUCCESS_FETCHED_SALES_REP_INSURANCE_PAYORS_DATA, SUCCESS_FETCHED_SALES_REP_INSURANCE_PAYORS_MONTH_WISE_DATA, SUCCESS_FETCHED_SALES_REP_OVERALL_REVENUE, SUCCESS_FETCHED_SALES_REP_OVERALL_VOLUME, SUCCESS_FETCHED_SALES_REP_TREND_REVENUE, SUCCESS_FETCHED_SALES_REP_TREND_VOLUME, SUCCESS_FETCHED_SALES_REP_VOLUME_AND_REVENUE } from 'src/constants/messageConstants';
 import { FilterHelper } from 'src/helpers/filterHelper';
 import { SalesRepServiceV3 } from './sales-rep-v3.service';
@@ -35,6 +35,35 @@ export class SalesRepControllerV3 {
 			return res.status(500).json({
 				success: false,
 				message: error || SOMETHING_WENT_WRONG
+			});
+		}
+	}
+
+
+	@UseGuards(AuthGuard)
+	@Get("ref-id")
+	async getSalesRepByRefId(@Res() res: any, @Req() req: any) {
+		try {
+			const refId = req.user._id.toString();
+
+			let salesRepData = await this.salesRepService.findOneSalesRep(refId);
+
+			if (req.user.user_type === "HOSPITAL_MARKETING_MANAGER") {
+				if (salesRepData.length > 0) {
+					salesRepData = await this.salesRepService.findSingleManagerSalesReps(salesRepData[0].reportingTo);
+
+				}
+			}
+
+			return res.status(200).json({
+				success: true,
+				message: SUCCESS_FETCHED_ONE_SALES_REP,
+				data: salesRepData
+			});
+		} catch (err) {
+			return res.status(500).json({
+				success: false,
+				message: err || SOMETHING_WENT_WRONG
 			});
 		}
 	}
@@ -382,25 +411,6 @@ export class SalesRepControllerV3 {
 			return res.status(500).json({
 				success: false,
 				message: error || SOMETHING_WENT_WRONG
-			});
-		}
-	}
-
-	@Get(":id/ref-id")
-	async getSalesRepByRefId(@Res() res: any, @Param() param: any) {
-		try {
-			const refId = param.id;
-
-			const data = await this.salesRepService.findOneSalesRep(refId);
-			return res.status(200).json({
-				success: true,
-				message: SUCCESS_FETCHED_ONE_SALES_REP,
-				data: data
-			});
-		} catch (err) {
-			return res.status(500).json({
-				success: false,
-				message: err || SOMETHING_WENT_WRONG
 			});
 		}
 	}

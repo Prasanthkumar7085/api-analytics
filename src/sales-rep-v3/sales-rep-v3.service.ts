@@ -403,4 +403,8 @@ export class SalesRepServiceV3 {
 	async findOneSalesRep(refId) {
 		return await db.select().from(sales_reps).where(eq(sales_reps.refId, refId));
 	}
+
+	async findSingleManagerSalesReps(reportingTo) {
+		return await db.select().from(sales_reps).where(eq(sales_reps.reportingTo, reportingTo));
+	}
 }
