@@ -208,17 +208,23 @@ export class FilterHelper {
         let filter = [];
         const {
             from_date: fromDate,
-            to_date: toDate
+            to_date: toDate,
+            sales_reps: salesReps
         } = query;
 
         if (fromDate && toDate) {
             filter.push(`service_date BETWEEN '${fromDate}' AND '${toDate}'`);
         }
 
+        if (salesReps) {
+            filter.push(`sales_rep_id IN (${salesReps})`);
+        }
+
         let queryString;
         if (filter.length > 0) {
             queryString = filter.join("AND ");
         }
+
         return queryString;
     }
 

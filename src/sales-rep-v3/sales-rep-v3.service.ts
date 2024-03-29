@@ -9,7 +9,7 @@ export class SalesRepServiceV3 {
 
 
 	async getAll(queryString: string) {
-		console.log('hii');
+
 		//This query retrieves all sales reps and counts no_of_facilities there are in and counts total revenues and total cases
 		let query = sql`
             SELECT

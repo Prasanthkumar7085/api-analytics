@@ -13,7 +13,7 @@ import {
 } from 'src/helpers/exceptions';
 import { jwtConstants } from 'src/constants/jwt.constants';
 import { LisService } from 'src/lis/lis.service';
-import { FORBIDDEN_EXCEPTION, INVALID_TOKEN_EXCEPTION, USER_NOTFOUND_EXCEPTION } from 'src/constants/messageConstants';
+import { FORBIDDEN_EXCEPTION, HOSPITAL_MARKETING_MANAGER, INVALID_TOKEN_EXCEPTION, MARKETER, USER_NOTFOUND_EXCEPTION } from 'src/constants/messageConstants';
 import { SalesRepServiceV3 } from 'src/sales-rep-v3/sales-rep-v3.service';
 
 
@@ -54,8 +54,8 @@ export class AuthGuard implements CanActivate {
 
       request.user = user;
 
-      if (user.user_type === "MARKETER" || user.user_type === "HOSPITAL_MARKETING_MANAGER") {
-        const query = this.addQueryBySalesRep(user);
+      if (user.user_type === MARKETER || user.user_type === HOSPITAL_MARKETING_MANAGER) {
+        const query = this.addQueryBySalesRep(user, request.query);
 
         request.query = query;
       }
@@ -79,24 +79,26 @@ export class AuthGuard implements CanActivate {
   }
 
 
-  async addQueryBySalesRep(userDetails) {
+  async addQueryBySalesRep(userDetails, query) {
     try {
-      let query = {};
-
       const refId = userDetails._id.toString();
 
       let salesRepData = await this.salesRepService.findOneSalesRep(refId);
 
-      if (salesRepData.length > 0) {
+      if (salesRepData.length > 0 && userDetails.user_type === HOSPITAL_MARKETING_MANAGER) {
         const data = await this.salesRepService.findSingleManagerSalesReps(salesRepData[0].reportingTo);
 
         if (data.length > 0) {
           const ids = data.map(e => e.id);
 
-          query = {
-            sales_reps: ids
-          };
+          query.sales_reps = ids;
         }
+      }
+
+      if (salesRepData.length > 0 && userDetails.user_type === MARKETER) {
+        const ids = salesRepData.map(e => e.id);
+
+        query.sales_reps = ids;
       }
       return query;
     } catch (err) {
