@@ -11,11 +11,12 @@ import { UserSchema } from 'src/schemas/userSchema';
 import { CaseSchema } from 'src/schemas/caseSchema';
 import { insurancePayorsSchema } from 'src/schemas/insurancPayors';
 import { testPanelsDataSchema } from 'src/schemas/testPanelSchema';
+import { SalesRepServiceV3 } from 'src/sales-rep-v3/sales-rep-v3.service';
 
 
 @Module({
   controllers: [FacilitiesController],
-  providers: [FacilitiesService, FacilitiesHelper, JwtService, LisService],
+  providers: [FacilitiesService, FacilitiesHelper, JwtService, LisService, SalesRepServiceV3],
   imports: [
     MongooseModule.forFeature([
       { name: 'Hospital', schema: HospitalSchema },

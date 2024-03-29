@@ -14,6 +14,7 @@ import {
 import { jwtConstants } from 'src/constants/jwt.constants';
 import { LisService } from 'src/lis/lis.service';
 import { FORBIDDEN_EXCEPTION, INVALID_TOKEN_EXCEPTION, USER_NOTFOUND_EXCEPTION } from 'src/constants/messageConstants';
+import { SalesRepServiceV3 } from 'src/sales-rep-v3/sales-rep-v3.service';
 
 
 @Injectable()
@@ -22,6 +23,7 @@ export class AuthGuard implements CanActivate {
   constructor(
     private jwtService: JwtService,
     private lisService: LisService,
+    private readonly salesRepService: SalesRepServiceV3
   ) { }
   async canActivate(context: ExecutionContext) {
     try {
@@ -52,6 +54,12 @@ export class AuthGuard implements CanActivate {
 
       request.user = user;
 
+      if (user.user_type === "MARKETER" || user.user_type === "HOSPITAL_MARKETING_MANAGER") {
+        const query = this.addQueryBySalesRep(user);
+
+        request.query = query;
+      }
+
       return true;
 
     } catch (err) {
@@ -67,6 +75,33 @@ export class AuthGuard implements CanActivate {
         throw err;
       }
       throw new InternalServerErrorException('Internal Server Error');
+    }
+  }
+
+
+  async addQueryBySalesRep(userDetails) {
+    try {
+      let query = {};
+
+      const refId = userDetails._id.toString();
+
+      let salesRepData = await this.salesRepService.findOneSalesRep(refId);
+
+      if (salesRepData.length > 0) {
+        const data = await this.salesRepService.findSingleManagerSalesReps(salesRepData[0].reportingTo);
+
+        if (data.length > 0) {
+          const ids = data.map(e => e.id);
+
+          query = {
+            sales_reps: ids
+          };
+        }
+      }
+      return query;
+    } catch (err) {
+      console.log({ err });
+      throw err;
     }
   }
 }

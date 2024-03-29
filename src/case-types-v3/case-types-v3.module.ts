@@ -10,10 +10,11 @@ import { CaseSchema } from 'src/schemas/caseSchema';
 import { insurancePayorsSchema } from 'src/schemas/insurancPayors';
 import { testPanelsDataSchema } from 'src/schemas/testPanelSchema';
 import { HospitalSchema } from 'src/schemas/hospitalSchema';
+import { SalesRepServiceV3 } from 'src/sales-rep-v3/sales-rep-v3.service';
 
 @Module({
   controllers: [CaseTypesV3Controller],
-  providers: [CaseTypesV3Service, FilterHelper, JwtService, LisService],
+  providers: [CaseTypesV3Service, FilterHelper, JwtService, LisService, SalesRepServiceV3],
   imports: [
     MongooseModule.forFeature([
       { name: 'User', schema: UserSchema },
