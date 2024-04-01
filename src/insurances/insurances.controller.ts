@@ -1,8 +1,8 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Res, Query, UseGuards } from '@nestjs/common';
-import { InsurancesService } from './insurances.service';
-import { FilterHelper } from 'src/helpers/filterHelper';
+import { Controller, Get, Param, Query, Res, UseGuards } from '@nestjs/common';
 import { SOMETHING_WENT_WRONG, SUCCESS_FETCHED_ALL_INSURANCES_DATA, SUCCESS_FETCHED_INSURANCE_CASE_TYPES_DATA, SUCCESS_FETCHED_INSURANCE_PAYORS_DETAILS, SUCCESS_FETECHED_INSURANCE_TRENDS_VOLUME, SUCCESS_FTECHED_INSURANCE_TRENDS_REVENUE } from 'src/constants/messageConstants';
 import { AuthGuard } from 'src/guards/auth.guard';
+import { FilterHelper } from 'src/helpers/filterHelper';
+import { InsurancesService } from './insurances.service';
 
 
 @Controller({

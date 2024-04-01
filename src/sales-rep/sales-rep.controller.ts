@@ -15,6 +15,27 @@ export class SalesRepController {
 		private readonly filterHelper: FilterHelper
 	) { }
 
+	@Get("all")
+	async getSalesReps(@Res() res: any) {
+		try {
+			const data = await this.salesRepService.getAllSalesReps();
+
+			return res.status(200).json({
+				success: true,
+				message: "Success",
+				data
+			});
+		} catch (err) {
+			console.log({ err });
+
+			return res.status(500).json({
+				success: false,
+				message: err || SOMETHING_WENT_WRONG
+			});
+		}
+	}
+
+	
 	@UseGuards(AuthGuard)
 	@Get()
 	async getAll(@Res() res: any, @Query() query: any) {

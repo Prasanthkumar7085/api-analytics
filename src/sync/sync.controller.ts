@@ -1,8 +1,10 @@
 import { Controller, Get, NotFoundException, Post, Res } from '@nestjs/common';
 import { SyncService } from './sync.service';
 import { LisService } from 'src/lis/lis.service';
-import { PATIENT_CLAIMS_NOT_FOUND, REMOVED_ARCHIVED_CLAIMS, SUCCESS_SYNC_PATIENT_CLAIMS, CASE_TYPES_NOT_FOUND_IN_LIS_DATABASE, INSURANCE_PAYORS_NOT_FOUND_IN_LIS_DATABASE, CASE_TYPES_NOT_FOUND, INSURANCE_PAYORS_NOT_FOUND, SOMETHING_WENT_WRONG, SUCCESS_SYNCED_CASE_TYPES, SUCCESS_SYNCED_INSURANCE_PAYORS,
-	HOSPITAL_MARKETING_MANAGER, SALES_REPS_NOT_FOUND, FACILITIES_NOT_FOUND, NEW_SALES_REPS_DATA_NOT_FOUND, SUCCUSS_INSERTED_MARKETING_MANAGERS, SUCCUSS_INSERTED_SALES_REPS, SUCCESS_INSERTED_FACILICES } from 'src/constants/messageConstants';
+import {
+	PATIENT_CLAIMS_NOT_FOUND, REMOVED_ARCHIVED_CLAIMS, SUCCESS_SYNC_PATIENT_CLAIMS, CASE_TYPES_NOT_FOUND_IN_LIS_DATABASE, INSURANCE_PAYORS_NOT_FOUND_IN_LIS_DATABASE, CASE_TYPES_NOT_FOUND, INSURANCE_PAYORS_NOT_FOUND, SOMETHING_WENT_WRONG, SUCCESS_SYNCED_CASE_TYPES, SUCCESS_SYNCED_INSURANCE_PAYORS,
+	HOSPITAL_MARKETING_MANAGER, SALES_REPS_NOT_FOUND, FACILITIES_NOT_FOUND, NEW_SALES_REPS_DATA_NOT_FOUND, SUCCUSS_INSERTED_MARKETING_MANAGERS, SUCCUSS_INSERTED_SALES_REPS, SUCCESS_INSERTED_FACILICES
+} from 'src/constants/messageConstants';
 import { SyncHelpers } from 'src/helpers/syncHelper';
 import * as fs from 'fs';
 import { Configuration } from 'src/config/config.service';
@@ -25,7 +27,7 @@ export class SyncController {
 		private readonly caseTypesService: CaseTypesService,
 		private readonly insurancesService: InsurancesService,
 		private readonly salesRepService: SalesRepService,
-    private readonly faciliticesService: FacilitiesService,
+		private readonly faciliticesService: FacilitiesService,
 	) { }
 
 	@Get('patient-claims')
@@ -221,16 +223,16 @@ export class SyncController {
 			const salesRepsManagersData = await this.lisService.getUsers(query);
 
 			if (salesRepsManagersData.length === 0) {
-				return res.status(200).json({success:true, message: SALES_REPS_NOT_FOUND});
+				return res.status(200).json({ success: true, message: SALES_REPS_NOT_FOUND });
 			}
 
 			const finalManagersData = await this.syncHelpers.getFinalManagersData(salesRepsManagersData);
 
 			if (finalManagersData.length === 0) {
-				return res.status(200).json({success:true, message: NEW_SALES_REPS_DATA_NOT_FOUND});
+				return res.status(200).json({ success: true, message: NEW_SALES_REPS_DATA_NOT_FOUND });
 			}
 
-			await this.salesRepService.insertSalesRepsManagers(finalManagersData)
+			await this.salesRepService.insertSalesRepsManagers(finalManagersData);
 
 			this.salesRepService.updateSalesRepsManagersData();
 
@@ -238,7 +240,7 @@ export class SyncController {
 		}
 		catch (error) {
 			console.log({ error });
-			
+
 			return res.status(500).json({ success: false, message: error.message || SOMETHING_WENT_WRONG });
 		}
 	}
@@ -250,32 +252,30 @@ export class SyncController {
 
 			const datesFilter = this.syncHelpers.getFromAndToDates(7);
 
-			const salesRepsData = await this.syncHelpers.getSalesRepsData(datesFilter)
+			const salesRepsData = await this.syncHelpers.getSalesRepsData(datesFilter);
 
-			if (salesRepsData.length === 0){
-				return res.status(200).json({success:true, message: SALES_REPS_NOT_FOUND});
+			if (salesRepsData.length === 0) {
+				return res.status(200).json({ success: true, message: SALES_REPS_NOT_FOUND });
 			}
 
-			const unMatchedSalesRepsIds = await this.syncHelpers.getNotExistingIds(salesRepsData)
+			const unMatchedSalesRepsIds = await this.syncHelpers.getNotExistingIds(salesRepsData);
 
-			if(unMatchedSalesRepsIds.length === 0){
-				return res.status(200).json({success:true, message: NEW_SALES_REPS_DATA_NOT_FOUND});	
+			if (unMatchedSalesRepsIds.length === 0) {
+				return res.status(200).json({ success: true, message: NEW_SALES_REPS_DATA_NOT_FOUND });
 			}
 
-			const salesRepsQuery = {_id: { $in: unMatchedSalesRepsIds }}
+			const salesRepsQuery = { _id: { $in: unMatchedSalesRepsIds } };
 
-			const salesRepsDataToInsert = await this.lisService.getUsers(salesRepsQuery)
+			const salesRepsDataToInsert = await this.lisService.getUsers(salesRepsQuery);
 
 
-			const finalSalesRepsData = await this.syncHelpers.getFinalSalesRepsData(salesRepsDataToInsert);
+			this.syncHelpers.getFinalSalesRepsData(salesRepsDataToInsert);
 
-			this.salesRepService.insertSalesReps(finalSalesRepsData)
-
-			return res.status(200).json({success: true, message: SUCCUSS_INSERTED_SALES_REPS });
-		} 
+			return res.status(200).json({ success: true, message: SUCCUSS_INSERTED_SALES_REPS });
+		}
 		catch (error) {
 			console.log({ error });
-			
+
 			return res.status(500).json({ success: false, message: error.message || SOMETHING_WENT_WRONG });
 		}
 	}
@@ -304,32 +304,32 @@ export class SyncController {
 			return res.status(500).json({ success: false, message: error || SOMETHING_WENT_WRONG });
 		}
 	}
-	
 
-@Get('facilities')
-async syncFacilities(@Res() res: any) {
+
+	@Get('facilities')
+	async syncFacilities(@Res() res: any) {
 		try {
 
 			const datesFilter = this.syncHelpers.getFromAndToDates(7);
 
-			const salesRepsData = await this.syncHelpers.getSalesRepsData(datesFilter)
+			const salesRepsData = await this.syncHelpers.getSalesRepsData(datesFilter);
 
-			if (salesRepsData.length === 0){
-				return res.status(200).json({success:true, message: SALES_REPS_NOT_FOUND});
+			if (salesRepsData.length === 0) {
+				return res.status(200).json({ success: true, message: SALES_REPS_NOT_FOUND });
 			}
 
-			const salesRepsAndFacilitiesData = await this.syncHelpers.getFacilitiesData(salesRepsData)
+			const salesRepsAndFacilitiesData = await this.syncHelpers.getFacilitiesData(salesRepsData);
 
-			const unMatchedFacilitiesIds = await this.syncHelpers.getFacilitiesNotExistingIds(salesRepsAndFacilitiesData)
+			const unMatchedFacilitiesIds = await this.syncHelpers.getFacilitiesNotExistingIds(salesRepsAndFacilitiesData);
 
-			if(unMatchedFacilitiesIds.length === 0){
-				return res.status(200).json({success:true, message: FACILITIES_NOT_FOUND});
+			if (unMatchedFacilitiesIds.length === 0) {
+				return res.status(200).json({ success: true, message: FACILITIES_NOT_FOUND });
 			}
 
-			const salesRepsIdsAndRefIds = await this.syncHelpers.getSalesRepsIdsandRefIds(salesRepsAndFacilitiesData)
+			const salesRepsIdsAndRefIds = await this.syncHelpers.getSalesRepsIdsandRefIds(salesRepsAndFacilitiesData);
 
-			if (salesRepsIdsAndRefIds.length === 0){
-				return res.status(200).json({success:true, message: NEW_SALES_REPS_DATA_NOT_FOUND});
+			if (salesRepsIdsAndRefIds.length === 0) {
+				return res.status(200).json({ success: true, message: NEW_SALES_REPS_DATA_NOT_FOUND });
 			}
 
 			const salesRepsAndfacilitiesIdsData = await this.syncHelpers.getSalesRepsAndFacilitiesIds(salesRepsIdsAndRefIds, salesRepsAndFacilitiesData);
@@ -344,15 +344,15 @@ async syncFacilities(@Res() res: any) {
 
 			const faciliticesData = await this.lisService.getHospitalsData(hospitalQuery);
 
-			if (faciliticesData.length === 0){
-				return res.status(200).json({success:true, message: FACILITIES_NOT_FOUND});
+			if (faciliticesData.length === 0) {
+				return res.status(200).json({ success: true, message: FACILITIES_NOT_FOUND });
 			}
 
 			const finalArray = await this.syncHelpers.getFinalArray(faciliticesData, salesRepsAndfacilitiesIdsData);
 
-			this.faciliticesService.insertfacilities(finalArray)
+			this.faciliticesService.insertfacilities(finalArray);
 
-			return res.status(200).json({success: true, message: SUCCESS_INSERTED_FACILICES});
+			return res.status(200).json({ success: true, message: SUCCESS_INSERTED_FACILICES });
 		}
 		catch (error) {
 			console.log({ error });

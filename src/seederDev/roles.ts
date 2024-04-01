@@ -19,4 +19,4 @@ async function seedUserRole() {
     console.log(data)
 }
 
-// seedUserRole()
+seedUserRole()

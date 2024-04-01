@@ -18,8 +18,7 @@ export class SyncHelpers {
         private readonly facilitiesService: FacilitiesService,
         private readonly insurancesService: InsurancesService,
         private readonly SyncService: SyncService,
-        private readonly salesRepsService : SalesRepService,
-        private readonly facilitiesService: FacilitiesService
+        private readonly salesRepsService: SalesRepService
 
     ) { }
 
@@ -347,7 +346,7 @@ export class SyncHelpers {
             if (notExistedIds.includes(item._id.toString())) {
 
                 finalArray.push({
-                    name: item.first_name,
+                    name: item.first_name + " " + item.last_name,
                     refId: item._id.toString(),
                     roleId: 2,
                 });
@@ -360,6 +359,31 @@ export class SyncHelpers {
 
     async getFinalSalesRepsData(marketersData) {
 
+        let finalArray = [];
+
+
+        const withReportingTo = marketersData.filter(obj => obj.reporting_to && obj.reporting_to.length > 0);
+        const withoutReportingTo = marketersData.filter(obj => !obj.reporting_to || obj.reporting_to.length === 0);
+
+        if (withoutReportingTo.length) {
+            finalArray = await this.getFinalManagersData(withoutReportingTo);
+
+            if (finalArray.length) {
+                await this.salesRepsService.insertSalesRepsManagers(finalArray);
+
+                this.salesRepsService.updateSalesRepsManagersData();
+            }
+        }
+
+        if (withReportingTo.length) {
+            finalArray = await this.containsReportingTo(withReportingTo);
+
+            this.salesRepsService.insertSalesReps(finalArray);
+
+        }
+    }
+
+    async containsReportingTo(marketersData) {
         const finalArray = [];
 
         const managersIds = marketersData.map((item) => item.reporting_to[0].toString());
@@ -380,7 +404,7 @@ export class SyncHelpers {
             }
 
             finalArray.push({
-                name: marketer.first_name,
+                name: marketer.first_name + " " + marketer.last_name,
                 refId: marketer._id.toString(),
                 reportingTo: reportingTo,
                 roleId: 1,
