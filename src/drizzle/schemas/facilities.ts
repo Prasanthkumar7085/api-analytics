@@ -8,5 +8,5 @@ export const facilities = pgTable('facilities', {
     id: serial('id').primaryKey(),
     name: text('name'),
     refId: text('ref_id'),// mongodbid,
-    salesRepId: integer("sales_rep_id").references(() => sales_reps.id),// mongodbid
+    salesRepId: integer("sales_rep_id").default(null).references(() => sales_reps.id),// mongodbid
 });

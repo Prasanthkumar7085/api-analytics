@@ -3,7 +3,7 @@ import { SyncService } from './sync.service';
 import { LisService } from 'src/lis/lis.service';
 import {
 	PATIENT_CLAIMS_NOT_FOUND, REMOVED_ARCHIVED_CLAIMS, SUCCESS_SYNC_PATIENT_CLAIMS, CASE_TYPES_NOT_FOUND_IN_LIS_DATABASE, INSURANCE_PAYORS_NOT_FOUND_IN_LIS_DATABASE, CASE_TYPES_NOT_FOUND, INSURANCE_PAYORS_NOT_FOUND, SOMETHING_WENT_WRONG, SUCCESS_SYNCED_CASE_TYPES, SUCCESS_SYNCED_INSURANCE_PAYORS,
-	HOSPITAL_MARKETING_MANAGER, SALES_REPS_NOT_FOUND, FACILITIES_NOT_FOUND, NEW_SALES_REPS_DATA_NOT_FOUND, SUCCUSS_INSERTED_MARKETING_MANAGERS, SUCCUSS_INSERTED_SALES_REPS, SUCCESS_INSERTED_FACILICES
+	HOSPITAL_MARKETING_MANAGER, SALES_REPS_NOT_FOUND, FACILITIES_NOT_FOUND, NEW_SALES_REPS_DATA_NOT_FOUND, SUCCUSS_INSERTED_MARKETING_MANAGERS, SUCCUSS_INSERTED_SALES_REPS, SUCCESS_INSERTED_FACILICES, LIS_FACILITIES_NOT_FOUND
 } from 'src/constants/messageConstants';
 import { SyncHelpers } from 'src/helpers/syncHelper';
 import * as fs from 'fs';
@@ -312,47 +312,109 @@ export class SyncController {
 
 			const datesFilter = this.syncHelpers.getFromAndToDates(7);
 
-			const salesRepsData = await this.syncHelpers.getSalesRepsData(datesFilter);
-
-			if (salesRepsData.length === 0) {
-				return res.status(200).json({ success: true, message: SALES_REPS_NOT_FOUND });
-			}
-
-			const salesRepsAndFacilitiesData = await this.syncHelpers.getFacilitiesData(salesRepsData);
-
-			const unMatchedFacilitiesIds = await this.syncHelpers.getFacilitiesNotExistingIds(salesRepsAndFacilitiesData);
-
-			if (unMatchedFacilitiesIds.length === 0) {
-				return res.status(200).json({ success: true, message: FACILITIES_NOT_FOUND });
-			}
-
-			const salesRepsIdsAndRefIds = await this.syncHelpers.getSalesRepsIdsandRefIds(salesRepsAndFacilitiesData);
-
-			if (salesRepsIdsAndRefIds.length === 0) {
-				return res.status(200).json({ success: true, message: NEW_SALES_REPS_DATA_NOT_FOUND });
-			}
-
-			const salesRepsAndfacilitiesIdsData = await this.syncHelpers.getSalesRepsAndFacilitiesIds(salesRepsIdsAndRefIds, salesRepsAndFacilitiesData);
-
 			const hospitalQuery = {
-				_id: { $in: unMatchedFacilitiesIds },
-				created_at: {
-					$gte: datesFilter.fromDate,
-					$lte: datesFilter.toDate,
-				},
+				// created_at: {
+				// 	$gte: datesFilter.fromDate,
+				// 	$lte: datesFilter.toDate,
+				// },
 			};
 
-			const faciliticesData = await this.lisService.getHospitalsData(hospitalQuery);
+			const projection = { _id: 1, name: 1, marketers_count: 1 };
 
-			if (faciliticesData.length === 0) {
+			const facilitiesData = await this.lisService.getFacilities(hospitalQuery, projection);
+
+			if (facilitiesData.length === 0) {
+				return res.status(200).json({ success: true, message: LIS_FACILITIES_NOT_FOUND });
+			}
+
+			console.log({ facilitiesData: facilitiesData.length });
+
+			const unMatchedFacilities: any = await this.syncHelpers.getFacilitiesNotExisting(facilitiesData);
+
+			console.log({ unMatchedFacilities: unMatchedFacilities.length });
+
+
+			if (unMatchedFacilities.length === 0) {
 				return res.status(200).json({ success: true, message: FACILITIES_NOT_FOUND });
 			}
 
-			const finalArray = await this.syncHelpers.getFinalArray(faciliticesData, salesRepsAndfacilitiesIdsData);
+			const unMatchedFacilitiesIds = unMatchedFacilities.map((e) => e._id);
 
-			this.faciliticesService.insertfacilities(finalArray);
+			const salesRepsData = await this.syncHelpers.getSalesRepsByFacilites(unMatchedFacilitiesIds);
 
-			return res.status(200).json({ success: true, message: SUCCESS_INSERTED_FACILICES });
+			const transformedSalesReps = salesRepsData.reduce((acc, salesRep) => {
+				const sales_rep_id = salesRep._id;
+				const hospitalObjects = salesRep.hospitals.map(hospital => ({ sales_rep_id, hospital }));
+				return acc.concat(hospitalObjects);
+			}, []);
+
+			console.log(transformedSalesReps.length);
+
+			const uniquetransformedSalesReps: any = Array.from(
+				transformedSalesReps.reduce((map, obj) => {
+					const key = obj.sales_rep_id + '-' + obj.hospital;
+					if (!map.has(key)) map.set(key, obj);
+					return map;
+				}, new Map()).values()
+			);
+
+			console.log({ uniquetransformedSalesReps: uniquetransformedSalesReps.length });
+
+
+			// Create a mapping object for facilities for quick access
+			const facilitiesMap = {};
+			unMatchedFacilities.forEach(facility => {
+				facilitiesMap[facility._id] = facility.name;
+			});
+
+			// Assign names to transformedArray based on facilitiesMap
+			const updatedTransformedArray = uniquetransformedSalesReps.map(item => ({
+				sales_rep_id: item.sales_rep_id,
+				hospital: item.hospital,
+				name: facilitiesMap[item.hospital]
+			}));
+
+			// const salesRepsData = await this.syncHelpers.getSalesRepsData(datesFilter);
+
+			// if (salesRepsData.length === 0) {
+			// 	return res.status(200).json({ success: true, message: SALES_REPS_NOT_FOUND });
+			// }
+
+			// const salesRepsAndFacilitiesData = await this.syncHelpers.getFacilitiesData(salesRepsData);
+
+			// const unMatchedFacilitiesIds = await this.syncHelpers.getFacilitiesNotExistingIds(salesRepsAndFacilitiesData);
+
+			// if (unMatchedFacilitiesIds.length === 0) {
+			// 	return res.status(200).json({ success: true, message: FACILITIES_NOT_FOUND });
+			// }
+
+			// const salesRepsIdsAndRefIds = await this.syncHelpers.getSalesRepsIdsandRefIds(salesRepsAndFacilitiesData);
+
+			// if (salesRepsIdsAndRefIds.length === 0) {
+			// 	return res.status(200).json({ success: true, message: NEW_SALES_REPS_DATA_NOT_FOUND });
+			// }
+
+			// const salesRepsAndfacilitiesIdsData = await this.syncHelpers.getSalesRepsAndFacilitiesIds(salesRepsIdsAndRefIds, salesRepsAndFacilitiesData);
+
+			// const hospitalQuery = {
+			// 	_id: { $in: unMatchedFacilitiesIds },
+			// 	// created_at: {
+			// 	// 	$gte: datesFilter.fromDate,
+			// 	// 	$lte: datesFilter.toDate,
+			// 	// },
+			// };
+
+			// const faciliticesData = await this.lisService.getHospitalsData(hospitalQuery);
+
+			// if (faciliticesData.length === 0) {
+			// 	return res.status(200).json({ success: true, message: FACILITIES_NOT_FOUND });
+			// }
+
+			// const finalArray = await this.syncHelpers.getFinalArray(faciliticesData, salesRepsAndfacilitiesIdsData);
+
+			// this.faciliticesService.insertfacilities(finalArray);
+
+			return res.status(200).json({ success: true, message: SUCCESS_INSERTED_FACILICES, updatedTransformedArray });
 		}
 		catch (error) {
 			console.log({ error });

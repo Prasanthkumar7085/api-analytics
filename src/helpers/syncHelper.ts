@@ -446,17 +446,17 @@ export class SyncHelpers {
     }
 
 
-    async getFacilitiesNotExistingIds(facilitiesData) {
+    async getFacilitiesNotExisting(facilitiesData) {
 
-        const hospitalIds = facilitiesData.map((item) => item.hospital);
+        const hospitalIds = facilitiesData.map((item) => item._id);
 
         const matchedFacilitiesIds = await this.facilitiesService.getFacilitiesRefIds(hospitalIds); // fetching matched facilities id from analytics db
 
         const refIdValues = matchedFacilitiesIds.rows.map((obj) => obj.ref_id);
 
-        const unMatchedFacilitiesIds = hospitalIds.filter((id) => !refIdValues.includes(id)); // fetching un-matched id of facilities
+        const unMatchedFacilities = facilitiesData.filter((id) => !refIdValues.includes(id)); // fetching un-matched id of facilities
 
-        return unMatchedFacilitiesIds;
+        return unMatchedFacilities;
     }
 
 
@@ -513,5 +513,20 @@ export class SyncHelpers {
         });
 
         return finalArray;
+    }
+
+    async getSalesRepsByFacilites(facilities) {
+        const query = {
+            hospitals: {
+                $in: facilities
+            }
+        };
+
+        const select = {
+            _id: 1,
+            hospitals: 1
+        };
+
+        return await this.lisService.getUsers(query, select);
     }
 }
