@@ -59,7 +59,7 @@ export class LisService {
 
     async getFacilities(query, projection) {
 
-        return await this.hospitalModel.find(query).select(projection);
+        return await this.hospitalModel.find(query).select(projection).lean();
     }
 
 

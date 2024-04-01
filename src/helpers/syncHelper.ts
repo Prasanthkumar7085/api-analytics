@@ -285,7 +285,7 @@ export class SyncHelpers {
 
         const modifiedData = data
             .filter(element => result.includes(element.code))
-            .map(element => ({ name: element.code, displayName: element.code }));
+            .map(element => ({ name: element.code, displayName: element.name }));
 
         return modifiedData;
     }
@@ -396,7 +396,7 @@ export class SyncHelpers {
             // Check if hospital_marketing_manager exists
             if (marketer.reporting_to.length > 0) {
                 // Find corresponding manager data
-                const matchedObj = managersIdsAndRefIds.rows.find((row) => row.ref_id === marketer.reporting_to[0].toString());
+                const matchedObj = managersIdsAndRefIds.find((row) => row.ref_id === marketer.reporting_to[0].toString());
 
                 if (matchedObj) {
                     reportingTo = matchedObj.id as number;
@@ -466,7 +466,7 @@ export class SyncHelpers {
 
         const salesRepsIdsAndRefIdsData = await this.salesRepsService.getSalesRepsIdsAndRefIds(salesRepsIds); // fetching sales reps id and ref_id from analytics db
 
-        return salesRepsIdsAndRefIdsData.rows;
+        return salesRepsIdsAndRefIdsData;
     }
 
 
@@ -517,6 +517,7 @@ export class SyncHelpers {
 
     async getSalesRepsByFacilites(facilities) {
         const query = {
+            user_type: "MARKETER",
             hospitals: {
                 $in: facilities
             }
@@ -528,5 +529,64 @@ export class SyncHelpers {
         };
 
         return await this.lisService.getUsers(query, select);
+    }
+
+
+    transformFacilities(salesRepsData, unMatchedFacilities) {
+        const transformedSalesReps = salesRepsData.reduce((acc, salesRep) => {
+            const sales_rep_id = salesRep._id;
+            const hospitalObjects = salesRep.hospitals.map(hospital => ({ sales_rep_id, hospital }));
+            return acc.concat(hospitalObjects);
+        }, []);
+
+        console.log(transformedSalesReps.length);
+
+        const uniquetransformedSalesReps: any = Array.from(
+            transformedSalesReps.reduce((map, obj) => {
+                const key = obj.sales_rep_id + '-' + obj.hospital;
+                if (!map.has(key)) map.set(key, obj);
+                return map;
+            }, new Map()).values()
+        );
+
+        console.log({ uniquetransformedSalesReps: uniquetransformedSalesReps.length });
+
+
+        // Create a mapping object for facilities for quick access
+        const facilitiesMap = {};
+        unMatchedFacilities.forEach(facility => {
+            facilitiesMap[facility._id] = facility.name;
+        });
+
+        // Assign names to transformedArray based on facilitiesMap
+        const updatedTransformedArray = uniquetransformedSalesReps.map(item => ({
+            sales_rep_id: item.sales_rep_id,
+            hospital: item.hospital,
+            name: facilitiesMap[item.hospital]
+        }));
+
+        return updatedTransformedArray;
+    }
+
+
+    async modifyFacilitiesData(transformedArray) {
+        const salesRepsIds = transformedArray.map((e) => e.sales_rep_id.toString());
+
+        const uniqueSalesRepsIds = [...new Set(salesRepsIds)];
+
+
+        const salesRepsIdsAndRefIdsData = await this.salesRepsService.getSalesRepsIdsAndRefIds(uniqueSalesRepsIds);
+
+
+        const updatedFacilities = transformedArray.map(facility => {
+            const salesRep = salesRepsIdsAndRefIdsData.find(rep => rep.ref_id.toString() === facility.sales_rep_id.toString());
+            return {
+                name: facility.name,
+                refId: facility.hospital.toString(),
+                salesRepId: salesRep ? salesRep.id : null
+            };
+        });
+
+        return updatedFacilities;
     }
 }

@@ -379,7 +379,9 @@ export class SalesRepService {
 
 	async getSalesRepsIdsAndRefIds(marketersIds) {
 
-		return await db.execute(sql`SELECT id, ref_id FROM sales_reps WHERE ref_id IN ${marketersIds}`);
+		const data = await db.execute(sql`SELECT id, ref_id FROM sales_reps WHERE ref_id IN ${marketersIds}`);
+
+		return data.rows;
 	}
 
 
@@ -408,7 +410,7 @@ export class SalesRepService {
 		return await db.select().from(sales_reps).where(eq(sales_reps.reportingTo, reportingTo));
 	}
 
-	async getAllSalesReps(){
+	async getAllSalesReps() {
 		return await db.select().from(sales_reps);
 	}
 }
