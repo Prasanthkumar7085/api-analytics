@@ -7,8 +7,7 @@ import { db } from 'src/seeders/db';
 @Injectable()
 export class FacilitiesV3Service {
 
-    
-    async getAllFacilitiesData(){
+    async getAllFacilitiesData() {
         return await db.select().from(facilities);
     }
 
@@ -231,7 +230,8 @@ export class FacilitiesV3Service {
 
         // This query calculates revenue data grouped by insurance for a specific facility.
         let statement = sql`
-            SELECT 
+            SELECT
+            	ip.id AS insurance_id, 
                 ip.name AS insurance_name,
                 CAST(ROUND(SUM(p.billable_amount)::NUMERIC, 2) AS FLOAT) AS generated_amount,
                 CAST(ROUND(SUM(p.cleared_amount)::NUMERIC, 2) AS FLOAT) AS paid_amount,
@@ -242,6 +242,7 @@ export class FacilitiesV3Service {
             WHERE p.facility_id = ${id}
             ${queryString ? sql`AND ${sql.raw(queryString)}` : sql``}
             GROUP BY 
+                ip.id,
                 insurance_name
             ORDER BY
                 insurance_name
@@ -324,14 +325,14 @@ export class FacilitiesV3Service {
     }
 
 
-    async getFacilitiesRefIds(hospitalIds){
+    async getFacilitiesRefIds(hospitalIds) {
 
         return await db.execute(sql`SELECT ref_id FROM facilities WHERE ref_id IN ${hospitalIds}`);
     }
 
 
-    async insertfacilities(data){
-        
+    async insertfacilities(data) {
+
         return await db.insert(facilities).values(data).returning();
     }
 }
