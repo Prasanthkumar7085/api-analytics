@@ -408,7 +408,8 @@ export class RevenueStatsHelpers {
 
 
     async forHospitalWiseData(orderBy, orderType, statsQuery) {
-        let revenueStatsData: any = await this.revenueStatsService.findAll(statsQuery)
+        let revenueStatsData: any = []
+        // await this.revenueStatsService.findAll(statsQuery)
         const result = {};
 
         revenueStatsData.forEach((entry) => {
@@ -481,7 +482,8 @@ export class RevenueStatsHelpers {
         }
 
         // Find the existed raw stats from our raw collection in our db
-        const existedData = await this.revenueStatsService.getRevenueRawData(queryString);
+        const existedData = []
+        //  await this.revenueStatsService.getRevenueRawData(queryString);
 
         // Based on our db eisted raw stats, seperating the modified data into matched and not-matched
         const { matchedObjects, notMatchedObjects } = await this.seperateExistedAndNotExistedData(modifiedData, existedData);
@@ -557,7 +559,7 @@ export class RevenueStatsHelpers {
 
     async toInsertStats(notMatchedObjects) {
         if (notMatchedObjects.length > 0) {
-            await this.revenueStatsService.insertStats(notMatchedObjects);
+            // await this.revenueStatsService.insertStats(notMatchedObjects);
         }
     }
 
@@ -670,7 +672,7 @@ export class RevenueStatsHelpers {
         });
         const finalString = convertedData.join(',');
 
-        await this.revenueStatsService.updateManyStats(finalString);
+        // await this.revenueStatsService.updateManyStats(finalString);
     }
 
     async updateRawStats(matchedObjects) {
@@ -697,7 +699,7 @@ export class RevenueStatsHelpers {
 
             const finalString = convertedData.join(',');
 
-            await this.revenueStatsService.updateManyRaw(finalString);
+            // await this.revenueStatsService.updateManyRaw(finalString);
         }
     }
 

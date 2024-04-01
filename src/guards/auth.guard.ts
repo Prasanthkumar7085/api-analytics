@@ -14,7 +14,7 @@ import {
 import { jwtConstants } from 'src/constants/jwt.constants';
 import { LisService } from 'src/lis/lis.service';
 import { FORBIDDEN_EXCEPTION, HOSPITAL_MARKETING_MANAGER, INVALID_TOKEN_EXCEPTION, MARKETER, USER_NOTFOUND_EXCEPTION } from 'src/constants/messageConstants';
-import { SalesRepServiceV3 } from 'src/sales-rep-v3/sales-rep-v3.service';
+import { SalesRepService } from 'src/sales-rep/sales-rep.service';
 
 
 @Injectable()
@@ -23,7 +23,7 @@ export class AuthGuard implements CanActivate {
   constructor(
     private jwtService: JwtService,
     private lisService: LisService,
-    private readonly salesRepService: SalesRepServiceV3
+    private readonly salesRepService: SalesRepService
   ) { }
   async canActivate(context: ExecutionContext) {
     try {

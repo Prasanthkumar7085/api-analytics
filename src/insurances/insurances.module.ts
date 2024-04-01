@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
+import { InsurancesService } from './insurances.service';
+import { InsurancesController } from './insurances.controller';
 import { FilterHelper } from 'src/helpers/filterHelper';
-import { SalesRepController } from './sales-rep.controller';
-import { SalesRepService } from './sales-rep.service';
 import { MongooseModule } from '@nestjs/mongoose';
 import { UserSchema } from 'src/schemas/userSchema';
 import { CaseSchema } from 'src/schemas/caseSchema';
@@ -10,10 +10,11 @@ import { LisService } from 'src/lis/lis.service';
 import { insurancePayorsSchema } from 'src/schemas/insurancPayors';
 import { testPanelsDataSchema } from 'src/schemas/testPanelSchema';
 import { HospitalSchema } from 'src/schemas/hospitalSchema';
+import { SalesRepService } from 'src/sales-rep/sales-rep.service';
 
 @Module({
-  controllers: [SalesRepController],
-  providers: [SalesRepService, FilterHelper, JwtService, LisService],
+  controllers: [InsurancesController],
+  providers: [InsurancesService, FilterHelper, JwtService, LisService, SalesRepService],
   imports: [
     MongooseModule.forFeature([
       { name: 'User', schema: UserSchema },
@@ -24,4 +25,4 @@ import { HospitalSchema } from 'src/schemas/hospitalSchema';
     ]),
   ]
 })
-export class SalesRepModule { }
+export class InsurancesModule { }

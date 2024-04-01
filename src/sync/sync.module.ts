@@ -1,19 +1,25 @@
+import { LisService } from 'src/lis/lis.service';
 import { Module } from '@nestjs/common';
-import { OverviewService } from './overview.service';
-import { OverviewController } from './overview.controller';
-import { FilterHelper } from 'src/helpers/filterHelper';
+import { SyncService } from './sync.service';
+import { SyncController } from './sync.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { UserSchema } from 'src/schemas/userSchema';
 import { CaseSchema } from 'src/schemas/caseSchema';
-import { JwtService } from '@nestjs/jwt';
-import { LisService } from 'src/lis/lis.service';
 import { insurancePayorsSchema } from 'src/schemas/insurancPayors';
+import { SyncHelpers } from 'src/helpers/syncHelper';
 import { testPanelsDataSchema } from 'src/schemas/testPanelSchema';
 import { HospitalSchema } from 'src/schemas/hospitalSchema';
+import { Configuration } from 'src/config/config.service';
+import { ConfigService } from '@nestjs/config';
+import { InsurancesService } from 'src/insurances/insurances.service';
+import { CaseTypesService } from 'src/case-types/case-types.service';
 import { SalesRepService } from 'src/sales-rep/sales-rep.service';
+
+import { FacilitiesService } from 'src/facilities/facilities.service';
+
 @Module({
-  controllers: [OverviewController],
-  providers: [OverviewService, FilterHelper, JwtService, LisService, SalesRepService],
+  controllers: [SyncController],
+  providers: [SyncService, LisService, SyncHelpers, Configuration, ConfigService, InsurancesService, FacilitiesService, CaseTypesService, SalesRepService],
   imports: [
     MongooseModule.forFeature([
       { name: 'User', schema: UserSchema },
@@ -24,4 +30,4 @@ import { SalesRepService } from 'src/sales-rep/sales-rep.service';
     ]),
   ]
 })
-export class OverviewModule { }
+export class SyncModule { }

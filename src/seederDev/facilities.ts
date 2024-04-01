@@ -1,13 +1,10 @@
-import { HospitalModel } from '../schemas/hospitalSchema';
-import mongoose from "mongoose";
-import { CaseModel } from '../schemas/caseSchema';
-import { SalesRepServiceV3 } from '../sales-rep-v3/sales-rep-v3.service';
-import { Configuration } from '../config/config.service';
 import { ConfigService } from '@nestjs/config';
-import { db } from '../seeders/db';
 import { sql } from 'drizzle-orm';
-import { sales_reps } from '../drizzle/schemas/salesReps';
+import mongoose from "mongoose";
+import { Configuration } from '../config/config.service';
 import { facilities } from '../drizzle/schemas/facilities';
+import { HospitalModel } from '../schemas/hospitalSchema';
+import { db } from '../seeders/db';
 
 
 

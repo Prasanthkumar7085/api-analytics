@@ -1,12 +1,12 @@
 import { Injectable } from "@nestjs/common";
-import { CaseTypesV3Service } from "src/case-types-v3/case-types-v3.service";
+import { CaseTypesService } from "src/case-types/case-types.service";
 import { ARCHIVED } from "src/constants/lisConstants";
 import { MARKETER } from "src/constants/messageConstants";
-import { FacilitiesV3Service } from "src/facilities-v3/facilities-v3.service";
-import { InsurancesV3Service } from "src/insurances-v3/insurances-v3.service";
+import { FacilitiesService } from "src/facilities/facilities.service";
+import { InsurancesService } from "src/insurances/insurances.service";
 import { LisService } from "src/lis/lis.service";
-import { SalesRepServiceV3 } from "src/sales-rep-v3/sales-rep-v3.service";
-import { SyncV3Service } from "src/sync-v3/sync-v3.service";
+import { SalesRepService } from "src/sales-rep/sales-rep.service";
+import { SyncService } from "src/sync/sync.service";
 
 
 @Injectable()
@@ -14,12 +14,12 @@ export class SyncHelpers {
 
     constructor(
         private readonly lisService: LisService,
-        private readonly caseTypesV3Service: CaseTypesV3Service,
-        private readonly facilitiesV3Service: FacilitiesV3Service,
-        private readonly insurancesV3Service: InsurancesV3Service,
-        private readonly syncV3Service: SyncV3Service,
-        private readonly salesRepsService : SalesRepServiceV3,
-        private readonly facilitiesService: FacilitiesV3Service
+        private readonly caseTypesService: CaseTypesService,
+        private readonly facilitiesService: FacilitiesService,
+        private readonly insurancesService: InsurancesService,
+        private readonly SyncService: SyncService,
+        private readonly salesRepsService : SalesRepService,
+        private readonly facilitiesService: FacilitiesService
 
     ) { }
 
@@ -72,11 +72,11 @@ export class SyncHelpers {
 
 
     async getAllAnalyticsData() {
-        const caseTypes = await this.caseTypesV3Service.getAllCaseTypes();
+        const caseTypes = await this.caseTypesService.getAllCaseTypes();
 
-        const facilities = await this.facilitiesV3Service.getAllFacilitiesData();
+        const facilities = await this.facilitiesService.getAllFacilitiesData();
 
-        const insurancePayers = await this.insurancesV3Service.getAllInsurances();
+        const insurancePayers = await this.insurancesService.getAllInsurances();
 
         return { caseTypes, facilities, insurancePayers };
     }
@@ -155,7 +155,7 @@ export class SyncHelpers {
     async seperateModifiedArray(modifiedArray) {
         const accessionIds = modifiedArray.map((e) => e.accessionId);
 
-        const alreadyInsertedClaims: any = await this.syncV3Service.getPatientClaims(accessionIds);
+        const alreadyInsertedClaims: any = await this.SyncService.getPatientClaims(accessionIds);
 
         let notExistedArray = [];
         let existedArray = [];
@@ -217,11 +217,11 @@ export class SyncHelpers {
 
             const finalString = convertedData.join(', ');
 
-            this.syncV3Service.updateManyPatientClaims(finalString);
+            this.SyncService.updateManyPatientClaims(finalString);
         }
 
         if (notExistedData.length > 0) {
-            this.syncV3Service.insertPatientClaims(notExistedData);
+            this.SyncService.insertPatientClaims(notExistedData);
         }
 
     }
@@ -256,7 +256,7 @@ export class SyncHelpers {
         const lisInsurancePayorsIdsArray = data.map(item => item._id.toString());
 
         // Fetching matching data from analytics db
-        const matchingData = await this.insurancesV3Service.getrefIdsFromInsurancePayors(lisInsurancePayorsIdsArray);
+        const matchingData = await this.insurancesService.getrefIdsFromInsurancePayors(lisInsurancePayorsIdsArray);
 
         const AnalyticsInsurancePayorsIdsArray = matchingData.rows.map(item => item.ref_id);
 
@@ -277,7 +277,7 @@ export class SyncHelpers {
         const lisCaseTypeCodesArray = data.map(item => item.code);
 
         // Fetching matching data from analytics db
-        const matchingData = await this.caseTypesV3Service.getCaseTypes(lisCaseTypeCodesArray);
+        const matchingData = await this.caseTypesService.getCaseTypes(lisCaseTypeCodesArray);
 
         const AnalyticsCasetypesArray = matchingData.rows.map(item => item.name);
 
