@@ -3,6 +3,7 @@ import { HOSPITAL_MARKETING_MANAGER, SOMETHING_WENT_WRONG, SUCCESS_DELETED_DATA_
 import { FilterHelper } from 'src/helpers/filterHelper';
 import { SalesRepService } from './sales-rep.service';
 import { AuthGuard } from 'src/guards/auth.guard';
+import { SyncHelpers } from 'src/helpers/syncHelper';
 
 
 @Controller({
@@ -12,7 +13,8 @@ import { AuthGuard } from 'src/guards/auth.guard';
 export class SalesRepController {
 	constructor(
 		private readonly salesRepService: SalesRepService,
-		private readonly filterHelper: FilterHelper
+		private readonly filterHelper: FilterHelper,
+		private readonly syncHelper: SyncHelpers
 	) { }
 
 	@Get("all")
@@ -35,7 +37,7 @@ export class SalesRepController {
 		}
 	}
 
-	
+
 	@UseGuards(AuthGuard)
 	@Get()
 	async getAll(@Res() res: any, @Query() query: any) {
@@ -246,10 +248,12 @@ export class SalesRepController {
 
 			const salesReps = await this.salesRepService.getCaseTypesRevenue(id, queryString);
 
+			const resultArray = this.syncHelper.modifySalesRepRevenuCaseTypeWise(salesReps);
+
 			return res.status(200).json({
 				success: true,
 				message: SUCCESS_FETCHED_CASE_TYPES_REVENUE,
-				data: salesReps
+				data: resultArray
 			});
 
 		}

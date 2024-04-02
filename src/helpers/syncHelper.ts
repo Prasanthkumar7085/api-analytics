@@ -589,4 +589,33 @@ export class SyncHelpers {
 
         return updatedFacilities;
     }
+
+
+    modifySalesRepRevenuCaseTypeWise(salesReps) {
+        // Extract unique months
+        let uniqueMonths = Array.from(new Set(salesReps.map(item => item.month)));
+
+        // Create result array
+        let resultArray = [];
+
+        // Iterate over unique months
+        uniqueMonths.forEach(month => {
+            // Iterate over each case type
+            salesReps.forEach(item => {
+                // If the month for the current item matches the current unique month
+                // or if there is no item with the same month but different case type
+                if (item.month === month || !salesReps.find(obj => obj.month === month && obj.case_type_name === item.case_type_name)) {
+                    // Add a new object with default values
+                    resultArray.push({
+                        case_type_id: item.case_type_id,
+                        case_type_name: item.case_type_name,
+                        month: month,
+                        paid_amount: 0
+                    });
+                }
+            });
+        });
+
+        return resultArray;
+    }
 }

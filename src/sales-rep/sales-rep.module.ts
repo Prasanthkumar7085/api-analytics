@@ -10,10 +10,16 @@ import { LisService } from 'src/lis/lis.service';
 import { insurancePayorsSchema } from 'src/schemas/insurancPayors';
 import { testPanelsDataSchema } from 'src/schemas/testPanelSchema';
 import { HospitalSchema } from 'src/schemas/hospitalSchema';
+import { SyncHelpers } from 'src/helpers/syncHelper';
+import { CaseTypesService } from 'src/case-types/case-types.service';
+import { FacilitiesService } from 'src/facilities/facilities.service';
+import { InsurancesService } from 'src/insurances/insurances.service';
+import { SyncService } from 'src/sync/sync.service';
 
 @Module({
   controllers: [SalesRepController],
-  providers: [SalesRepService, FilterHelper, JwtService, LisService],
+  providers: [SalesRepService, FilterHelper, JwtService, LisService, SyncHelpers, CaseTypesService, FacilitiesService, InsurancesService,
+    SyncService],
   imports: [
     MongooseModule.forFeature([
       { name: 'User', schema: UserSchema },
