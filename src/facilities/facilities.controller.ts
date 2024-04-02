@@ -3,6 +3,7 @@ import { FacilitiesService } from './facilities.service';
 import { SOMETHING_WENT_WRONG, SUCCESSS_FETCHED_FACILITIES_CASES_TYPES_REVENUE, SUCCESSS_FETCHED_FACILITIES_CASES_TYPES_VOLUME, SUCCESS_FETCHED_FACILITIES, SUCCESS_FETCHED_FACILITIES_REVENUE_STATS, SUCCESS_FETCHED_FACILITIES_TRENDS_REVENUE, SUCCESS_FETCHED_FACILITIES_TRENDS_VOLUME, SUCCESS_FETCHED_FACILITIES_VOLUME_STATS, SUCCESS_FETCHED_FACILITY, SUCCESS_FETCHED_FACILITY_CASE_TYPES_OVERALL_REVENUE, SUCCESS_FETCHED_FACILITY_CASE_TYPES_OVERALL_VOLUME, SUCCESS_FETCHED_FACILITY_INSURANCE_PAYORS, SUCCESS_FETCHED_FACILITY_INSURANCE_REVENUE_DATA } from 'src/constants/messageConstants';
 import { FilterHelper } from 'src/helpers/filterHelper';
 import { AuthGuard } from 'src/guards/auth.guard';
+import { SyncHelpers } from 'src/helpers/syncHelper';
 
 @Controller({
 	version: '1.0',
@@ -11,7 +12,8 @@ import { AuthGuard } from 'src/guards/auth.guard';
 export class FacilitiesController {
 	constructor(
 		private readonly facilitiesService: FacilitiesService,
-		private readonly filterHelper: FilterHelper
+		private readonly filterHelper: FilterHelper,
+		private readonly syncHelper: SyncHelpers
 	) { }
 
 	@UseGuards(AuthGuard)
@@ -171,10 +173,12 @@ export class FacilitiesController {
 
 			const data = await this.facilitiesService.getCaseTypesRevenue(id, queryString);
 
+			const reultsArray = this.syncHelper.modifySalesRepRevenuCaseTypeWise(data);
+
 			return res.status(200).json({
 				success: true,
 				message: SUCCESSS_FETCHED_FACILITIES_CASES_TYPES_REVENUE,
-				data: data
+				data: reultsArray
 			});
 		}
 		catch (err) {
@@ -196,10 +200,12 @@ export class FacilitiesController {
 
 			const data = await this.facilitiesService.getCaseTypesVolume(id, queryString);
 
+			const resultsArray = this.syncHelper.modifySalesRepVolumeCaseTypeWise(data);
+
 			return res.status(200).json({
 				success: true,
 				message: SUCCESSS_FETCHED_FACILITIES_CASES_TYPES_VOLUME,
-				data: data
+				data: resultsArray
 			});
 		}
 		catch (err) {
@@ -248,7 +254,7 @@ export class FacilitiesController {
 			// here filter is used to make a string for date filter.
 			const queryString = this.filterHelper.facilitiesDateFilter(query);
 
-			const data = await this.facilitiesService.getOneInsuranceRevenueMonthWiseData(facilityId, payorId, queryString)
+			const data = await this.facilitiesService.getOneInsuranceRevenueMonthWiseData(facilityId, payorId, queryString);
 
 			return res.status(200).json({
 				success: true,
