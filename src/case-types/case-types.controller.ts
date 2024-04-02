@@ -3,6 +3,7 @@ import { CaseTypesService } from './case-types.service';
 import { FilterHelper } from 'src/helpers/filterHelper';
 import { SOMETHING_WENT_WRONG, SUCCESS_FETCHED_CASE_TYEPS_MONTH_WISE_REVENUE_DATA, SUCCESS_FETCHED_CASE_TYEPS_MONTH_WISE_VOLUME_DATA, SUCCESS_FETCHED_CASE_TYPES } from 'src/constants/messageConstants';
 import { AuthGuard } from 'src/guards/auth.guard';
+import { SyncHelpers } from 'src/helpers/syncHelper';
 
 @Controller({
 	version: '1.0',
@@ -11,7 +12,8 @@ import { AuthGuard } from 'src/guards/auth.guard';
 export class CaseTypesController {
 	constructor(
 		private readonly caseTypesService: CaseTypesService,
-		private readonly filterHelper: FilterHelper
+		private readonly filterHelper: FilterHelper,
+		private readonly syncHelper: SyncHelpers
 	) { }
 
 	@UseGuards(AuthGuard)
@@ -47,12 +49,14 @@ export class CaseTypesController {
 
 			const queryString = await this.filterHelper.facilitiesDateFilter(query);
 
-			const data = await this.caseTypesService.getCaseTypesMonthWiseRevenueData(queryString)
+			const data = await this.caseTypesService.getCaseTypesMonthWiseRevenueData(queryString);
+
+			const resultsArray = this.syncHelper.modifySalesRepRevenuCaseTypeWise(data);
 
 			return res.status(200).json({
 				success: true,
 				message: SUCCESS_FETCHED_CASE_TYEPS_MONTH_WISE_REVENUE_DATA,
-				data: data
+				data: resultsArray
 			});
 		}
 		catch (error) {
@@ -72,12 +76,14 @@ export class CaseTypesController {
 
 			const queryString = await this.filterHelper.facilitiesDateFilter(query);
 
-			const data = await this.caseTypesService.getCaseTypesMonthWiseVolumeData(queryString)
+			const data = await this.caseTypesService.getCaseTypesMonthWiseVolumeData(queryString);
+
+			const resultArray = this.syncHelper.modifySalesRepVolumeCaseTypeWise(data);
 
 			return res.status(200).json({
 				success: true,
 				message: SUCCESS_FETCHED_CASE_TYEPS_MONTH_WISE_VOLUME_DATA,
-				data: data
+				data: resultArray
 			});
 		}
 		catch (error) {

@@ -11,10 +11,14 @@ import { insurancePayorsSchema } from 'src/schemas/insurancPayors';
 import { testPanelsDataSchema } from 'src/schemas/testPanelSchema';
 import { HospitalSchema } from 'src/schemas/hospitalSchema';
 import { SalesRepService } from 'src/sales-rep/sales-rep.service';
+import { SyncHelpers } from 'src/helpers/syncHelper';
+import { InsurancesService } from 'src/insurances/insurances.service';
+import { SyncService } from 'src/sync/sync.service';
+import { FacilitiesService } from 'src/facilities/facilities.service';
 
 @Module({
   controllers: [CaseTypesController],
-  providers: [CaseTypesService, FilterHelper, JwtService, LisService, SalesRepService],
+  providers: [CaseTypesService, FilterHelper, JwtService, LisService, SalesRepService, SyncHelpers, InsurancesService, FacilitiesService, SyncService],
   imports: [
     MongooseModule.forFeature([
       { name: 'User', schema: UserSchema },
