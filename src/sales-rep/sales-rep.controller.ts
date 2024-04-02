@@ -276,10 +276,12 @@ export class SalesRepController {
 
 			const salesReps = await this.salesRepService.getCaseTypesVolume(id, queryString);
 
+			const resultsArray = this.syncHelper.modifySalesRepVolumeCaseTypeWise(salesReps);
+
 			return res.status(200).json({
 				success: true,
 				message: SUCCESS_FETCHED_SALES_REP_CASE_TYPE_MONTHLY_VOLUME,
-				data: salesReps
+				data: resultsArray
 			});
 		}
 		catch (error) {
