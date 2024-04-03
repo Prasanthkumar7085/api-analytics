@@ -102,7 +102,7 @@ export class SalesRepService {
 		let query = sql`
 			SELECT 
 				p.case_type_id,
-				UPPER(c.name) AS case_type_name,
+				UPPER(c.display_name) AS case_type_name,
 				CAST(ROUND(SUM(p.billable_amount)::NUMERIC, 2) AS FLOAT) AS generated_amount,
 				CAST(ROUND(SUM(p.cleared_amount)::NUMERIC, 2) AS FLOAT) AS paid_amount,
 				CAST(ROUND(SUM(p.pending_amount)::NUMERIC, 2) AS FLOAT) AS pending_amount
@@ -130,7 +130,7 @@ export class SalesRepService {
 		let query = sql`
 			SELECT 
 				p.case_type_id,
-				UPPER(c.name) AS case_type_name,
+				UPPER(c.display_name) AS case_type_name,
 				CAST(COUNT(*) AS INTEGER) AS total_cases,
 				CAST(COUNT(*) FILTER(WHERE p.reports_finalized = TRUE) AS INTEGER) AS completed_cases,
 				CAST(COUNT(*) FILTER (WHERE p.reports_finalized = FALSE) AS INTEGER) AS pending_cases
@@ -158,7 +158,7 @@ export class SalesRepService {
 		let query = sql`
             SELECT 
                 p.case_type_id,
-                UPPER(c.name) AS case_type_name,
+                UPPER(c.display_name) AS case_type_name,
                 TO_CHAR(p.service_date, 'Mon YYYY') AS month,
                 CAST(ROUND(SUM(p.cleared_amount)::NUMERIC, 2) AS FLOAT) AS paid_amount
             FROM patient_claims p
@@ -188,7 +188,7 @@ export class SalesRepService {
 		let query = sql`
             SELECT 
                 p.case_type_id,
-                UPPER(c.name) AS case_type_name,
+                UPPER(c.display_name) AS case_type_name,
                 TO_CHAR(p.service_date, 'Mon YYYY') AS month,
 				CAST(COUNT(*) AS INTEGER) AS total_cases
             FROM patient_claims p
