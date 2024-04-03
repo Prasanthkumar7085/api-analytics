@@ -39,13 +39,16 @@ export class SyncHelpers {
     }
 
 
-    async getCases(fromDate, toDate) {
+    async getCases(fromDate, facilitiesIds) {
         try {
+            // console.log({ fromDate, toDate });
             let query = {
-                created_at: {
-                    $gte: fromDate,
-                    $lte: toDate,
-                }
+                status: { $ne: "ARCHIVE" },
+                // created_at: {
+                //     $gte: "2023-08-31T00:00:00.000Z",
+                //     $lte: "2023--31T15:17:07.436Z"
+                //   }
+                hospital: {$in: facilitiesIds}
             };
 
             const select = {

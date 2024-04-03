@@ -39,7 +39,14 @@ export class SyncController {
 			const fromDate = datesObj.fromDate;
 			const toDate = datesObj.toDate;
 
-			const cases = await this.syncHelpers.getCases(fromDate, toDate);
+			const facilities = await this.faciliticesService.getAllFacilitiesData();
+
+			const facilitiesIds = facilities.map((e) => e.refId);
+
+
+			const cases = await this.syncHelpers.getCases(fromDate, facilitiesIds);
+
+			console.log({cases: cases.length})
 
 			if (cases.length == 0) {
 				return res.status(200).json({

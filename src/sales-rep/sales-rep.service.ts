@@ -113,7 +113,7 @@ export class SalesRepService {
 			${queryString ? sql`AND ${sql.raw(queryString)}` : sql``}
 			GROUP BY
 				p.case_type_id, 
-				UPPER(c.name)
+				UPPER(c.display_name)
 			ORDER BY
 				case_type_name
 		`;
@@ -141,7 +141,7 @@ export class SalesRepService {
 			${queryString ? sql`AND ${sql.raw(queryString)}` : sql``}
 			GROUP BY
 				p.case_type_id, 
-				UPPER(c.name)
+				UPPER(c.display_name)
 			ORDER BY
 				case_type_name
 		`;
