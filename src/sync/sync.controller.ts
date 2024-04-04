@@ -3,7 +3,7 @@ import { SyncService } from './sync.service';
 import { LisService } from 'src/lis/lis.service';
 import {
 	PATIENT_CLAIMS_NOT_FOUND, REMOVED_ARCHIVED_CLAIMS, SUCCESS_SYNC_PATIENT_CLAIMS, CASE_TYPES_NOT_FOUND_IN_LIS_DATABASE, INSURANCE_PAYORS_NOT_FOUND_IN_LIS_DATABASE, CASE_TYPES_NOT_FOUND, INSURANCE_PAYORS_NOT_FOUND, SOMETHING_WENT_WRONG, SUCCESS_SYNCED_CASE_TYPES, SUCCESS_SYNCED_INSURANCE_PAYORS,
-	HOSPITAL_MARKETING_MANAGER, SALES_REPS_NOT_FOUND, FACILITIES_NOT_FOUND, NEW_SALES_REPS_DATA_NOT_FOUND, SUCCUSS_INSERTED_MARKETING_MANAGERS, SUCCUSS_INSERTED_SALES_REPS, SUCCESS_INSERTED_FACILICES, LIS_FACILITIES_NOT_FOUND
+	HOSPITAL_MARKETING_MANAGER, SALES_REPS_NOT_FOUND, FACILITIES_NOT_FOUND, NEW_SALES_REPS_DATA_NOT_FOUND, SUCCUSS_INSERTED_MARKETING_MANAGERS, SUCCUSS_INSERTED_SALES_REPS, SUCCESS_INSERTED_FACILICES, LIS_FACILITIES_NOT_FOUND, MARKETER
 } from 'src/constants/messageConstants';
 import { SyncHelpers } from 'src/helpers/syncHelper';
 import * as fs from 'fs';
@@ -39,14 +39,7 @@ export class SyncController {
 			const fromDate = datesObj.fromDate;
 			const toDate = datesObj.toDate;
 
-			const facilities = await this.faciliticesService.getAllFacilitiesData();
-
-			const facilitiesIds = facilities.map((e) => e.refId);
-
-
-			const cases = await this.syncHelpers.getCases(fromDate, facilitiesIds);
-
-			console.log({cases: cases.length})
+			const cases = await this.syncHelpers.getCases(fromDate, toDate);
 
 			if (cases.length == 0) {
 				return res.status(200).json({
@@ -57,7 +50,7 @@ export class SyncController {
 
 			const analyticsData = await this.syncHelpers.getAllAnalyticsData();
 
-			let modifiedArray = await this.syncHelpers.modifyCasesForPatientClaims(cases, analyticsData);
+			let modifiedArray = this.syncHelpers.modifyCasesForPatientClaims(cases, analyticsData);
 
 			if (modifiedArray.length) {
 
@@ -220,15 +213,7 @@ export class SyncController {
 
 			const datesFilter = this.syncHelpers.getFromAndToDates(7);
 
-			const query = {
-				user_type: HOSPITAL_MARKETING_MANAGER,
-				created_at: {
-					$gte: datesFilter.fromDate,
-					$lte: datesFilter.toDate,
-				},
-			};
-
-			const salesRepsManagersData = await this.lisService.getUsers(query);
+			const salesRepsManagersData = await this.syncHelpers.getSalesRepsData(HOSPITAL_MARKETING_MANAGER, datesFilter);
 
 			if (salesRepsManagersData.length === 0) {
 				return res.status(200).json({ success: true, message: SALES_REPS_NOT_FOUND });
@@ -260,7 +245,7 @@ export class SyncController {
 
 			const datesFilter = this.syncHelpers.getFromAndToDates(7);
 
-			const salesRepsData = await this.syncHelpers.getSalesRepsData(datesFilter);
+			const salesRepsData = await this.syncHelpers.getSalesRepsData(MARKETER, datesFilter);
 
 			if (salesRepsData.length === 0) {
 				return res.status(200).json({ success: true, message: SALES_REPS_NOT_FOUND });
@@ -321,113 +306,17 @@ export class SyncController {
 			const datesFilter = this.syncHelpers.getFromAndToDates(7);
 
 			const hospitalQuery = {
-				code: {
-					$in: [
-						"AGAPEHKY",
-						"SRCS",
-						"TDO",
-						"DRCTR",
-						"EAGLE",
-						"EMEDANAESTH",
-						"JAMESMD",
-						"LCPOINTE",
-						"TOTALFOOT",
-						"DMJAC",
-						"DZELAGSTLAGSTE",
-						"INNOVATIVEGX",
-						"ISL",
-						"VM",
-						"VILLAGEMD",
-						"VIRTUAL",
-						"KKOCURJACLI",
-						"LNEBRAUN",
-						"NEWBREA",
-						"PULMONOLOGY",
-						"QUICK",
-						"GREEN",
-						"ADULTPMA",
-						"CARINGNURP",
-						"CHESTERFIELD",
-						"CVPP",
-						"DUC",
-						"1HFC",
-						"IMENTHEALSOLU",
-						"ISLAND",
-						"JOHN",
-						"NEUROLOGICAL",
-						"NEUROLOGYOR",
-						"PRIMEPAIN",
-						"PROACTIVE",
-						"STAFFORD",
-						"AZRE",
-						"HEALTH",
-						"THEWES",
-						"VIRGINIA",
-						"ALPHA",
-						"MASTER",
-						"ALIEFPC",
-						"AMERI",
-						"AMERIPRIMEHLL",
-						"AVONM",
-						"BEAL",
-						"BELVEDEREFW",
-						"DFHBO",
-						"DFWHHD",
-						"DHA",
-						"DHHEAMCK",
-						"DFWFORT",
-						"DLWGRAP",
-						"FORESTFC",
-						"Pavillon",
-						"PESPED",
-						"PRIVATE",
-						"RAPHAHOUS",
-						"SAVING",
-						"STEPPINGSTONE",
-						"SOUTOUTPATIENT",
-						"JH",
-						"TRY",
-						"VPS",
-						"BUX",
-						"CHILDRENCL",
-						"COMMUNITYCARC",
-						"NEWBORN",
-						"BRYANMD",
-						"CENTERPMT",
-						"EPMED",
-						"EFC",
-						"MUTHAPPACLAR",
-						"MFAMILYMMEDICINEPLE",
-						"MUTHAPPA",
-						"WFH",
-						"OBGYN",
-						"UNIVERSAL",
-						"REHAB",
-						"CLRC",
-						"FAMILYME",
-						"ARKANSAS",
-						"BOATCLUB",
-						"OAKCLIFF",
-						"TEXASMAN",
-						"ARMOURFM",
-						"DIFFINE",
-						"Midsouth",
-						"RIM",
-						"CSROMD",
-						"SPRIM",
-						"RCH",
-						"CALVERT"
-					]
-				}
-				// created_at: {
-				// 	$gte: datesFilter.fromDate,
-				// 	$lte: datesFilter.toDate,
-				// },
+				status: 'ACTIVE',
+				updated_at: {
+					$gte: datesFilter.fromDate,
+					$lte: datesFilter.toDate,
+				},
 			};
 
 			const projection = { _id: 1, name: 1 };
 
 			const facilitiesData = await this.lisService.getFacilities(hospitalQuery, projection);
+
 
 			if (facilitiesData.length === 0) {
 				return res.status(200).json({ success: true, message: LIS_FACILITIES_NOT_FOUND });
@@ -439,7 +328,7 @@ export class SyncController {
 				return res.status(200).json({ success: true, message: FACILITIES_NOT_FOUND });
 			}
 
-			const unMatchedFacilitiesIds = unMatchedFacilities.map((e) => e._id.toString());
+			const unMatchedFacilitiesIds = unMatchedFacilities.map((e) => e._id);
 
 			const salesRepsData = await this.syncHelpers.getSalesRepsByFacilites(unMatchedFacilitiesIds);
 

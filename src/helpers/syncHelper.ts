@@ -39,16 +39,14 @@ export class SyncHelpers {
     }
 
 
-    async getCases(fromDate, facilitiesIds) {
+    async getCases(fromDate, toDate) {
         try {
-            // console.log({ fromDate, toDate });
             let query = {
-                status: { $ne: "ARCHIVE" },
-                // created_at: {
-                //     $gte: "2023-08-31T00:00:00.000Z",
-                //     $lte: "2023--31T15:17:07.436Z"
-                //   }
-                hospital: {$in: facilitiesIds}
+                status: { $nin: ["ARCHIVE", "ARCHIVED"] },
+                updated_at: {
+                    $gte: fromDate,
+                    $lte: toDate
+                }
             };
 
             const select = {
@@ -193,37 +191,48 @@ export class SyncHelpers {
     }
 
 
-    insertOrUpdateModifiedClaims(seperatedArray) {
+    async insertOrUpdateModifiedClaims(seperatedArray) {
+        const batchSize = 2000;
 
         const existedData = seperatedArray.existedArray;
         const notExistedData = seperatedArray.notExistedArray;
 
         if (existedData.length > 0) {
 
-            const convertedData = existedData.map(entry => {
+            for (let i = 0; i < existedData.length; i += batchSize) {
+                const batch = existedData.slice(i, i + batchSize);
 
-                const serviceDate = entry.serviceDate ? new Date(entry.serviceDate).toISOString() : "";
-                const collectionDate = entry.collectionDate ? new Date(entry.collectionDate).toISOString() : "";
+                const convertedData = batch.map(entry => {
 
-                const caseTypeId = entry.caseTypeId ? entry.caseTypeId : 0;
-                const patientId = entry.patientId || 0;
-                const reportsFinalized = entry.reportsFinalized ? entry.reportsFinalized : false;
-                const physicianId = entry.physicianId ? entry.physicianId : 0;
-                const facilityId = entry.facilityId ? entry.facilityId : 219;
-                const salesRepId = entry.salesRepId ? entry.salesRepId : 147;
-                const insurancePayerId = entry.insurancePayerId ? entry.insurancePayerId : 694;
+                    const serviceDate = entry.serviceDate ? new Date(entry.serviceDate).toISOString() : "";
+                    const collectionDate = entry.collectionDate ? new Date(entry.collectionDate).toISOString() : "";
 
-                const formattedQueryEntry = `('${entry.accessionId}', '${serviceDate}'::timestamp, '${collectionDate}'::timestamp, ${caseTypeId}, '${patientId}', ${reportsFinalized}, '${physicianId}', ${facilityId}, ${salesRepId}, ${insurancePayerId})`;
-                return formattedQueryEntry;
-            });
+                    const caseTypeId = entry.caseTypeId ? entry.caseTypeId : 0;
+                    const patientId = entry.patientId || 0;
+                    const reportsFinalized = entry.reportsFinalized ? entry.reportsFinalized : false;
+                    const physicianId = entry.physicianId ? entry.physicianId : 0;
+                    const facilityId = entry.facilityId ? entry.facilityId : 219;
+                    const salesRepId = entry.salesRepId ? entry.salesRepId : 147;
+                    const insurancePayerId = entry.insurancePayerId ? entry.insurancePayerId : 694;
 
-            const finalString = convertedData.join(', ');
+                    const formattedQueryEntry = `('${entry.accessionId}', '${serviceDate}'::timestamp, '${collectionDate}'::timestamp, ${caseTypeId}, '${patientId}', ${reportsFinalized}, '${physicianId}', ${facilityId}, ${salesRepId}, ${insurancePayerId})`;
+                    return formattedQueryEntry;
+                });
 
-            this.SyncService.updateManyPatientClaims(finalString);
+                const finalString = convertedData.join(', ');
+
+                console.log({ Updated: i });
+                this.SyncService.updateManyPatientClaims(finalString);
+            }
         }
 
         if (notExistedData.length > 0) {
-            this.SyncService.insertPatientClaims(notExistedData);
+
+            for (let i = 0; i < notExistedData.length; i += batchSize) {
+                console.log({ Inserted: i });
+                const batch = notExistedData.slice(i, i + batchSize);
+                this.SyncService.insertPatientClaims(batch);
+            }
         }
 
     }
@@ -232,11 +241,11 @@ export class SyncHelpers {
     async getArchivedCases(fromDate, toDate) {
         try {
             let query = {
-                created_at: {
-                    $gte: fromDate,
-                    $lte: toDate,
-                },
-                status: ARCHIVED
+                // updated_at: {
+                //     $gte: fromDate,
+                //     $lte: toDate,
+                // },
+                status: { $in: ["ARCHIVE", ARCHIVED] }
             };
 
             const select = {
@@ -304,15 +313,17 @@ export class SyncHelpers {
     }
 
 
-    async getSalesRepsData(datesFilter) {
+    async getSalesRepsData(userType, datesFilter) {
 
         const query = {
-            user_type: MARKETER,
-            created_at: {
+            user_type: userType,
+            status: "ACTIVE",
+            updated_at: {
                 $gte: datesFilter.fromDate,
                 $lte: datesFilter.toDate,
             },
         };
+
 
         const salesRepsData = await this.lisService.getUsers(query);
 
@@ -459,6 +470,11 @@ export class SyncHelpers {
 
         const unMatchedFacilities = facilitiesData.filter((id) => !refIdValues.includes(id)); // fetching un-matched id of facilities
 
+        if (unMatchedFacilities.length) {
+            unMatchedFacilities.forEach(rep => {
+                rep._id = rep._id.toString();
+            });
+        }
         return unMatchedFacilities;
     }
 
@@ -520,7 +536,7 @@ export class SyncHelpers {
 
     async getSalesRepsByFacilites(facilities) {
         const query = {
-            user_type: "MARKETER",
+            user_type: { $in: ["MARKETER", "HOSPITAL_MARKETING_MANAGER"] },
             hospitals: {
                 $in: facilities
             }
@@ -531,49 +547,41 @@ export class SyncHelpers {
             hospitals: 1
         };
 
-        return await this.lisService.getUsers(query, select);
+        const salesRepsData = await this.lisService.getUsers(query, select);
+
+        if (salesRepsData.length) {
+            salesRepsData.forEach(rep => {
+                rep._id = rep._id.toString();
+                rep.hospitals = rep.hospitals.map(hospitalId => hospitalId.toString());
+            });
+
+        }
+
+        return salesRepsData;
     }
 
 
     transformFacilities(salesRepsData, unMatchedFacilities) {
-        const transformedSalesReps = salesRepsData.reduce((acc, salesRep) => {
-            const sales_rep_id = salesRep._id;
-            const hospitalObjects = salesRep.hospitals.map(hospital => ({ sales_rep_id, hospital }));
-            return acc.concat(hospitalObjects);
-        }, []);
-
-        console.log(transformedSalesReps.length);
-
-        const uniquetransformedSalesReps: any = Array.from(
-            transformedSalesReps.reduce((map, obj) => {
-                const key = obj.sales_rep_id + '-' + obj.hospital;
-                if (!map.has(key)) map.set(key, obj);
-                return map;
-            }, new Map()).values()
-        );
-
-        console.log({ uniquetransformedSalesReps: uniquetransformedSalesReps.length });
-
-
-        // Create a mapping object for facilities for quick access
-        const facilitiesMap = {};
         unMatchedFacilities.forEach(facility => {
-            facilitiesMap[facility._id] = facility.name;
+            // Check if the facility _id is included in any hospital in salesRepsData
+            const matchedRep = salesRepsData.find(rep =>
+                rep.hospitals.includes(facility._id)
+            );
+
+            // If a match is found, add the _id from salesRepsData to the facility object
+            if (matchedRep) {
+                facility.salesRepId = matchedRep._id;
+            }
         });
 
-        // Assign names to transformedArray based on facilitiesMap
-        const updatedTransformedArray = uniquetransformedSalesReps.map(item => ({
-            sales_rep_id: item.sales_rep_id,
-            hospital: item.hospital,
-            name: facilitiesMap[item.hospital]
-        }));
-
-        return updatedTransformedArray;
+        return unMatchedFacilities;
     }
 
 
     async modifyFacilitiesData(transformedArray) {
-        const salesRepsIds = transformedArray.map((e) => e.sales_rep_id.toString());
+        const salesRepsIds = transformedArray.map((e) => e.salesRepId);
+
+
 
         const uniqueSalesRepsIds = [...new Set(salesRepsIds)];
 
@@ -582,10 +590,10 @@ export class SyncHelpers {
 
 
         const updatedFacilities = transformedArray.map(facility => {
-            const salesRep = salesRepsIdsAndRefIdsData.find(rep => rep.ref_id.toString() === facility.sales_rep_id.toString());
+            const salesRep = salesRepsIdsAndRefIdsData.find(rep => rep.ref_id.toString() === facility.salesRepId);
             return {
                 name: facility.name,
-                refId: facility.hospital.toString(),
+                refId: facility._id,
                 salesRepId: salesRep ? salesRep.id : null
             };
         });
