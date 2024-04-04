@@ -1,9 +1,9 @@
-import { Controller, Get, Param, Delete, Res, Query, Post, UseGuards, Req } from '@nestjs/common';
-import { HOSPITAL_MARKETING_MANAGER, SOMETHING_WENT_WRONG, SUCCESS_DELETED_DATA_IN_TABLE, SUCCESS_FECTED_SALE_REP_REVENUE_STATS, SUCCESS_FECTED_SALE_REP_VOLUME_STATS, SUCCESS_FETCHED_CASE_TYPES_REVENUE, SUCCESS_FETCHED_ONE_SALES_REP, SUCCESS_FETCHED_PATIENT_CLAIMS_COUNT, SUCCESS_FETCHED_SALES_REP, SUCCESS_FETCHED_SALES_REP_CASE_TYPE_MONTHLY_VOLUME, SUCCESS_FETCHED_SALES_REP_FACILITY_WISE_STATS, SUCCESS_FETCHED_SALES_REP_INSURANCE_PAYORS_DATA, SUCCESS_FETCHED_SALES_REP_INSURANCE_PAYORS_MONTH_WISE_DATA, SUCCESS_FETCHED_SALES_REP_OVERALL_REVENUE, SUCCESS_FETCHED_SALES_REP_OVERALL_VOLUME, SUCCESS_FETCHED_SALES_REP_TREND_REVENUE, SUCCESS_FETCHED_SALES_REP_TREND_VOLUME, SUCCESS_FETCHED_SALES_REP_VOLUME_AND_REVENUE } from 'src/constants/messageConstants';
-import { FilterHelper } from 'src/helpers/filterHelper';
-import { SalesRepService } from './sales-rep.service';
+import { Controller, Delete, Get, Param, Query, Req, Res, UseGuards } from '@nestjs/common';
+import { HOSPITAL_MARKETING_MANAGER, SOMETHING_WENT_WRONG, SUCCESS_DELETED_DATA_IN_TABLE, SUCCESS_FECTED_SALE_REP_REVENUE_STATS, SUCCESS_FECTED_SALE_REP_VOLUME_STATS, SUCCESS_FETCHED_CASE_TYPES_REVENUE, SUCCESS_FETCHED_ONE_SALES_REP, SUCCESS_FETCHED_PATIENT_CLAIMS_COUNT, SUCCESS_FETCHED_SALES_REP, SUCCESS_FETCHED_SALES_REPS, SUCCESS_FETCHED_SALES_REP_CASE_TYPE_MONTHLY_VOLUME, SUCCESS_FETCHED_SALES_REP_FACILITY_WISE_STATS, SUCCESS_FETCHED_SALES_REP_INSURANCE_PAYORS_DATA, SUCCESS_FETCHED_SALES_REP_INSURANCE_PAYORS_MONTH_WISE_DATA, SUCCESS_FETCHED_SALES_REP_OVERALL_REVENUE, SUCCESS_FETCHED_SALES_REP_OVERALL_VOLUME, SUCCESS_FETCHED_SALES_REP_TREND_REVENUE, SUCCESS_FETCHED_SALES_REP_TREND_VOLUME } from 'src/constants/messageConstants';
 import { AuthGuard } from 'src/guards/auth.guard';
+import { FilterHelper } from 'src/helpers/filterHelper';
 import { SyncHelpers } from 'src/helpers/syncHelper';
+import { SalesRepService } from './sales-rep.service';
 
 
 @Controller({
@@ -17,14 +17,15 @@ export class SalesRepController {
 		private readonly syncHelper: SyncHelpers
 	) { }
 
-	@Get("all")
+	@UseGuards(AuthGuard)
+	@Get()
 	async getSalesReps(@Res() res: any) {
 		try {
 			const data = await this.salesRepService.getAllSalesReps();
 
 			return res.status(200).json({
 				success: true,
-				message: "Success",
+				message: SUCCESS_FETCHED_SALES_REPS,
 				data
 			});
 		} catch (err) {
@@ -39,7 +40,7 @@ export class SalesRepController {
 
 
 	@UseGuards(AuthGuard)
-	@Get()
+	@Get("stats")
 	async getAll(@Res() res: any, @Query() query: any) {
 		try {
 
