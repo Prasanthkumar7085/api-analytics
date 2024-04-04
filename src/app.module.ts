@@ -30,16 +30,5 @@ import { SyncModule } from './sync/sync.module';
 
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(CheckAuthKeyMiddleWare)
-    .exclude(
-      { path: 'v1.0/sync/patient-claims-remove', method: RequestMethod.GET },
-      { path: 'v1.0/sync/patient-claims', method: RequestMethod.GET },
-      { path: 'v1.0/sync/managers', method: RequestMethod.GET },
-      { path: 'v1.0/sync/marketers', method: RequestMethod.GET },
-      { path: 'v1.0/sync/case-types', method: RequestMethod.GET },
-      { path: 'v1.0/sync/insurance-payors', method: RequestMethod.GET },
-      { path: 'v1.0/sync/facilities', method: RequestMethod.GET }
-    )
-    .forRoutes('*');
   }
 }

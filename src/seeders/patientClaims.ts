@@ -88,10 +88,10 @@ async function getIdsandAmounts(patientClaims, element, salesRepList, insuranceI
 
     patientClaims.expectedAmount = parseFloat(price);
 
-    const billableAmount = faker.number.float({ min: 100, max: parseFloat(price), fractionDigits: 2 });
+    const billableAmount = faker.number.float({ min: 100, max: parseFloat(price) });
     patientClaims.billableAmount = billableAmount;
 
-    const clearedAmount = faker.number.float({ min: 100, max: parseFloat(patientClaims.billableAmount), fractionDigits: 2 });
+    const clearedAmount = faker.number.float({ min: 100, max: parseFloat(patientClaims.billableAmount) });
     patientClaims.clearedAmount = billableAmount
 
     const pendingAmount = patientClaims.billableAmount - patientClaims.clearedAmount;
