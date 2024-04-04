@@ -20,7 +20,8 @@ export class SalesRepService {
                 CAST(ROUND(SUM(p.billable_amount)::NUMERIC, 2) AS FLOAT) AS generated_amount,
                 CAST(ROUND(SUM(p.cleared_amount)::NUMERIC, 2) AS FLOAT) AS paid_amount,
                 CAST(ROUND(SUM(p.pending_amount)::NUMERIC, 2) AS FLOAT) AS pending_amount,
-                CAST(COUNT(*) AS INTEGER) AS total_cases
+                CAST(COUNT(*) AS INTEGER) AS total_cases,
+				CAST(COUNT(*) FILTER (WHERE p.reports_finalized = FALSE) AS INTEGER) AS pending_cases
             FROM patient_claims p
             JOIN sales_reps s 
                 ON p.sales_rep_id = s.id
@@ -211,7 +212,7 @@ export class SalesRepService {
 	}
 
 
-	async getInsurancePayers(id: number, queryString: string) {
+	async getInsurancePayersRevenue(id: number, queryString: string) {
 
 		// This query calculates the revenue statistics grouped by insurance for a specific sales representative.
 		let query = sql`
@@ -221,6 +222,34 @@ export class SalesRepService {
 				CAST(ROUND(SUM(p.billable_amount)::NUMERIC, 2) AS FLOAT) AS generated_amount,
 				CAST(ROUND(SUM(p.cleared_amount)::NUMERIC, 2) AS FLOAT) AS paid_amount,
 				CAST(ROUND(SUM(p.pending_amount)::NUMERIC, 2) AS FLOAT) AS pending_amount
+			FROM patient_claims p
+            JOIN insurance_payors ip 
+                ON p.insurance_payer_id = ip.id
+            WHERE p.sales_rep_id = ${id}
+            ${queryString ? sql`AND ${sql.raw(queryString)}` : sql``}
+            GROUP BY 
+                ip.id,
+                insurance_name
+            ORDER BY
+				insurance_name
+        `;
+
+		const data = await db.execute(query);
+
+		return data.rows;
+	}
+
+
+	async getInsurancePayersVolume(id: number, queryString: string) {
+
+		// This query calculates the revenue statistics grouped by insurance for a specific sales representative.
+		let query = sql`
+			SELECT 
+				ip.id AS insurance_id,
+				ip.name AS insurance_name,
+				CAST(COUNT(*) AS INTEGER) AS total_cases,
+				CAST(COUNT(*) FILTER(WHERE p.reports_finalized = TRUE) AS INTEGER) AS completed_cases,
+				CAST(COUNT(*) FILTER (WHERE p.reports_finalized = FALSE) AS INTEGER) AS pending_cases
 			FROM patient_claims p
             JOIN insurance_payors ip 
                 ON p.insurance_payer_id = ip.id

@@ -1,5 +1,5 @@
 import { Controller, Delete, Get, Param, Query, Req, Res, UseGuards } from '@nestjs/common';
-import { HOSPITAL_MARKETING_MANAGER, SOMETHING_WENT_WRONG, SUCCESS_DELETED_DATA_IN_TABLE, SUCCESS_FECTED_SALE_REP_REVENUE_STATS, SUCCESS_FECTED_SALE_REP_VOLUME_STATS, SUCCESS_FETCHED_CASE_TYPES_STATS_REVENUE, SUCCESS_FETCHED_ONE_SALES_REP, SUCCESS_FETCHED_PATIENT_CLAIMS_COUNT, SUCCESS_FETCHED_SALES_REP, SUCCESS_FETCHED_SALES_REPS, SUCCESS_FETCHED_SALES_REP_CASE_TYPE_MONTHLY_VOLUME, SUCCESS_FETCHED_SALES_REP_FACILITY_WISE_STATS, SUCCESS_FETCHED_SALES_REP_FACILITY_WISE_STATS_VOLUME, SUCCESS_FETCHED_SALES_REP_INSURANCE_PAYORS_DATA, SUCCESS_FETCHED_SALES_REP_INSURANCE_PAYORS_MONTH_WISE_DATA, SUCCESS_FETCHED_SALES_REP_OVERALL_REVENUE, SUCCESS_FETCHED_SALES_REP_OVERALL_VOLUME, SUCCESS_FETCHED_SALES_REP_TREND_REVENUE, SUCCESS_FETCHED_SALES_REP_TREND_VOLUME } from 'src/constants/messageConstants';
+import { HOSPITAL_MARKETING_MANAGER, SOMETHING_WENT_WRONG, SUCCESS_DELETED_DATA_IN_TABLE, SUCCESS_FECTED_SALE_REP_REVENUE_STATS, SUCCESS_FECTED_SALE_REP_VOLUME_STATS, SUCCESS_FETCHED_CASE_TYPES_STATS_REVENUE, SUCCESS_FETCHED_ONE_SALES_REP, SUCCESS_FETCHED_PATIENT_CLAIMS_COUNT, SUCCESS_FETCHED_SALES_REP, SUCCESS_FETCHED_SALES_REPS, SUCCESS_FETCHED_SALES_REP_CASE_TYPE_MONTHLY_VOLUME, SUCCESS_FETCHED_SALES_REP_FACILITY_WISE_STATS, SUCCESS_FETCHED_SALES_REP_FACILITY_WISE_STATS_VOLUME, SUCCESS_FETCHED_SALES_REP_INSURANCE_PAYORS_DATA_REVENUE, SUCCESS_FETCHED_SALES_REP_INSURANCE_PAYORS_DATA_VOLUME, SUCCESS_FETCHED_SALES_REP_INSURANCE_PAYORS_MONTH_WISE_DATA, SUCCESS_FETCHED_SALES_REP_OVERALL_REVENUE, SUCCESS_FETCHED_SALES_REP_OVERALL_VOLUME, SUCCESS_FETCHED_SALES_REP_TREND_REVENUE, SUCCESS_FETCHED_SALES_REP_TREND_VOLUME } from 'src/constants/messageConstants';
 import { AuthGuard } from 'src/guards/auth.guard';
 import { FilterHelper } from 'src/helpers/filterHelper';
 import { SyncHelpers } from 'src/helpers/syncHelper';
@@ -296,17 +296,43 @@ export class SalesRepController {
 	}
 
 	@UseGuards(AuthGuard)
-	@Get(':id/insurance-payors')
-	async getInsurancePayers(@Res() res: any, @Param('id') id: number, @Query() query: any) {
+	@Get(':id/insurance-payors/revenue')
+	async getInsurancePayersRevenue(@Res() res: any, @Param('id') id: number, @Query() query: any) {
 		try {
 
 			const queryString = this.filterHelper.salesRepFacilities(query);
 
-			const data = await this.salesRepService.getInsurancePayers(id, queryString);
+			const data = await this.salesRepService.getInsurancePayersRevenue(id, queryString);
 
 			return res.status(200).json({
 				success: true,
-				message: SUCCESS_FETCHED_SALES_REP_INSURANCE_PAYORS_DATA,
+				message: SUCCESS_FETCHED_SALES_REP_INSURANCE_PAYORS_DATA_REVENUE,
+				data: data
+			});
+		}
+		catch (error) {
+			console.log({ error });
+
+			return res.status(500).json({
+				success: false,
+				message: error || SOMETHING_WENT_WRONG
+			});
+		}
+	}
+
+
+	@UseGuards(AuthGuard)
+	@Get(':id/insurance-payors/volume')
+	async getInsurancePayersVolume(@Res() res: any, @Param('id') id: number, @Query() query: any) {
+		try {
+
+			const queryString = this.filterHelper.salesRepFacilities(query);
+
+			const data = await this.salesRepService.getInsurancePayersVolume(id, queryString);
+
+			return res.status(200).json({
+				success: true,
+				message: SUCCESS_FETCHED_SALES_REP_INSURANCE_PAYORS_DATA_VOLUME,
 				data: data
 			});
 		}
