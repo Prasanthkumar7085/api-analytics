@@ -9,8 +9,7 @@ import { DrizzleModule } from './drizzle/drizzle.module';
 import { FacilitiesModule } from './facilities/facilities.module';
 import { InsurancesModule } from './insurances/insurances.module';
 import { LisModule } from './lis/lis.module';
-import { QueueBodyMiddleware } from './middlewares/queueBody.middleware';
-import { ExpiredTokenMiddleware } from './middlewares/token.verify.middleware';
+import { CheckAuthKeyMiddleWare } from './middlewares/authKey.verify.middleware';
 import { OverviewModule } from './overview/overview.module';
 import { RevenueStatsModule } from './revenue-stats/revenue-stats.module';
 import { SalesRepModule } from './sales-rep/sales-rep.module';
@@ -31,20 +30,16 @@ import { SyncModule } from './sync/sync.module';
 
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(ExpiredTokenMiddleware).forRoutes('*');
-    consumer.apply(QueueBodyMiddleware)
-      .forRoutes(
-        {
-          path: 'v1.0/marketers-stats/case/pending',
-          method: RequestMethod.POST,
-        },
-        {
-          path: 'v1.0/marketers-stats/case/complete/conform',
-          method: RequestMethod.POST,
-        },
-        {
-          path: 'v1.0/marketers-stats/case/complete/retrieve',
-          method: RequestMethod.POST,
-        });
+    consumer.apply(CheckAuthKeyMiddleWare)
+    .exclude(
+      { path: 'v1.0/sync/patient-claims-remove', method: RequestMethod.GET },
+      { path: 'v1.0/sync/patient-claims', method: RequestMethod.GET },
+      { path: 'v1.0/sync/managers', method: RequestMethod.GET },
+      { path: 'v1.0/sync/marketers', method: RequestMethod.GET },
+      { path: 'v1.0/sync/case-types', method: RequestMethod.GET },
+      { path: 'v1.0/sync/insurance-payors', method: RequestMethod.GET },
+      { path: 'v1.0/sync/facilities', method: RequestMethod.GET }
+    )
+    .forRoutes('*');
   }
 }

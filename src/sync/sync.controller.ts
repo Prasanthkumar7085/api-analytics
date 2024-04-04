@@ -239,7 +239,7 @@ export class SyncController {
 	}
 
 
-	@Get('marketer')
+	@Get('marketers')
 	async syncSalesRepsMarketers(@Res() res: any) {
 		try {
 

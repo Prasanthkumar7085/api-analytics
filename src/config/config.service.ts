@@ -25,8 +25,9 @@ export class Configuration {
 
         const lis_db_url = this.configService.get<string>('LIS_DB_URL');
         const lab_id = this.configService.get<string>('LAB_ID');
+        const ls_api_key = this.configService.get<string>('LS_API_KEY')
 
-        return { lis_db_url, lab_id };
+        return { lis_db_url, lab_id, ls_api_key };
     }
 
 }
