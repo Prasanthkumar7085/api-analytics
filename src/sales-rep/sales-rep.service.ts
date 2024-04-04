@@ -277,7 +277,8 @@ export class SalesRepService {
                 f.name AS facility_name,
                 CAST(ROUND(SUM(p.billable_amount)::NUMERIC, 2) AS FLOAT) AS generated_amount,
                 CAST(ROUND(SUM(p.cleared_amount)::NUMERIC, 2) AS FLOAT) AS paid_amount,
-                CAST(ROUND(SUM(p.pending_amount)::NUMERIC, 2) AS FLOAT) AS pending_amount
+                CAST(ROUND(SUM(p.pending_amount)::NUMERIC, 2) AS FLOAT) AS pending_amount,
+				CAST(COUNT(*) AS INTEGER) AS total_cases
             FROM patient_claims p
             JOIN facilities f 
                 ON p.facility_id = f.id
