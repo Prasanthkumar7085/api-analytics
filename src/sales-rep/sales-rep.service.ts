@@ -239,7 +239,7 @@ export class SalesRepService {
 	}
 
 
-	async getFacility(id: number, queryString: string) {
+	async getFacilitiesRevenue(id: number, queryString: string) {
 
 		// This query calculates the revenue data grouped by insurances for a specific sales representative.
 		let query = sql`
@@ -248,8 +248,35 @@ export class SalesRepService {
                 f.name AS facility_name,
                 CAST(ROUND(SUM(p.billable_amount)::NUMERIC, 2) AS FLOAT) AS generated_amount,
                 CAST(ROUND(SUM(p.cleared_amount)::NUMERIC, 2) AS FLOAT) AS paid_amount,
-                CAST(ROUND(SUM(p.pending_amount)::NUMERIC, 2) AS FLOAT) AS pending_amount,
-                CAST(COUNT(*) AS INTEGER) AS total_cases
+                CAST(ROUND(SUM(p.pending_amount)::NUMERIC, 2) AS FLOAT) AS pending_amount
+            FROM patient_claims p
+            JOIN facilities f 
+                ON p.facility_id = f.id
+			WHERE p.sales_rep_id = ${id}
+			${queryString ? sql`AND ${sql.raw(queryString)}` : sql``}
+			GROUP BY
+				f.id,
+				f.name	
+			ORDER BY
+				f.name
+        `;
+
+		const data = await db.execute(query);
+
+		return data.rows;
+	}
+
+
+	async getFacilitiesVolume(id: number, queryString: string) {
+
+		// This query calculates the revenue data grouped by insurances for a specific sales representative.
+		let query = sql`
+            SELECT 
+                f.id AS facility_id,
+                f.name AS facility_name,
+                CAST(COUNT(*) AS INTEGER) AS total_cases,
+				CAST(COUNT(*) FILTER(WHERE p.reports_finalized = TRUE) AS INTEGER) AS completed_cases,
+				CAST(COUNT(*) FILTER (WHERE p.reports_finalized = FALSE) AS INTEGER) AS pending_cases
             FROM patient_claims p
             JOIN facilities f 
                 ON p.facility_id = f.id

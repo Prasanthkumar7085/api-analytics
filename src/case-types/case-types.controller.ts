@@ -1,7 +1,7 @@
 import { Controller, Get, Param, Query, Res, UseGuards } from '@nestjs/common';
 import { CaseTypesService } from './case-types.service';
 import { FilterHelper } from 'src/helpers/filterHelper';
-import { SOMETHING_WENT_WRONG, SUCCESS_FETCHED_CASE_TYEPS_MONTH_WISE_REVENUE_DATA, SUCCESS_FETCHED_CASE_TYEPS_MONTH_WISE_VOLUME_DATA, SUCCESS_FETCHED_CASE_TYPES } from 'src/constants/messageConstants';
+import { SOMETHING_WENT_WRONG, SUCCESS_FETCHED_CASE_TYEPS_MONTH_WISE_REVENUE_DATA, SUCCESS_FETCHED_CASE_TYEPS_MONTH_WISE_VOLUME_DATA, SUCCESS_FETCHED_CASE_TYPES, SUCCESS_FETCHED_CASE_TYPES_STATS } from 'src/constants/messageConstants';
 import { AuthGuard } from 'src/guards/auth.guard';
 import { SyncHelpers } from 'src/helpers/syncHelper';
 
@@ -16,8 +16,32 @@ export class CaseTypesController {
 		private readonly syncHelper: SyncHelpers
 	) { }
 
+
 	@UseGuards(AuthGuard)
 	@Get()
+	async getAllCaseTypes(@Res() res: any) {
+		try {
+
+			const caseTypesData = await this.caseTypesService.getAllCaseTypes();
+
+			return res.status(200).json({
+				success: true,
+				message: SUCCESS_FETCHED_CASE_TYPES,
+				data: caseTypesData
+			});
+		} catch (err) {
+			console.log({ err });
+			return res.status(500).json({
+				success: true,
+				message: err || SOMETHING_WENT_WRONG
+			});
+		}
+	}
+
+
+
+	@UseGuards(AuthGuard)
+	@Get("stats")
 	async getCaseTypeStatsData(@Res() res: any, @Query() query: any) {
 		try {
 
@@ -28,7 +52,7 @@ export class CaseTypesController {
 
 			return res.status(200).json({
 				success: true,
-				message: SUCCESS_FETCHED_CASE_TYPES,
+				message: SUCCESS_FETCHED_CASE_TYPES_STATS,
 				data: data
 			});
 		}

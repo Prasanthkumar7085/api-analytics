@@ -193,11 +193,16 @@ export class FilterHelper {
         let filter = [];
         const {
             from_date: fromDate,
-            to_date: toDate
+            to_date: toDate,
+            case_type: caseType
         } = query;
 
         if (fromDate && toDate) {
             filter.push(`service_date BETWEEN '${fromDate}' AND '${toDate}'`);
+        }
+
+        if (caseType) {
+            filter.push(`case_type_id=${caseType}`);
         }
 
         let queryString;

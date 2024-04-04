@@ -1,5 +1,5 @@
 import { Controller, Delete, Get, Param, Query, Req, Res, UseGuards } from '@nestjs/common';
-import { HOSPITAL_MARKETING_MANAGER, SOMETHING_WENT_WRONG, SUCCESS_DELETED_DATA_IN_TABLE, SUCCESS_FECTED_SALE_REP_REVENUE_STATS, SUCCESS_FECTED_SALE_REP_VOLUME_STATS, SUCCESS_FETCHED_CASE_TYPES_REVENUE, SUCCESS_FETCHED_ONE_SALES_REP, SUCCESS_FETCHED_PATIENT_CLAIMS_COUNT, SUCCESS_FETCHED_SALES_REP, SUCCESS_FETCHED_SALES_REPS, SUCCESS_FETCHED_SALES_REP_CASE_TYPE_MONTHLY_VOLUME, SUCCESS_FETCHED_SALES_REP_FACILITY_WISE_STATS, SUCCESS_FETCHED_SALES_REP_INSURANCE_PAYORS_DATA, SUCCESS_FETCHED_SALES_REP_INSURANCE_PAYORS_MONTH_WISE_DATA, SUCCESS_FETCHED_SALES_REP_OVERALL_REVENUE, SUCCESS_FETCHED_SALES_REP_OVERALL_VOLUME, SUCCESS_FETCHED_SALES_REP_TREND_REVENUE, SUCCESS_FETCHED_SALES_REP_TREND_VOLUME } from 'src/constants/messageConstants';
+import { HOSPITAL_MARKETING_MANAGER, SOMETHING_WENT_WRONG, SUCCESS_DELETED_DATA_IN_TABLE, SUCCESS_FECTED_SALE_REP_REVENUE_STATS, SUCCESS_FECTED_SALE_REP_VOLUME_STATS, SUCCESS_FETCHED_CASE_TYPES_STATS_REVENUE, SUCCESS_FETCHED_ONE_SALES_REP, SUCCESS_FETCHED_PATIENT_CLAIMS_COUNT, SUCCESS_FETCHED_SALES_REP, SUCCESS_FETCHED_SALES_REPS, SUCCESS_FETCHED_SALES_REP_CASE_TYPE_MONTHLY_VOLUME, SUCCESS_FETCHED_SALES_REP_FACILITY_WISE_STATS, SUCCESS_FETCHED_SALES_REP_FACILITY_WISE_STATS_VOLUME, SUCCESS_FETCHED_SALES_REP_INSURANCE_PAYORS_DATA, SUCCESS_FETCHED_SALES_REP_INSURANCE_PAYORS_MONTH_WISE_DATA, SUCCESS_FETCHED_SALES_REP_OVERALL_REVENUE, SUCCESS_FETCHED_SALES_REP_OVERALL_VOLUME, SUCCESS_FETCHED_SALES_REP_TREND_REVENUE, SUCCESS_FETCHED_SALES_REP_TREND_VOLUME } from 'src/constants/messageConstants';
 import { AuthGuard } from 'src/guards/auth.guard';
 import { FilterHelper } from 'src/helpers/filterHelper';
 import { SyncHelpers } from 'src/helpers/syncHelper';
@@ -253,7 +253,7 @@ export class SalesRepController {
 
 			return res.status(200).json({
 				success: true,
-				message: SUCCESS_FETCHED_CASE_TYPES_REVENUE,
+				message: SUCCESS_FETCHED_CASE_TYPES_STATS_REVENUE,
 				data: resultArray
 			});
 
@@ -321,17 +321,43 @@ export class SalesRepController {
 	}
 
 	@UseGuards(AuthGuard)
-	@Get(':id/facilities')
-	async getFacility(@Res() res: any, @Param('id') id: number, @Query() query: any) {
+	@Get(':id/facilities/revenue')
+	async getFacilitiesRevenue(@Res() res: any, @Param('id') id: number, @Query() query: any) {
 		try {
 
 			const queryString = this.filterHelper.salesRepFacilities(query);
 
-			const salesReps = await this.salesRepService.getFacility(id, queryString);
+			const salesReps = await this.salesRepService.getFacilitiesRevenue(id, queryString);
 
 			return res.status(200).json({
 				success: true,
 				message: SUCCESS_FETCHED_SALES_REP_FACILITY_WISE_STATS,
+				data: salesReps
+			});
+		}
+		catch (error) {
+			console.log({ error });
+
+			return res.status(500).json({
+				success: false,
+				message: error || SOMETHING_WENT_WRONG
+			});
+		}
+	}
+
+
+	@UseGuards(AuthGuard)
+	@Get(':id/facilities/volume')
+	async getFacilitiesVolume(@Res() res: any, @Param('id') id: number, @Query() query: any) {
+		try {
+
+			const queryString = this.filterHelper.salesRepFacilities(query);
+
+			const salesReps = await this.salesRepService.getFacilitiesVolume(id, queryString);
+
+			return res.status(200).json({
+				success: true,
+				message: SUCCESS_FETCHED_SALES_REP_FACILITY_WISE_STATS_VOLUME,
 				data: salesReps
 			});
 		}
