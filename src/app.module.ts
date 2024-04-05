@@ -15,6 +15,7 @@ import { RevenueStatsModule } from './revenue-stats/revenue-stats.module';
 import { SalesRepModule } from './sales-rep/sales-rep.module';
 import { SyncModule } from './sync/sync.module';
 import { MghSyncModule } from './mgh-sync/mgh-sync.module';
+import { LabsModule } from './labs/labs.module';
 
 
 @Module({
@@ -22,7 +23,7 @@ import { MghSyncModule } from './mgh-sync/mgh-sync.module';
     ConfigModule.forRoot({
       load: [configuration],
     }),
-    LisModule, RevenueStatsModule, DrizzleModule, SalesRepModule, FacilitiesModule, CaseTypesModule, OverviewModule, InsurancesModule, SyncModule, MghSyncModule],
+    LisModule, RevenueStatsModule, DrizzleModule, SalesRepModule, FacilitiesModule, CaseTypesModule, OverviewModule, InsurancesModule, SyncModule, MghSyncModule, LabsModule],
   controllers: [AppController],
   providers: [AppService],
 })

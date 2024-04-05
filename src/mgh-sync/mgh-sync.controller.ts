@@ -4,6 +4,8 @@ import { SOMETHING_WENT_WRONG } from 'src/constants/messageConstants';
 import mongoose, { ConnectOptions } from 'mongoose';
 import { Configuration } from 'src/config/config.service';
 import { ConfigService } from '@nestjs/config';
+import { LabsService } from 'src/labs/labs.service';
+import { SyncHelpers } from 'src/helpers/syncHelper';
 
 @Controller({
   version: '1.0',
@@ -14,6 +16,8 @@ import { ConfigService } from '@nestjs/config';
 export class MghSyncController {
   constructor(
     private readonly mghSyncService: MghSyncService,
+    private readonly labsService: LabsService,
+    private readonly syncHelper: SyncHelpers
   ) { }
 
 
@@ -76,15 +80,11 @@ export class MghSyncController {
         });
       }
 
-      const modifiedData = labsData.map(item => ({
-        refId: item._id,
-        name: item.name,
-        code: item.lab_code
-      }));
+      const modifiedData = this.syncHelper.modifyLabs(labsData);
 
       const refIds = modifiedData.map(e => e.refId);
 
-      
+      this.syncHelper.insertMghLabs(modifiedData, refIds);
 
       return res.status(200).json({
         success: true,

@@ -15,10 +15,11 @@ import { SyncHelpers } from 'src/helpers/syncHelper';
 import { InsurancesService } from 'src/insurances/insurances.service';
 import { SyncService } from 'src/sync/sync.service';
 import { FacilitiesService } from 'src/facilities/facilities.service';
+import { LabsService } from 'src/labs/labs.service';
 
 @Module({
   controllers: [CaseTypesController],
-  providers: [CaseTypesService, FilterHelper, JwtService, LisService, SalesRepService, SyncHelpers, InsurancesService, FacilitiesService, SyncService],
+  providers: [CaseTypesService, FilterHelper, JwtService, LisService, SalesRepService, SyncHelpers, InsurancesService, FacilitiesService, SyncService, LabsService],
   imports: [
     MongooseModule.forFeature([
       { name: 'User', schema: UserSchema },

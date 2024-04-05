@@ -15,10 +15,12 @@ import { SyncHelpers } from 'src/helpers/syncHelper';
 import { CaseTypesService } from 'src/case-types/case-types.service';
 import { InsurancesService } from 'src/insurances/insurances.service';
 import { SyncService } from 'src/sync/sync.service';
+import { LabsService } from 'src/labs/labs.service';
 
 @Module({
   controllers: [FacilitiesController],
-  providers: [FacilitiesService, FilterHelper, JwtService, LisService, SalesRepService, SyncHelpers, CaseTypesService, InsurancesService, SyncService],
+  providers: [FacilitiesService, FilterHelper, JwtService, LisService, SalesRepService, SyncHelpers,
+    CaseTypesService, InsurancesService, SyncService, LabsService],
   imports: [
     MongooseModule.forRoot(process.env.LIS_DLW_DB_URL + '&authSource=admin'),
     MongooseModule.forFeature([

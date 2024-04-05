@@ -4,6 +4,7 @@ import { ARCHIVED } from "src/constants/lisConstants";
 import { MARKETER } from "src/constants/messageConstants";
 import { FacilitiesService } from "src/facilities/facilities.service";
 import { InsurancesService } from "src/insurances/insurances.service";
+import { LabsService } from "src/labs/labs.service";
 import { LisService } from "src/lis/lis.service";
 import { SalesRepService } from "src/sales-rep/sales-rep.service";
 import { SyncService } from "src/sync/sync.service";
@@ -18,7 +19,8 @@ export class SyncHelpers {
         private readonly facilitiesService: FacilitiesService,
         private readonly insurancesService: InsurancesService,
         private readonly SyncService: SyncService,
-        private readonly salesRepsService: SalesRepService
+        private readonly salesRepsService: SalesRepService,
+        private readonly labsService: LabsService
 
     ) { }
 
@@ -668,5 +670,32 @@ export class SyncHelpers {
         });
 
         return resultArray;
+    }
+
+
+    modifyLabs(labsData) {
+        const modifiedData = labsData.map(item => ({
+            refId: item._id.toString(),
+            name: item.name,
+            code: item.lab_code
+        }));
+
+        return modifiedData;
+    }
+
+    async insertMghLabs(modifiedData, refIds) {
+        try {
+            const existedLabs = await this.labsService.getLabsByRefIds(refIds);
+
+            const existedLabsRefIds = existedLabs.map(e => e.ref_id);
+
+            const notExisted = modifiedData.filter(obj => !existedLabsRefIds.includes(obj.refId));
+
+            if (notExisted.length) {
+                this.labsService.insertLabs(notExisted);
+            }
+        } catch (err) {
+            throw err;
+        }
     }
 }
