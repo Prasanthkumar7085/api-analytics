@@ -112,7 +112,7 @@ const CASE_TYPES_NOT_FOUND = "Case Types Not Found!";
 const INSURANCE_PAYORS_NOT_FOUND_IN_LIS_DATABASE = "Insurance Payors Not Found In LIS Database";
 const INSURANCE_PAYORS_NOT_FOUND = "Insurance Payors Not Found";
 
-const SUCCUSS_INSERTED_MARKETING_MANAGERS = "New Marketing Managers Data Inserted Successfully";
+const SUCCUSS_INSERTED_MARKETING_MANAGERS = "Marketing Managers Data Inserted Successfully";
 const SUCCUSS_INSERTED_SALES_REPS = "New Sales Reps Data Inserted Successfully";
 const SUCCESS_INSERTED_FACILICES = "New Facilities Data Inserted Successfully";
 const SALES_REPS_NOT_FOUND = "Sales Reps Not Found";

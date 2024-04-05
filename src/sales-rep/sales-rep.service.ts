@@ -470,4 +470,21 @@ export class SalesRepService {
 	async getAllSalesReps() {
 		return await db.select().from(sales_reps);
 	}
+
+	async updateSalesReps(queryString) {
+		const rawQuery = sql`
+        UPDATE sales_reps AS t
+        SET
+          id = u.id,
+          mgh_ref_id = u.mghRefId
+        FROM(
+          VALUES
+
+        ${sql.raw(queryString)}
+        ) as u(id, mghRefId)
+        WHERE t.id = u.id`;
+
+		return db.execute(rawQuery);
+	}
 }
+

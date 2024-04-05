@@ -17,10 +17,12 @@ import { SyncService } from 'src/sync/sync.service';
 import { FacilitiesService } from 'src/facilities/facilities.service';
 import { LabsService } from 'src/labs/labs.service';
 import { labDataSchema } from 'src/schemas/lab';
+import { MghSyncService } from 'src/mgh-sync/mgh-sync.service';
 
 @Module({
   controllers: [CaseTypesController],
-  providers: [CaseTypesService, FilterHelper, JwtService, LisService, SalesRepService, SyncHelpers, InsurancesService, FacilitiesService, SyncService, LabsService],
+  providers: [CaseTypesService, FilterHelper, JwtService, LisService, SalesRepService, SyncHelpers, 
+    InsurancesService, FacilitiesService, SyncService, LabsService, MghSyncService],
   imports: [
     MongooseModule.forFeature([
       { name: 'User', schema: UserSchema },

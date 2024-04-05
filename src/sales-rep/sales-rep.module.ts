@@ -17,11 +17,12 @@ import { InsurancesService } from 'src/insurances/insurances.service';
 import { SyncService } from 'src/sync/sync.service';
 import { LabsService } from 'src/labs/labs.service';
 import { labDataSchema } from 'src/schemas/lab';
+import { MghSyncService } from 'src/mgh-sync/mgh-sync.service';
 
 @Module({
   controllers: [SalesRepController],
   providers: [SalesRepService, FilterHelper, JwtService, LisService, SyncHelpers, CaseTypesService, FacilitiesService, InsurancesService,
-    SyncService, LabsService],
+    SyncService, LabsService, MghSyncService],
   imports: [
     MongooseModule.forRoot(process.env.LIS_DLW_DB_URL + '&authSource=admin'),
     MongooseModule.forFeature([

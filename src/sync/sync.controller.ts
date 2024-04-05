@@ -50,16 +50,16 @@ export class SyncController {
 				});
 			}
 
-			// const analyticsData = await this.syncHelpers.getAllAnalyticsData();
+			const analyticsData = await this.syncHelpers.getAllAnalyticsData();
 
-			// let modifiedArray = this.syncHelpers.modifyCasesForPatientClaims(cases, analyticsData);
+			let modifiedArray = this.syncHelpers.modifyCasesForPatientClaims(cases, analyticsData);
 
-			// if (modifiedArray.length) {
+			if (modifiedArray.length) {
 
-			// 	const seperatedArray = await this.syncHelpers.seperateModifiedArray(modifiedArray);
+				const seperatedArray = await this.syncHelpers.seperateModifiedArray(modifiedArray);
 
-			// 	// this.syncHelpers.insertOrUpdateModifiedClaims(seperatedArray);
-			// }
+				this.syncHelpers.insertOrUpdateModifiedClaims(seperatedArray);
+			}
 
 			return res.status(200).json({
 				success: true,
@@ -227,11 +227,11 @@ export class SyncController {
 				return res.status(200).json({ success: true, message: NEW_SALES_REPS_DATA_NOT_FOUND });
 			}
 
-			// await this.salesRepService.insertSalesRepsManagers(finalManagersData);
+			await this.salesRepService.insertSalesRepsManagers(finalManagersData);
 
-			// this.salesRepService.updateSalesRepsManagersData();
+			this.salesRepService.updateSalesRepsManagersData();
 
-			return res.status(200).json({ success: true, message: SUCCUSS_INSERTED_MARKETING_MANAGERS, finalManagersData });
+			return res.status(200).json({ success: true, message: SUCCUSS_INSERTED_MARKETING_MANAGERS });
 		}
 		catch (error) {
 			console.log({ error });

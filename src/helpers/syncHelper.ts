@@ -1,11 +1,12 @@
 import { Injectable } from "@nestjs/common";
 import { CaseTypesService } from "src/case-types/case-types.service";
 import { ARCHIVED } from "src/constants/lisConstants";
-import { MARKETER } from "src/constants/messageConstants";
+import { HOSPITAL_MARKETING_MANAGER, MARKETER } from "src/constants/messageConstants";
 import { FacilitiesService } from "src/facilities/facilities.service";
 import { InsurancesService } from "src/insurances/insurances.service";
 import { LabsService } from "src/labs/labs.service";
 import { LisService } from "src/lis/lis.service";
+import { MghSyncService } from "src/mgh-sync/mgh-sync.service";
 import { SalesRepService } from "src/sales-rep/sales-rep.service";
 import { SyncService } from "src/sync/sync.service";
 
@@ -20,7 +21,8 @@ export class SyncHelpers {
         private readonly insurancesService: InsurancesService,
         private readonly SyncService: SyncService,
         private readonly salesRepsService: SalesRepService,
-        private readonly labsService: LabsService
+        private readonly labsService: LabsService,
+        private readonly mghLisService: MghSyncService
 
     ) { }
 
@@ -711,4 +713,78 @@ export class SyncHelpers {
             throw err;
         }
     }
+
+    async getMghSalesReps(datesFilter) {
+
+        const query = {
+            status: "ACTIVE",
+            user_type: { $in: [HOSPITAL_MARKETING_MANAGER, MARKETER] },
+            // updated_at: {
+            //     $gte: datesFilter.fromDate,
+            //     $lte: datesFilter.toDate,
+            // },
+            _id: {
+                $in: [
+                    "640b822542b30768cb575699",
+                    "65301618d78bd4eaa12f281c",
+                    "611fcb57b16f85217cf80d12",
+                    "64b707d286f7f57a60b5a622",
+                    "65301691d78bd4eaa12f2845",
+                    "65d76ccf871d317cf358f1bd",
+                    "651d7c490f68d73ac39a64b4",
+                    "64a5a5acead06a14f9c10625",
+                    "645bc32c04f62b2b3fdf788f"
+                ]
+            }
+        };
+
+
+        const select = {
+            _id: 1,
+            name: { $concat: ["$first_name", " ", "$last_name"] },
+            user_type: 1
+        };
+
+        const salesRepsData = await this.mghLisService.getUsers(query, select);
+
+        return salesRepsData;
+    }
+
+
+    async getExistedAndNotExistedReps(salesReps) {
+        const analyticsSalesReps = await this.salesRepsService.getAllSalesReps();
+
+        const existed = [];
+        const notExisted = [];
+
+        salesReps.forEach(modifiedRep => {
+            const existingRep = analyticsSalesReps.find(rep => rep.name.toLowerCase() === modifiedRep.name.toLowerCase());
+            if (existingRep) {
+                existed.push({ mghRefId: modifiedRep.mghRefId, id: existingRep.id });
+            } else {
+                notExisted.push(modifiedRep);
+            }
+        });
+
+        if (existed.length) {
+            const convertedData = existed.map(entry => {
+
+                const formattedQueryEntry = `(${entry.id}, '${entry.mghRefId}')`;
+                return formattedQueryEntry;
+            });
+
+            const finalString = convertedData.join(', ');
+
+            this.salesRepsService.updateSalesReps(finalString);
+
+        }
+
+        if (notExisted.length) {
+            this.salesRepsService.insertSalesReps(notExisted);
+        }
+
+        return { existed, notExisted };
+    }
+
+
 }
