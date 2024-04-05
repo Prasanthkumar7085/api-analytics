@@ -1,7 +1,8 @@
-import { integer, serial, text, pgTable, boolean, varchar, doublePrecision, date, index } from 'drizzle-orm/pg-core';
+import { boolean, date, doublePrecision, index, integer, pgTable, serial, varchar } from 'drizzle-orm/pg-core';
 import { case_types } from './caseTypes';
 import { facilities } from './facilities';
 import { insurance_payors } from './insurancePayors';
+import { labs } from './labs';
 import { sales_reps } from './salesReps';
 
 export const patient_claims = pgTable('patient_claims', {
@@ -24,7 +25,8 @@ export const patient_claims = pgTable('patient_claims', {
     insurnaceTargetPrice: doublePrecision('insurnace_target_price').default(0.0),
     patientId: varchar("patient_id", { length: 30 }),
     isPartialPaid: boolean("is_partial_paid").default(false),
-    billingDate: date('billing_date')
+    billingDate: date('billing_date'),
+    labId: integer("lab_id").references(() => labs.id)
 },
     (table: any) => {
         return {
@@ -34,7 +36,8 @@ export const patient_claims = pgTable('patient_claims', {
             facilityIdIdx: index("facility_id_idx").on(table.facilityId),
             salesRepIdIdx: index("sales_rep_id_idx").on(table.salesRepId),
             insurancePayerIdIdx: index("insurance_payer_id_idx").on(table.insurancePayerId),
-            patientIdIdx: index("patient_id_idx").on(table.patientId)
+            patientIdIdx: index("patient_id_idx").on(table.patientId),
+            labIdIdx: index("lab_id_idx").on(table.labId)
         };
     });
 

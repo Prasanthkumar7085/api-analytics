@@ -1,5 +1,5 @@
 
-import { integer, serial, text, pgTable, boolean, varchar, doublePrecision, date } from 'drizzle-orm/pg-core';
+import { pgTable, serial, text } from 'drizzle-orm/pg-core';
 
 
 export const user_role = pgTable('user_role', {

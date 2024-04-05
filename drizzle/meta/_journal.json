@@ -43,6 +43,13 @@
       "when": 1711978662490,
       "tag": "0005_purple_sir_ram",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1712306448117,
+      "tag": "0006_open_aaron_stack",
+      "breakpoints": true
     }
   ]
 }

@@ -1,4 +1,4 @@
-import { integer, serial, text, pgTable, boolean, varchar, doublePrecision, date, index } from 'drizzle-orm/pg-core';
+import { date, doublePrecision, index, integer, pgTable, serial, varchar } from 'drizzle-orm/pg-core';
 import { patient_claims } from './patientClaims';
 
 export const patient_claim_payment_history = pgTable('patient_claim_payment_history', {
