@@ -12,9 +12,9 @@ async function seedSalesRepsManager() {
 
         const configuration = new Configuration(new ConfigService());
 
-        const { lis_db_url } = configuration.getConfig();
+        const { lis_dlw_db_url } = configuration.getConfig();
 
-        const dataBase = mongoose.connect(lis_db_url);
+        const dataBase = mongoose.connect(lis_dlw_db_url);
 
         // fetching data from mongoose db of LIS data
         const data = await UserModel.find({ user_type: "HOSPITAL_MARKETING_MANAGER" })

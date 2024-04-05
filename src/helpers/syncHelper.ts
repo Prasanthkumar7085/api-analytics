@@ -43,10 +43,11 @@ export class SyncHelpers {
         try {
             let query = {
                 status: { $nin: ["ARCHIVE", "ARCHIVED"] },
-                updated_at: {
-                    $gte: fromDate,
-                    $lte: toDate
-                }
+                // updated_at: {
+                //     $gte: fromDate,
+                //     $lte: toDate
+                // }
+                accession_id: "DT240405001"
             };
 
             const select = {

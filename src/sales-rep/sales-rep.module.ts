@@ -21,6 +21,7 @@ import { SyncService } from 'src/sync/sync.service';
   providers: [SalesRepService, FilterHelper, JwtService, LisService, SyncHelpers, CaseTypesService, FacilitiesService, InsurancesService,
     SyncService],
   imports: [
+    MongooseModule.forRoot(process.env.LIS_DLW_DB_URL + '&authSource=admin'),
     MongooseModule.forFeature([
       { name: 'User', schema: UserSchema },
       { name: 'Case', schema: CaseSchema },

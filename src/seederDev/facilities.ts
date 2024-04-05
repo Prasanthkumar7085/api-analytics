@@ -13,9 +13,9 @@ async function getFacilitiesData() {
         console.log('start');
 
         const configuration = new Configuration(new ConfigService());
-        const { lis_db_url } = configuration.getConfig();
+        const { lis_dlw_db_url } = configuration.getConfig();
 
-        await mongoose.connect(lis_db_url);
+        await mongoose.connect(lis_dlw_db_url);
 
         //need to fetch hospitals data from lis
         const data = await HospitalModel.find()

@@ -48,21 +48,21 @@ export class SyncController {
 				});
 			}
 
-			const analyticsData = await this.syncHelpers.getAllAnalyticsData();
+			// const analyticsData = await this.syncHelpers.getAllAnalyticsData();
 
-			let modifiedArray = this.syncHelpers.modifyCasesForPatientClaims(cases, analyticsData);
+			// let modifiedArray = this.syncHelpers.modifyCasesForPatientClaims(cases, analyticsData);
 
-			if (modifiedArray.length) {
+			// if (modifiedArray.length) {
 
-				const seperatedArray = await this.syncHelpers.seperateModifiedArray(modifiedArray);
+			// 	const seperatedArray = await this.syncHelpers.seperateModifiedArray(modifiedArray);
 
-				this.syncHelpers.insertOrUpdateModifiedClaims(seperatedArray);
-			}
+			// 	// this.syncHelpers.insertOrUpdateModifiedClaims(seperatedArray);
+			// }
 
 			return res.status(200).json({
 				success: true,
 				message: SUCCESS_SYNC_PATIENT_CLAIMS,
-				modifiedArray
+				cases
 			});
 
 		} catch (err) {

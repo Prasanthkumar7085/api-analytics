@@ -21,6 +21,7 @@ import { FacilitiesService } from 'src/facilities/facilities.service';
   controllers: [SyncController],
   providers: [SyncService, LisService, SyncHelpers, Configuration, ConfigService, InsurancesService, FacilitiesService, CaseTypesService, SalesRepService],
   imports: [
+    MongooseModule.forRoot(process.env.LIS_DLW_DB_URL + '&authSource=admin'),
     MongooseModule.forFeature([
       { name: 'User', schema: UserSchema },
       { name: 'Case', schema: CaseSchema },

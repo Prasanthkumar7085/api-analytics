@@ -15,9 +15,9 @@ async function getSalesRepsData() {
         // Create an instance of the Configuration class
         const configuration = new Configuration(new ConfigService());
 
-        const { lis_db_url } = configuration.getConfig();
+        const { lis_dlw_db_url } = configuration.getConfig();
 
-        await mongoose.connect(lis_db_url);
+        await mongoose.connect(lis_dlw_db_url);
 
         // Fetch data from UserModel for MARKETER users
         const marketers = await UserModel.find({ user_type: "MARKETER" });

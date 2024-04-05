@@ -14,9 +14,9 @@ async function getInsurancePayors() {
 
         const configuration = new Configuration(new ConfigService());
 
-        const { lis_db_url } = configuration.getConfig()
+        const { lis_dlw_db_url } = configuration.getConfig()
 
-        await mongoose.connect(lis_db_url);
+        await mongoose.connect(lis_dlw_db_url);
 
         //fetching data from insurance payors lis data
         const data = await InsurancePayorsModel.find().select('_id name')

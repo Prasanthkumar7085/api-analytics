@@ -19,6 +19,7 @@ import { RevenueStatsController } from './revenue-stats.controller';
   controllers: [RevenueStatsController],
   providers: [RevenueStatsService, FileUploadDataServiceProvider, RevenueStatsHelpers, LisService, FilterHelper, PaginationHelper, SortHelper],
   imports: [
+    MongooseModule.forRoot(process.env.LIS_DLW_DB_URL + '&authSource=admin'),
     MongooseModule.forFeature([
       { name: 'User', schema: UserSchema },
       { name: 'Case', schema: CaseSchema },

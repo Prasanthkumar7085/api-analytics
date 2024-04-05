@@ -14,6 +14,7 @@ import { OverviewModule } from './overview/overview.module';
 import { RevenueStatsModule } from './revenue-stats/revenue-stats.module';
 import { SalesRepModule } from './sales-rep/sales-rep.module';
 import { SyncModule } from './sync/sync.module';
+import { MghSyncModule } from './mgh-sync/mgh-sync.module';
 
 
 @Module({
@@ -21,8 +22,7 @@ import { SyncModule } from './sync/sync.module';
     ConfigModule.forRoot({
       load: [configuration],
     }),
-    MongooseModule.forRoot(process.env.LIS_DB_URL + '&authSource=admin'),
-    LisModule, RevenueStatsModule, DrizzleModule, SalesRepModule, FacilitiesModule, CaseTypesModule, OverviewModule, InsurancesModule, SyncModule],
+    LisModule, RevenueStatsModule, DrizzleModule, SalesRepModule, FacilitiesModule, CaseTypesModule, OverviewModule, InsurancesModule, SyncModule, MghSyncModule],
   controllers: [AppController],
   providers: [AppService],
 })
