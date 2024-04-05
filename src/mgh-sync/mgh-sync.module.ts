@@ -18,7 +18,7 @@ import { HospitalSchema } from 'src/schemas/hospitalSchema';
       { name: 'Case', schema: CaseSchema },
       { name: 'Insurance_Payors', schema: insurancePayorsSchema },
       { name: 'Test_Panels', schema: testPanelsDataSchema },
-      { name: 'Hospital', schema: HospitalSchema }
+      { name: 'Hospital', schema: HospitalSchema },
     ]),
   ]
 })
