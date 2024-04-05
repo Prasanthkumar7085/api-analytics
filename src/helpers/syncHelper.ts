@@ -321,10 +321,23 @@ export class SyncHelpers {
         const query = {
             user_type: userType,
             status: "ACTIVE",
-            updated_at: {
-                $gte: datesFilter.fromDate,
-                $lte: datesFilter.toDate,
-            },
+            // updated_at: {
+            //     $gte: datesFilter.fromDate,
+            //     $lte: datesFilter.toDate,
+            // },
+            _id: {
+                $in: [
+                    "65cfa081112d60e565b73da3",
+                    "65cfa19966fab7e5b9f45a47",
+                    "65cf5a20cd2c7ce54e7177a5",
+                    "65cfa4c6a2c4dce5a0007592",
+                    "65cfa7ebf64af7e58b43e158",
+                    "65cfa4566cd21ee4e3ffcb89",
+                    "65cfab8744ae7ae53bda0d5c",
+                    "65cf71d0e01fdcd8a23cf1de",
+                    "65cfa7bf6cd21ee4e3ffce74"
+                ]
+            }
         };
 
 

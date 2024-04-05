@@ -7,7 +7,7 @@ import { sales_reps } from './salesReps';
 export const facilities = pgTable('facilities', {
     id: serial('id').primaryKey(),
     name: text('name'),
-    refId: text('ref_id'),// mongodbid,
+    refId: text('ref_id').default(null),// mongodbid,
     mghRefId: text('mgh_ref_id').default(null),// mongodbid,
     salesRepId: integer("sales_rep_id").default(null).references(() => sales_reps.id)
 }, (table: any) => {

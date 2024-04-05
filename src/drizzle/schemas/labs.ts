@@ -5,7 +5,7 @@ export const labs = pgTable('labs', {
     id: serial('id').primaryKey(),
     name: text('name'),
     code: text('code'),
-    refId: varchar('ref_id'),// mongodbid
+    refId: varchar('ref_id').default(null),// mongodbid
 }, (table: any) => {
     return {
         labRefIdIdx: index("lab_ref_id_idx").on(table.refId)

@@ -227,11 +227,11 @@ export class SyncController {
 				return res.status(200).json({ success: true, message: NEW_SALES_REPS_DATA_NOT_FOUND });
 			}
 
-			await this.salesRepService.insertSalesRepsManagers(finalManagersData);
+			// await this.salesRepService.insertSalesRepsManagers(finalManagersData);
 
-			this.salesRepService.updateSalesRepsManagersData();
+			// this.salesRepService.updateSalesRepsManagersData();
 
-			return res.status(200).json({ success: true, message: SUCCUSS_INSERTED_MARKETING_MANAGERS });
+			return res.status(200).json({ success: true, message: SUCCUSS_INSERTED_MARKETING_MANAGERS, finalManagersData });
 		}
 		catch (error) {
 			console.log({ error });

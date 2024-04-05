@@ -5,9 +5,9 @@ import { user_role } from './userRole';
 export const sales_reps = pgTable('sales_reps', {
     id: serial('id').primaryKey(),
     name: text('name'),
-    refId: text('ref_id'),// mongodbid
-    mghRefId: text('mgh_ref_id'),// mongodbid
-    reportingTo: serial('reporting_to'),
+    refId: text('ref_id').default(null),// mongodbid
+    mghRefId: text('mgh_ref_id').default(null),// mongodbid
+    reportingTo: integer('reporting_to'),
     roleId: integer("role_id").references(() => user_role.id),
 }, (table: any) => {
     return {
