@@ -16,6 +16,7 @@ import { CaseTypesService } from 'src/case-types/case-types.service';
 import { InsurancesService } from 'src/insurances/insurances.service';
 import { SyncService } from 'src/sync/sync.service';
 import { LabsService } from 'src/labs/labs.service';
+import { labDataSchema } from 'src/schemas/lab';
 
 @Module({
   controllers: [FacilitiesController],
@@ -28,7 +29,9 @@ import { LabsService } from 'src/labs/labs.service';
       { name: 'Case', schema: CaseSchema },
       { name: 'Insurance_Payors', schema: insurancePayorsSchema },
       { name: 'Test_Panels', schema: testPanelsDataSchema },
-      { name: 'Hospital', schema: HospitalSchema }
+      { name: 'Hospital', schema: HospitalSchema },
+      { name: 'Lab', schema: labDataSchema }
+
     ]),
   ]
 

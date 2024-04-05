@@ -1,6 +1,6 @@
 import { Controller, Get, Res } from '@nestjs/common';
 import { MghSyncService } from './mgh-sync.service';
-import { SOMETHING_WENT_WRONG } from 'src/constants/messageConstants';
+import { LABS_NOT_FOUND, SOMETHING_WENT_WRONG, SUCCESS_SYNC_LABS } from 'src/constants/messageConstants';
 import mongoose, { ConnectOptions } from 'mongoose';
 import { Configuration } from 'src/config/config.service';
 import { ConfigService } from '@nestjs/config';
@@ -76,7 +76,7 @@ export class MghSyncController {
       if (!labsData.length) {
         return res.status(200).json({
           success: false,
-          message: "Labs Not Found!"
+          message: LABS_NOT_FOUND
         });
       }
 
@@ -84,11 +84,11 @@ export class MghSyncController {
 
       const refIds = modifiedData.map(e => e.refId);
 
-      this.syncHelper.insertMghLabs(modifiedData, refIds);
+      this.syncHelper.insertOrUpdateLabs(modifiedData, refIds);
 
       return res.status(200).json({
         success: true,
-        message: "Successfully fetched labs",
+        message: SUCCESS_SYNC_LABS,
         data: modifiedData
       });
     } catch (err) {

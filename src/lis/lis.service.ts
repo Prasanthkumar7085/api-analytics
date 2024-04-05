@@ -3,6 +3,7 @@ import { InjectModel } from "@nestjs/mongoose";
 import { CaseModel } from "src/schemas/caseSchema";
 import { HospitalModel } from "src/schemas/hospitalSchema";
 import { InsurancePayorsModel } from "src/schemas/insurancPayors";
+import { LabModel } from "src/schemas/lab";
 import { LabTestPanelModel } from "src/schemas/testPanelSchema";
 import { UserModel } from "src/schemas/userSchema";
 
@@ -16,6 +17,7 @@ export class LisService {
         @InjectModel('Insurance_Payors') private insuranceModel: typeof InsurancePayorsModel,
         @InjectModel('Test_Panels') private labTestPanelModel: typeof LabTestPanelModel,
         @InjectModel('Hospital') private hospitalModel: typeof HospitalModel,
+        @InjectModel('Lab') private labModel: typeof LabModel,
     ) { }
 
 
@@ -65,5 +67,9 @@ export class LisService {
 
     async getHospitalsData(query) {
         return await this.hospitalModel.find(query);
+    }
+
+    async getLabs(query = {}, select = {}) {
+        return await this.labModel.find(query).select(select).lean();
     }
 }

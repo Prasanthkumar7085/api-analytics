@@ -11,6 +11,7 @@ import { insurancePayorsSchema } from 'src/schemas/insurancPayors';
 import { testPanelsDataSchema } from 'src/schemas/testPanelSchema';
 import { HospitalSchema } from 'src/schemas/hospitalSchema';
 import { SalesRepService } from 'src/sales-rep/sales-rep.service';
+import { labDataSchema } from 'src/schemas/lab';
 
 @Module({
   controllers: [InsurancesController],
@@ -21,7 +22,9 @@ import { SalesRepService } from 'src/sales-rep/sales-rep.service';
       { name: 'Case', schema: CaseSchema },
       { name: 'Insurance_Payors', schema: insurancePayorsSchema },
       { name: 'Test_Panels', schema: testPanelsDataSchema },
-      { name: 'Hospital', schema: HospitalSchema }
+      { name: 'Hospital', schema: HospitalSchema },
+      { name: 'Lab', schema: labDataSchema }
+
     ]),
   ]
 })

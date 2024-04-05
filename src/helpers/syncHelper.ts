@@ -683,7 +683,7 @@ export class SyncHelpers {
         return modifiedData;
     }
 
-    async insertMghLabs(modifiedData, refIds) {
+    async insertOrUpdateLabs(modifiedData, refIds) {
         try {
             const existedLabs = await this.labsService.getLabsByRefIds(refIds);
 

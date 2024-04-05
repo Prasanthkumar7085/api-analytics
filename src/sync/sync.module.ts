@@ -17,6 +17,7 @@ import { SalesRepService } from 'src/sales-rep/sales-rep.service';
 
 import { FacilitiesService } from 'src/facilities/facilities.service';
 import { LabsService } from 'src/labs/labs.service';
+import { labDataSchema } from 'src/schemas/lab';
 
 @Module({
   controllers: [SyncController],
@@ -29,7 +30,9 @@ import { LabsService } from 'src/labs/labs.service';
       { name: 'Case', schema: CaseSchema },
       { name: 'Insurance_Payors', schema: insurancePayorsSchema },
       { name: 'Test_Panels', schema: testPanelsDataSchema },
-      { name: 'Hospital', schema: HospitalSchema }
+      { name: 'Hospital', schema: HospitalSchema },
+      { name: 'Lab', schema: labDataSchema }
+
     ]),
   ]
 })

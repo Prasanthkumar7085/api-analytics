@@ -8,6 +8,7 @@ import { insurancePayorsSchema } from 'src/schemas/insurancPayors';
 import { JwtService } from '@nestjs/jwt';
 import { testPanelsDataSchema } from 'src/schemas/testPanelSchema';
 import { HospitalSchema } from 'src/schemas/hospitalSchema';
+import { labDataSchema } from 'src/schemas/lab';
 
 @Module({
   controllers: [LisController],
@@ -19,7 +20,9 @@ import { HospitalSchema } from 'src/schemas/hospitalSchema';
       { name: 'Case', schema: CaseSchema },
       { name: 'Insurance_Payors', schema: insurancePayorsSchema },
       { name: 'Test_Panels', schema: testPanelsDataSchema },
-      { name: 'Hospital', schema: HospitalSchema }
+      { name: 'Hospital', schema: HospitalSchema },
+      { name: 'Lab', schema: labDataSchema }
+
     ]),
   ],
 })
