@@ -43,7 +43,7 @@ export class SyncHelpers {
     }
 
 
-    async getCases(fromDate, toDate) {
+    async getCases(fromDate, facilities) {
         try {
             let query = {
                 status: { $nin: ["ARCHIVE", "ARCHIVED"] },
@@ -52,61 +52,7 @@ export class SyncHelpers {
                 //     $lte: toDate
                 // }
                 hospital: {
-                    $in: [
-                        "6542b44b61003880354a7c5b",
-                        "6542b44b61003880354a7c83",
-                        "6542b44b61003880354a7cde",
-                        "6542b44b61003880354a7ce3",
-                        "6542b44b61003880354a7cf0",
-                        "6542b44b61003880354a7d05",
-                        "6542b44b61003880354a7d14",
-                        "6542b44b61003880354a7d57",
-                        "6542b44b61003880354a7d5b",
-                        "6542b44b61003880354a7dd1",
-                        "6542b44b61003880354a7dd2",
-                        "6542b44b61003880354a7ddb",
-                        "6542b44b61003880354a7de0",
-                        "6542b44b61003880354a7e5f",
-                        "6542b44b61003880354a7e60",
-                        "6542b44b61003880354a7e69",
-                        "6542b44b61003880354a7e7b",
-                        "6542b44b61003880354a7ea3",
-                        "6542b44b61003880354a7ea7",
-                        "6542b44b61003880354a7eed",
-                        "6542b44b61003880354a7f0e",
-                        "6542b44b61003880354a7f0f",
-                        "6542b44b61003880354a7f11",
-                        "6542b44b61003880354a7f18",
-                        "6542b44b61003880354a7f3a",
-                        "6542b44b61003880354a7f3c",
-                        "6543caa32745ccd610988adf",
-                        "65442a432a8cb7633892f5c0",
-                        "6545346082eac5036736e0c2",
-                        "654ac0a375594f1d7e0464bb",
-                        "654ac10d0ebb8a1d964499ce",
-                        "6553d63adbb8c7545302bdcd",
-                        "65905bd2cf65322ab3af8c82",
-                        "659da608233407bb984bd8d8",
-                        "65c3d6c44d7e316bedca6ce6",
-                        "65ce4dcdefa4ece5e422e8fc",
-                        "6542b44b61003880354a7cf9",
-                        "6542b44b61003880354a7f39",
-                        "6542b44b61003880354a7f3d",
-                        "65442a432a8cb7633892f5b7",
-                        "65442a432a8cb7633892f5bc",
-                        "654430230f52345f0848ba13",
-                        "654430230f52345f0848ba14",
-                        "654430230f52345f0848ba15",
-                        "6546ca63ddced41d2a3a51a8",
-                        "6549520075594f1d7e040413",
-                        "654abfef0faea61cfbe28d97",
-                        "6553d3a58966f853db6a2f1b",
-                        "6553d4e7d4114c5410dd6b1d",
-                        "6553e98c207a13540a9f741c",
-                        "6555300ec10a4be6a5b58bc1",
-                        "6567bf508ae6d75ed6d0076a",
-                        "659da7cc6a50fbbaf04525e2"
-                    ]
+                    $in: facilities
                 }
             };
 
@@ -1014,5 +960,40 @@ export class SyncHelpers {
 
         return { existed, notExisted };
 
+    }
+
+    async getMghCases(fromDate, facilities) {
+        try {
+            let query = {
+                status: { $nin: ["ARCHIVE", "ARCHIVED"] },
+                // updated_at: {
+                //     $gte: fromDate,
+                //     $lte: toDate
+                // }
+                hospital: {
+                    $in: facilities
+                }
+            };
+
+            const select = {
+                accession_id: 1,
+                case_types: 1,
+                ordering_physician: 1,
+                hospital: 1,
+                hospital_marketers: 1,
+                "billing_info.insurance.primary_insurance.payor": 1,
+                received_date: 1,
+                collection_date: 1,
+                'patient_info._id': 1,
+                status: 1,
+                lab: 1
+            };
+
+            const cases = await this.mghLisService.getCases(query, select);
+
+            return cases;
+        } catch (err) {
+            throw err;
+        }
     }
 }

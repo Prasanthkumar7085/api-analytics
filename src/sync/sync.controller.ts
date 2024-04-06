@@ -29,7 +29,7 @@ export class SyncController {
 		private readonly caseTypesService: CaseTypesService,
 		private readonly insurancesService: InsurancesService,
 		private readonly salesRepService: SalesRepService,
-		private readonly faciliticesService: FacilitiesService,
+		private readonly facilitiesService: FacilitiesService,
 	) { }
 
 	@Get('patient-claims')
@@ -41,11 +41,14 @@ export class SyncController {
 			const fromDate = datesObj.fromDate;
 			const toDate = datesObj.toDate;
 
-			const facilitiesArray = await this.faciliticesService.getAllFacilitiesData();
+			const facilitiesArray = await this.facilitiesService.getAllFacilitiesData();
 
-			const facilities = facilitiesArray.map(e => e.refId);
+			let facilities = facilitiesArray.map(e => e.refId);
 
-			const cases = await this.syncHelpers.getCases(fromDate, toDate);
+			facilities = facilities.filter(item => item !== null);
+
+
+			const cases = await this.syncHelpers.getCases(fromDate, facilities);
 
 			if (cases.length == 0) {
 				return res.status(200).json({
@@ -362,7 +365,7 @@ export class SyncController {
 
 			const updatedFacilities = await this.syncHelpers.modifyFacilitiesData(transformedArray);
 
-			this.faciliticesService.insertfacilities(updatedFacilities);
+			this.facilitiesService.insertfacilities(updatedFacilities);
 
 			return res.status(200).json({
 				success: true,

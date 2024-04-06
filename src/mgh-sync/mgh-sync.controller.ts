@@ -2,11 +2,10 @@ import { Controller, Get, Res } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import mongoose from 'mongoose';
 import { Configuration } from 'src/config/config.service';
-import { INSURANCE_PAYORS_NOT_FOUND_IN_LIS_DATABASE, LABS_NOT_FOUND, LIS_FACILITIES_NOT_FOUND, SOMETHING_WENT_WRONG, SUCCESS_INSERTED_FACILICES, SUCCESS_SYNCED_INSURANCE_PAYORS, SUCCESS_SYNC_LABS, SUCCUSS_INSERTED_MARKETING_MANAGERS } from 'src/constants/messageConstants';
+import { INSURANCE_PAYORS_NOT_FOUND_IN_LIS_DATABASE, LABS_NOT_FOUND, LIS_FACILITIES_NOT_FOUND, PATIENT_CLAIMS_NOT_FOUND, SOMETHING_WENT_WRONG, SUCCESS_INSERTED_FACILICES, SUCCESS_SYNCED_INSURANCE_PAYORS, SUCCESS_SYNC_LABS, SUCCESS_SYNC_PATIENT_CLAIMS, SUCCUSS_INSERTED_MARKETING_MANAGERS } from 'src/constants/messageConstants';
 import { SyncHelpers } from 'src/helpers/syncHelper';
-import { LabsService } from 'src/labs/labs.service';
 import { MghSyncService } from './mgh-sync.service';
-import { InternetModule } from '@faker-js/faker';
+import { FacilitiesService } from 'src/facilities/facilities.service';
 
 @Controller({
   version: '1.0',
@@ -17,30 +16,44 @@ import { InternetModule } from '@faker-js/faker';
 export class MghSyncController {
   constructor(
     private readonly mghSyncService: MghSyncService,
-    private readonly labsService: LabsService,
+    private readonly facilitiesService: FacilitiesService,
     private readonly syncHelpers: SyncHelpers
   ) { }
 
 
   @Get('patient-claims')
-  async addPatientClaims(@Res() res: any) {
+  async syncPatientClaims(@Res() res: any) {
     try {
       const configuration = new Configuration(new ConfigService());
-
       const { lis_mgh_db_url } = configuration.getConfig();
-
       await mongoose.connect(lis_mgh_db_url);
 
-      const query = {
-        accession_id: "MT240404122"
-      };
 
-      const caseData = await this.mghSyncService.getCases(query);
+      const datesObj = this.syncHelpers.getFromAndToDates(7);
+
+      const fromDate = datesObj.fromDate;
+      const toDate = datesObj.toDate;
+
+      const facilitiesArray = await this.facilitiesService.getAllFacilitiesData();
+
+      let facilities = facilitiesArray.map(e => e.mghRefId);
+
+      facilities = facilities.filter(item => item !== null);
+
+      const cases = await this.syncHelpers.getMghCases(fromDate, facilities);
+
+      if (cases.length == 0) {
+        return res.status(200).json({
+          success: true,
+          message: PATIENT_CLAIMS_NOT_FOUND
+        });
+      }
+
+      this.syncHelpers.insertPatientClaims(cases);
 
       return res.status(200).json({
         success: true,
-        message: "Success",
-        caseData
+        message: SUCCESS_SYNC_PATIENT_CLAIMS
       });
     } catch (err) {
       console.log({ err });
