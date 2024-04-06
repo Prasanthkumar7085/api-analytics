@@ -886,4 +886,44 @@ export class SyncHelpers {
         return unMatchedFacilities;
     }
 
+
+    async modifyMghInsurancePayors(payorsData) {
+        const analyticsPayors = await this.insurancesService.getAllInsurances();
+
+        const existed = [];
+        const notExisted = [];
+
+        payorsData.forEach(payor => {
+            const existingRep = analyticsPayors.find(rep => rep.name.toLowerCase() === payor.name.toLowerCase());
+            if (existingRep) {
+                existed.push({ mghRefId: payor._id.toString(), id: existingRep.id });
+            } else {
+                notExisted.push(payor);
+            }
+        });
+
+        if (existed.length) {
+            const convertedData = existed.map(entry => {
+
+                const formattedQueryEntry = `(${entry.id}, '${entry.mghRefId}')`;
+                return formattedQueryEntry;
+            });
+
+            const finalString = convertedData.join(', ');
+
+            this.insurancesService.updateMghSalesReps(finalString);
+        }
+
+        if (notExisted.length) {
+            const modifiedData = notExisted.map(e => ({
+                name: e.name,
+                mghRefId: e._id.toString()
+            }));
+
+            this.insurancesService.insertInsurancePayors(modifiedData);
+        }
+
+        return { existed, notExisted };
+
+    }
 }

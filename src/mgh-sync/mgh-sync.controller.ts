@@ -2,7 +2,7 @@ import { Controller, Get, Res } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import mongoose from 'mongoose';
 import { Configuration } from 'src/config/config.service';
-import { LABS_NOT_FOUND, LIS_FACILITIES_NOT_FOUND, SOMETHING_WENT_WRONG, SUCCESS_INSERTED_FACILICES, SUCCESS_SYNC_LABS, SUCCUSS_INSERTED_MARKETING_MANAGERS } from 'src/constants/messageConstants';
+import { INSURANCE_PAYORS_NOT_FOUND_IN_LIS_DATABASE, LABS_NOT_FOUND, LIS_FACILITIES_NOT_FOUND, SOMETHING_WENT_WRONG, SUCCESS_INSERTED_FACILICES, SUCCESS_SYNCED_INSURANCE_PAYORS, SUCCESS_SYNC_LABS, SUCCUSS_INSERTED_MARKETING_MANAGERS } from 'src/constants/messageConstants';
 import { SyncHelpers } from 'src/helpers/syncHelper';
 import { LabsService } from 'src/labs/labs.service';
 import { MghSyncService } from './mgh-sync.service';
@@ -209,6 +209,43 @@ export class MghSyncController {
       return res.status(200).json({
         success: true,
         message: SUCCESS_INSERTED_FACILICES
+      });
+    } catch (err) {
+      console.log({ err });
+      return res.status(500).json({
+        success: false,
+        message: err || SOMETHING_WENT_WRONG
+      });
+    }
+  }
+
+
+  @Get("insurance-payors")
+  async syncInsurancePayors(@Res() res: any) {
+    try {
+      const configuration = new Configuration(new ConfigService());
+      const { lis_mgh_db_url } = configuration.getConfig();
+      await mongoose.connect(lis_mgh_db_url);
+
+      const query = {};
+
+      const projection = { _id: 1, name: 1 };
+
+      const insurancePayorsData = await this.mghSyncService.getInsurancePayors(query, projection);
+
+      if (insurancePayorsData.length == 0) {
+        return res.status(200).json({
+          success: true,
+          message: INSURANCE_PAYORS_NOT_FOUND_IN_LIS_DATABASE
+        });
+      }
+
+      const data = await this.syncHelpers.modifyMghInsurancePayors(insurancePayorsData);
+
+      return res.status(200).json({
+        success: true,
+        message: SUCCESS_SYNCED_INSURANCE_PAYORS,
+        data
       });
     } catch (err) {
       console.log({ err });

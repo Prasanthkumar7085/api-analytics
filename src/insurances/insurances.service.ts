@@ -147,4 +147,20 @@ export class InsurancesService {
 
         return await db.execute(sql`SELECT ref_id FROM insurance_payors WHERE ref_id IN ${lisInsurancePayorsIdsArray}`);
     }
+
+    async updateMghSalesReps(queryString) {
+		const rawQuery = sql`
+        UPDATE insurance_payors AS t
+        SET
+          id = u.id,
+          mgh_ref_id = u.mghRefId
+        FROM(
+          VALUES
+
+        ${sql.raw(queryString)}
+        ) as u(id, mghRefId)
+        WHERE t.id = u.id`;
+
+		return db.execute(rawQuery);
+	}
 }

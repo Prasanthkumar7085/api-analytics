@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { CaseModel } from 'src/schemas/caseSchema';
 import { HospitalModel } from 'src/schemas/hospitalSchema';
+import { InsurancePayorsModel } from 'src/schemas/insurancPayors';
 import { LabModel } from 'src/schemas/lab';
 import { UserModel } from 'src/schemas/userSchema';
 
@@ -29,7 +30,12 @@ export class MghSyncService {
     }
 
     async getFacilities(query, projection) {
-
         return await HospitalModel.find(query).select(projection).lean();
+    }
+
+
+    async getInsurancePayors(query = {}, projection = {}) {
+        return await InsurancePayorsModel.find(query).select(projection);
+
     }
 }
