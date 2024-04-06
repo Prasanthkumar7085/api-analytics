@@ -3,7 +3,7 @@ import { SyncService } from './sync.service';
 import { LisService } from 'src/lis/lis.service';
 import {
 	PATIENT_CLAIMS_NOT_FOUND, REMOVED_ARCHIVED_CLAIMS, SUCCESS_SYNC_PATIENT_CLAIMS, CASE_TYPES_NOT_FOUND_IN_LIS_DATABASE, INSURANCE_PAYORS_NOT_FOUND_IN_LIS_DATABASE, CASE_TYPES_NOT_FOUND, INSURANCE_PAYORS_NOT_FOUND, SOMETHING_WENT_WRONG, SUCCESS_SYNCED_CASE_TYPES, SUCCESS_SYNCED_INSURANCE_PAYORS,
-	HOSPITAL_MARKETING_MANAGER, SALES_REPS_NOT_FOUND, FACILITIES_NOT_FOUND, NEW_SALES_REPS_DATA_NOT_FOUND, SUCCUSS_INSERTED_MARKETING_MANAGERS, SUCCUSS_INSERTED_SALES_REPS, SUCCESS_INSERTED_FACILICES, LIS_FACILITIES_NOT_FOUND, MARKETER,
+	HOSPITAL_MARKETING_MANAGER, FACILITIES_NOT_FOUND, SALES_REPS_NOT_FOUND, SUCCUSS_INSERTED_MARKETING_MANAGERS, SUCCUSS_INSERTED_SALES_REPS, SUCCESS_INSERTED_FACILICES, LIS_FACILITIES_NOT_FOUND, MARKETER,
 	SUCCESS_SYNC_LABS,
 	LABS_NOT_FOUND
 } from 'src/constants/messageConstants';
@@ -224,7 +224,7 @@ export class SyncController {
 			const finalManagersData = await this.syncHelpers.getFinalManagersData(salesRepsManagersData);
 
 			if (finalManagersData.length === 0) {
-				return res.status(200).json({ success: true, message: NEW_SALES_REPS_DATA_NOT_FOUND });
+				return res.status(200).json({ success: true, message: SALES_REPS_NOT_FOUND });
 			}
 
 			await this.salesRepService.insertSalesRepsManagers(finalManagersData);
@@ -256,7 +256,7 @@ export class SyncController {
 			const unMatchedSalesRepsIds = await this.syncHelpers.getNotExistingIds(salesRepsData);
 
 			if (unMatchedSalesRepsIds.length === 0) {
-				return res.status(200).json({ success: true, message: NEW_SALES_REPS_DATA_NOT_FOUND });
+				return res.status(200).json({ success: true, message: SALES_REPS_NOT_FOUND });
 			}
 
 			const salesRepsQuery = { _id: { $in: unMatchedSalesRepsIds } };
@@ -307,41 +307,41 @@ export class SyncController {
 
 			const datesFilter = this.syncHelpers.getFromAndToDates(7);
 
-			const query = {
-				_id: {
-					$in: [
-						"65cf5a20cd2c7ce54e7177a5",
-						"65cf71d0e01fdcd8a23cf1de",
-						"65cfa4566cd21ee4e3ffcb89",
-						"65cfa4c6a2c4dce5a0007592",
-						"65cfa7bf6cd21ee4e3ffce74",
-						"65cfa081112d60e565b73da3",
-						"65cfa19966fab7e5b9f45a47",
-						"65cfa7ebf64af7e58b43e158",
-						"65cfab8744ae7ae53bda0d5c"
-					]
-				}
-			};
+			// const query = {
+			// 	_id: {
+			// 		$in: [
+			// 			"65cf5a20cd2c7ce54e7177a5",
+			// 			"65cf71d0e01fdcd8a23cf1de",
+			// 			"65cfa4566cd21ee4e3ffcb89",
+			// 			"65cfa4c6a2c4dce5a0007592",
+			// 			"65cfa7bf6cd21ee4e3ffce74",
+			// 			"65cfa081112d60e565b73da3",
+			// 			"65cfa19966fab7e5b9f45a47",
+			// 			"65cfa7ebf64af7e58b43e158",
+			// 			"65cfab8744ae7ae53bda0d5c"
+			// 		]
+			// 	}
+			// };
 
-			const select = {
-				_id: 1, hospitals: 1
-			};
-			const salesReps = await this.lisService.getUsers(query, select);
+			// const select = {
+			// 	_id: 1, hospitals: 1
+			// };
+			// const salesReps = await this.lisService.getUsers(query, select);
 
-			const hospitalsArray = salesReps.map(e => e.hospitals).flat();
+			// const hospitalsArray = salesReps.map(e => e.hospitals).flat();
 
-			const hospitals = [...new Set(hospitalsArray)];
+			// const hospitals = [...new Set(hospitalsArray)];
 
 
 			const hospitalQuery = {
 				status: 'ACTIVE',
-				// updated_at: {
-				// 	$gte: datesFilter.fromDate,
-				// 	$lte: datesFilter.toDate,
-				// },
-				_id: {
-					$in: hospitals
-				}
+				updated_at: {
+					$gte: datesFilter.fromDate,
+					$lte: datesFilter.toDate,
+				},
+				// _id: {
+				// 	$in: hospitals
+				// }
 			};
 
 			const projection = { _id: 1, name: 1 };

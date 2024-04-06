@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { CaseModel } from 'src/schemas/caseSchema';
+import { HospitalModel } from 'src/schemas/hospitalSchema';
 import { LabModel } from 'src/schemas/lab';
 import { UserModel } from 'src/schemas/userSchema';
 
@@ -25,5 +26,10 @@ export class MghSyncService {
 
     async getlabs(query = {}, select = {}) {
         return await LabModel.find(query).select(select).lean();
+    }
+
+    async getFacilities(query, projection) {
+
+        return await HospitalModel.find(query).select(projection).lean();
     }
 }

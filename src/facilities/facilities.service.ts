@@ -335,4 +335,20 @@ export class FacilitiesService {
 
         return await db.insert(facilities).values(data).returning();
     }
+
+    async updateMghFacilities(queryString) {
+		const rawQuery = sql`
+        UPDATE facilities AS t
+        SET
+          id = u.id,
+          mgh_ref_id = u.mghRefId
+        FROM(
+          VALUES
+
+        ${sql.raw(queryString)}
+        ) as u(id, mghRefId)
+        WHERE t.id = u.id`;
+
+		return db.execute(rawQuery);
+	}
 }

@@ -598,15 +598,8 @@ export class SyncHelpers {
 
 
     async modifyFacilitiesData(transformedArray) {
-        const salesRepsIds = transformedArray.map((e) => e.salesRepId);
 
-
-
-        const uniqueSalesRepsIds = [...new Set(salesRepsIds)];
-
-
-        const salesRepsIdsAndRefIdsData = await this.salesRepsService.getSalesRepsIdsAndRefIds(uniqueSalesRepsIds);
-
+        const salesRepsIdsAndRefIdsData = await this.getuniqueSalesReps(transformedArray);
 
         const updatedFacilities = transformedArray.map(facility => {
             const salesRep = salesRepsIdsAndRefIdsData.find(rep => rep.ref_id.toString() === facility.salesRepId);
@@ -618,6 +611,19 @@ export class SyncHelpers {
         });
 
         return updatedFacilities;
+    }
+
+
+    async getuniqueSalesReps(transformedArray) {
+        const salesRepsIds = transformedArray.map((e) => e.salesRepId);
+
+
+
+        const uniqueSalesRepsIds = [...new Set(salesRepsIds)];
+
+
+        const salesRepsIdsAndRefIdsData = await this.salesRepsService.getMghSalesRepsIdsAndRefIds(uniqueSalesRepsIds);
+        return salesRepsIdsAndRefIdsData;
     }
 
 
@@ -788,8 +794,96 @@ export class SyncHelpers {
     }
 
 
-    insertOrUpdateFacilities(){
-        
+    async insertOrUpdateMghFacilities(modifiedData) {
+        const analyticsFacilities = await this.facilitiesService.getAllFacilitiesData();
+        const existed = [];
+        const notExisted = [];
+
+        modifiedData.forEach(modifiedRep => {
+            const existingRep = analyticsFacilities.find(rep => rep.name.toLowerCase() === modifiedRep.name.toLowerCase());
+            if (existingRep) {
+                existed.push({ mghRefId: modifiedRep.mghRefId.toString(), id: existingRep.id });
+            } else {
+                notExisted.push({ mghRefId: modifiedRep.mghRefId.toString(), name: modifiedRep.name });
+            }
+        });
+
+        if (existed) {
+            const convertedData = existed.map(entry => {
+
+                const formattedQueryEntry = `(${entry.id}, '${entry.mghRefId}')`;
+                return formattedQueryEntry;
+            });
+
+            const finalString = convertedData.join(', ');
+
+            this.facilitiesService.updateMghFacilities(finalString);
+
+        }
+
+        if (notExisted.length) {
+            this.toInsertMghFacilities(notExisted);
+        }
+
+    }
+
+    async toInsertMghFacilities(notExisted) {
+        const notExistedFacilities = notExisted.map(e => e.mghRefId);
+
+        const query = {
+            user_type: { $in: ["MARKETER", "HOSPITAL_MARKETING_MANAGER"] },
+            hospitals: {
+                $in: notExistedFacilities
+            }
+        };
+
+
+        const select = {
+            _id: 1,
+            hospitals: 1
+        };
+
+        const salesRepsData = await this.mghLisService.getUsers(query, select);
+
+
+        let finalSalesReps = salesRepsData.map(item => {
+            let newItem = { ...item }; // Create a copy of the object
+            newItem._id = item._id.toString();
+            newItem.hospitals = item.hospitals.map(objectId => objectId.toString());
+            return newItem;
+        });
+
+        const transformedData = this.transformMghFacilities(finalSalesReps, notExisted);
+
+        const salesReps = await this.getuniqueSalesReps(transformedData);
+
+        const updatedFacilities = transformedData.map(facility => {
+            const salesRep = salesReps.find(rep => rep.mgh_ref_id.toString() === facility.salesRepId);
+            return {
+                name: facility.name,
+                mghRefId: facility.mghRefId,
+                salesRepId: salesRep ? salesRep.id : null
+            };
+        });
+
+        this.facilitiesService.insertfacilities(updatedFacilities);
+    }
+
+
+    transformMghFacilities(salesRepsData, unMatchedFacilities) {
+        unMatchedFacilities.forEach(facility => {
+            // Check if the facility _id is included in any hospital in salesRepsData
+            const matchedRep = salesRepsData.find(rep =>
+                rep.hospitals.includes(facility.mghRefId)
+            );
+
+            // If a match is found, add the _id from salesRepsData to the facility object
+            if (matchedRep) {
+                facility.salesRepId = matchedRep._id;
+            }
+        });
+
+        return unMatchedFacilities;
     }
 
 }
