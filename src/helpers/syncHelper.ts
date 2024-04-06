@@ -560,6 +560,7 @@ export class SyncHelpers {
             }
         };
 
+
         const select = {
             _id: 1,
             hospitals: 1
@@ -612,7 +613,7 @@ export class SyncHelpers {
             return {
                 name: facility.name,
                 refId: facility._id,
-                salesRepId: salesRep ? salesRep.id : null
+                salesRepId: salesRep ? salesRep.id : 9
             };
         });
 
@@ -786,5 +787,9 @@ export class SyncHelpers {
         return { existed, notExisted };
     }
 
+
+    insertOrUpdateFacilities(){
+        
+    }
 
 }
