@@ -18,4 +18,8 @@ export class LabsService {
 
         return data.rows;
     }
+
+    async getAllLabs() {
+        return db.select().from(labs);
+    }
 }

@@ -41,6 +41,10 @@ export class SyncController {
 			const fromDate = datesObj.fromDate;
 			const toDate = datesObj.toDate;
 
+			const facilitiesArray = await this.faciliticesService.getAllFacilitiesData();
+
+			const facilities = facilitiesArray.map(e => e.refId);
+
 			const cases = await this.syncHelpers.getCases(fromDate, toDate);
 
 			if (cases.length == 0) {
@@ -50,21 +54,11 @@ export class SyncController {
 				});
 			}
 
-			const analyticsData = await this.syncHelpers.getAllAnalyticsData();
-
-			let modifiedArray = this.syncHelpers.modifyCasesForPatientClaims(cases, analyticsData);
-
-			if (modifiedArray.length) {
-
-				const seperatedArray = await this.syncHelpers.seperateModifiedArray(modifiedArray);
-
-				this.syncHelpers.insertOrUpdateModifiedClaims(seperatedArray);
-			}
+			this.syncHelpers.insertPatientClaims(cases);
 
 			return res.status(200).json({
 				success: true,
-				message: SUCCESS_SYNC_PATIENT_CLAIMS,
-				cases
+				message: SUCCESS_SYNC_PATIENT_CLAIMS
 			});
 
 		} catch (err) {

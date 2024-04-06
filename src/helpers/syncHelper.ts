@@ -51,7 +51,63 @@ export class SyncHelpers {
                 //     $gte: fromDate,
                 //     $lte: toDate
                 // }
-                accession_id: "DT240405001"
+                hospital: {
+                    $in: [
+                        "6542b44b61003880354a7c5b",
+                        "6542b44b61003880354a7c83",
+                        "6542b44b61003880354a7cde",
+                        "6542b44b61003880354a7ce3",
+                        "6542b44b61003880354a7cf0",
+                        "6542b44b61003880354a7d05",
+                        "6542b44b61003880354a7d14",
+                        "6542b44b61003880354a7d57",
+                        "6542b44b61003880354a7d5b",
+                        "6542b44b61003880354a7dd1",
+                        "6542b44b61003880354a7dd2",
+                        "6542b44b61003880354a7ddb",
+                        "6542b44b61003880354a7de0",
+                        "6542b44b61003880354a7e5f",
+                        "6542b44b61003880354a7e60",
+                        "6542b44b61003880354a7e69",
+                        "6542b44b61003880354a7e7b",
+                        "6542b44b61003880354a7ea3",
+                        "6542b44b61003880354a7ea7",
+                        "6542b44b61003880354a7eed",
+                        "6542b44b61003880354a7f0e",
+                        "6542b44b61003880354a7f0f",
+                        "6542b44b61003880354a7f11",
+                        "6542b44b61003880354a7f18",
+                        "6542b44b61003880354a7f3a",
+                        "6542b44b61003880354a7f3c",
+                        "6543caa32745ccd610988adf",
+                        "65442a432a8cb7633892f5c0",
+                        "6545346082eac5036736e0c2",
+                        "654ac0a375594f1d7e0464bb",
+                        "654ac10d0ebb8a1d964499ce",
+                        "6553d63adbb8c7545302bdcd",
+                        "65905bd2cf65322ab3af8c82",
+                        "659da608233407bb984bd8d8",
+                        "65c3d6c44d7e316bedca6ce6",
+                        "65ce4dcdefa4ece5e422e8fc",
+                        "6542b44b61003880354a7cf9",
+                        "6542b44b61003880354a7f39",
+                        "6542b44b61003880354a7f3d",
+                        "65442a432a8cb7633892f5b7",
+                        "65442a432a8cb7633892f5bc",
+                        "654430230f52345f0848ba13",
+                        "654430230f52345f0848ba14",
+                        "654430230f52345f0848ba15",
+                        "6546ca63ddced41d2a3a51a8",
+                        "6549520075594f1d7e040413",
+                        "654abfef0faea61cfbe28d97",
+                        "6553d3a58966f853db6a2f1b",
+                        "6553d4e7d4114c5410dd6b1d",
+                        "6553e98c207a13540a9f741c",
+                        "6555300ec10a4be6a5b58bc1",
+                        "6567bf508ae6d75ed6d0076a",
+                        "659da7cc6a50fbbaf04525e2"
+                    ]
+                }
             };
 
             const select = {
@@ -64,7 +120,8 @@ export class SyncHelpers {
                 received_date: 1,
                 collection_date: 1,
                 'patient_info._id': 1,
-                status: 1
+                status: 1,
+                lab: 1
             };
 
             const cases = await this.lisService.getCases(query, select);
@@ -83,7 +140,9 @@ export class SyncHelpers {
 
         const insurancePayers = await this.insurancesService.getAllInsurances();
 
-        return { caseTypes, facilities, insurancePayers };
+        const labs = await this.labsService.getAllLabs();
+
+        return { caseTypes, facilities, insurancePayers, labs };
     }
 
 
@@ -91,6 +150,7 @@ export class SyncHelpers {
         const facilities = analyticsData.facilities;
         const caseTypes = analyticsData.caseTypes;
         const insurancePayers = analyticsData.insurancePayers;
+        const labs = analyticsData.labs;
 
         let modifiedArray = [];
 
@@ -112,12 +172,38 @@ export class SyncHelpers {
 
             if (insurancePayer) claimData = this.forInsurancePayerId(insurancePayer, insurancePayers, claimData);
 
+            if (cases[i].lab) claimData = this.forLabId(cases[i], labs, claimData);
+
             claimData = this.forCaseTypeId(cases[i], caseTypes, claimData);
 
             modifiedArray.push(claimData);
         }
 
+
         return modifiedArray;
+    }
+
+
+    async insertPatientClaims(cases) {
+        const analyticsData = await this.getAllAnalyticsData();
+
+        let modifiedArray = this.modifyCasesForPatientClaims(cases, analyticsData);
+
+        if (modifiedArray.length) {
+
+            const seperatedArray = await this.seperateModifiedArray(modifiedArray);
+
+            this.insertOrUpdateModifiedClaims(seperatedArray);
+        }
+    }
+
+    forLabId(cases, labs, claimData) {
+        const lab = labs.find(lab => lab.refId === cases.lab.toString());
+
+        if (lab) {
+            claimData.labId = lab.id;
+        }
+        return claimData;
     }
 
 
@@ -212,15 +298,16 @@ export class SyncHelpers {
                     const serviceDate = entry.serviceDate ? new Date(entry.serviceDate).toISOString() : "";
                     const collectionDate = entry.collectionDate ? new Date(entry.collectionDate).toISOString() : "";
 
-                    const caseTypeId = entry.caseTypeId ? entry.caseTypeId : 0;
+                    const caseTypeId = entry.caseTypeId ? entry.caseTypeId : null;
                     const patientId = entry.patientId || 0;
                     const reportsFinalized = entry.reportsFinalized ? entry.reportsFinalized : false;
-                    const physicianId = entry.physicianId ? entry.physicianId : 0;
-                    const facilityId = entry.facilityId ? entry.facilityId : 219;
-                    const salesRepId = entry.salesRepId ? entry.salesRepId : 147;
-                    const insurancePayerId = entry.insurancePayerId ? entry.insurancePayerId : 694;
+                    const physicianId = entry.physicianId ? entry.physicianId : null;
+                    const facilityId = entry.facilityId ? entry.facilityId : null;
+                    const salesRepId = entry.salesRepId ? entry.salesRepId : null;
+                    const insurancePayerId = entry.insurancePayerId ? entry.insurancePayerId : null;
+                    const labId = entry.labId ? entry.labId : null;
 
-                    const formattedQueryEntry = `('${entry.accessionId}', '${serviceDate}'::timestamp, '${collectionDate}'::timestamp, ${caseTypeId}, '${patientId}', ${reportsFinalized}, '${physicianId}', ${facilityId}, ${salesRepId}, ${insurancePayerId})`;
+                    const formattedQueryEntry = `('${entry.accessionId}', '${serviceDate}'::timestamp, '${collectionDate}'::timestamp, ${caseTypeId}, '${patientId}', ${reportsFinalized}, '${physicianId}', ${facilityId}, ${salesRepId}, ${insurancePayerId}, ${labId})`;
                     return formattedQueryEntry;
                 });
 
@@ -239,6 +326,8 @@ export class SyncHelpers {
                 this.SyncService.insertPatientClaims(batch);
             }
         }
+
+        return { existedData, notExistedData };
 
     }
 

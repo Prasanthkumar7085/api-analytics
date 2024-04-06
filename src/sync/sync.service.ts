@@ -32,12 +32,13 @@ export class SyncService {
           physician_id = u.physicianId,
           facility_id = u.facilityId,
           sales_rep_id = u.salesRepId,
-          insurance_payer_id = u.insurancePayerId
+          insurance_payer_id = u.insurancePayerId,
+          lab_id = u.labId
         FROM(
           VALUES
 
         ${sql.raw(queryString)}
-        ) as u(accessionId, serviceDate, collectionDate, caseTypeId, patientId, reportsFinalized, physicianId, facilityId, salesRepId, insurancePayerId)
+        ) as u(accessionId, serviceDate, collectionDate, caseTypeId, patientId, reportsFinalized, physicianId, facilityId, salesRepId, insurancePayerId, labId)
         WHERE t.accession_id = u.accessionId`;
 
     return db.execute(rawQuery);
