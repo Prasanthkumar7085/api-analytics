@@ -7,7 +7,7 @@ export const sales_reps = pgTable('sales_reps', {
     name: text('name'),
     refId: text('ref_id').default(null),// mongodbid
     mghRefId: text('mgh_ref_id').default(null),// mongodbid
-    reportingTo: serial('reporting_to').default(null),
+    reportingTo: serial('reporting_to'),
     roleId: integer("role_id").references(() => user_role.id),
 }, (table: any) => {
     return {

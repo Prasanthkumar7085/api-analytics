@@ -43,18 +43,17 @@ export class SyncHelpers {
     }
 
 
-    async getCases(fromDate, toDate) {
+    async getCases(fromDate, facilities) {
         try {
-            console.log({ fromDate });
             let query = {
                 status: { $nin: ["ARCHIVE", "ARCHIVED"] },
-                updated_at: {
+                created_at: {
                     $gte: "2023-10-01",
                     // $lte: toDate
+                },
+                hospital: {
+                    $in: facilities
                 }
-                // hospital: {
-                //     $in: facilities
-                // }
             };
 
             const select = {
@@ -190,12 +189,14 @@ export class SyncHelpers {
 
         let modifiedArray = this.modifyMghCasesForPatientClaims(cases, analyticsData);
 
+        let data;
         if (modifiedArray.length) {
 
             const seperatedArray = await this.seperateModifiedArray(modifiedArray);
 
-            this.insertOrUpdateModifiedClaims(seperatedArray);
+            data = this.insertOrUpdateModifiedClaims(seperatedArray);
         }
+        return data;
     }
 
 
@@ -1039,7 +1040,7 @@ export class SyncHelpers {
         try {
             let query = {
                 status: { $nin: ["ARCHIVE", "ARCHIVED"] },
-                updated_at: {
+                created_at: {
                     $gte: "2023-10-01",
                     // $lte: toDate
                 },

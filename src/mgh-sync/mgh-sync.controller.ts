@@ -49,11 +49,12 @@ export class MghSyncController {
         });
       }
 
-      this.syncHelpers.insertMghPatientClaims(cases);
+      const data = await this.syncHelpers.insertMghPatientClaims(cases);
 
       return res.status(200).json({
         success: true,
         message: SUCCESS_SYNC_PATIENT_CLAIMS,
+        data
       });
     } catch (err) {
       console.log({ err });
@@ -236,9 +237,6 @@ export class MghSyncController {
             "60c8cecd2af7f56c193e7d69",
             "60f9b10bb1469c21fd5748b6",
             "64026600269c13638eed6ba1",
-            "64072a7c2393397befad6a46",
-            "64085dab1d88aa2cc201a7ea",
-            "6409a2d36f430b398f1e0d6a",
             "645e69b0a097dd2ae675499c",
             "645e6a366f916d2abaf39873",
             "646bf97fc07ab512b47927bf",

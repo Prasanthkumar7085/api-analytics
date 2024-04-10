@@ -48,7 +48,7 @@ export class SyncController {
 			facilities = facilities.filter(item => item !== null);
 
 
-			const cases = await this.syncHelpers.getCases(fromDate, toDate);
+			const cases = await this.syncHelpers.getCases(fromDate, facilities);
 
 			if (cases.length == 0) {
 				return res.status(200).json({
@@ -313,11 +313,11 @@ export class SyncController {
 			const query = {
 				_id: {
 					$in: [
+						"6611a080dc8a118df7420284",
 						"65c1589c40f38b52d862b809",
 						"65cf5a20cd2c7ce54e7177a5",
 						"65cfa4c6a2c4dce5a0007592",
 						"65cfa5f1b92184e515ffbc86",
-						"6611a080dc8a118df7420284",
 						"65cfa081112d60e565b73da3",
 						"65cfa19966fab7e5b9f45a47",
 						"65cfa6b1b92184e515ffbcce",
