@@ -71,6 +71,13 @@
       "when": 1712399363400,
       "tag": "0009_peaceful_grim_reaper",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "5",
+      "when": 1712781328478,
+      "tag": "0010_huge_tigra",
+      "breakpoints": true
     }
   ]
 }

@@ -29,6 +29,7 @@ export class SalesRepService {
             GROUP BY 
 				p.sales_rep_id, 
 				s.name
+				s.email
 			ORDER BY
 				sales_rep_name
         `;
