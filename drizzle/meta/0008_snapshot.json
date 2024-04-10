@@ -1,6 +1,6 @@
 {
-  "id": "457bfed2-f625-4601-bea6-4e17d7553d61",
-  "prevId": "00000000-0000-0000-0000-000000000000",
+  "id": "acd98280-52af-4043-894a-0e8ce4e4c8d2",
+  "prevId": "2d97fdba-1ec2-4ba3-acc6-eb665db6e731",
   "version": "5",
   "dialect": "pg",
   "tables": {

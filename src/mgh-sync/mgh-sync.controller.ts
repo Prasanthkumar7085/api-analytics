@@ -133,7 +133,7 @@ export class MghSyncController {
         //     $gte: datesFilter.fromDate,
         //     $lte: datesFilter.toDate,
         // },
-    };
+      };
 
       const salesRepsData = await this.syncHelpers.getMghSalesReps(query);
 
@@ -180,7 +180,7 @@ export class MghSyncController {
         //     $gte: datesFilter.fromDate,
         //     $lte: datesFilter.toDate,
         // },
-    };
+      };
 
       const salesRepsData = await this.syncHelpers.getMghSalesReps(query);
 
@@ -221,41 +221,53 @@ export class MghSyncController {
 
       const datesFilter = this.syncHelpers.getFromAndToDates(7);
 
-      // const query = {
-      //   _id: {
-      //     $in: [
-      //       "611fcb57b16f85217cf80d12",
-      //       "64a5a5acead06a14f9c10625",
-      //       "65d76ccf871d317cf358f1bd",
-      //       "64b707d286f7f57a60b5a622",
-      //       "645bc32c04f62b2b3fdf788f",
-      //       "640b822542b30768cb575699",
-      //       "65301618d78bd4eaa12f281c",
-      //       "65301691d78bd4eaa12f2845",
-      //       "651d7c490f68d73ac39a64b4"
-      //     ]
-      //   }
-      // };
+      const query = {
+        _id: {
+          $in: [
+            "65c159bcb2a4b7d072c7afc9",
+            "661047986b4dd9bc67574f1f",
+            "6610487e15478abc276765c9",
+            "661193602055f3dc3b1f4149",
+            "66104b6dc8bf08bcc77070f9",
+            "65301618d78bd4eaa12f281c",
+            "661055101720c4bb87e4c721",
+            "651d7c490f68d73ac39a64b4",
+            "64a5a5acead06a14f9c10625",
+            "60c8cecd2af7f56c193e7d69",
+            "60f9b10bb1469c21fd5748b6",
+            "64026600269c13638eed6ba1",
+            "64072a7c2393397befad6a46",
+            "64085dab1d88aa2cc201a7ea",
+            "6409a2d36f430b398f1e0d6a",
+            "645e69b0a097dd2ae675499c",
+            "645e6a366f916d2abaf39873",
+            "646bf97fc07ab512b47927bf",
+            "64e60201d007c63e429a9fea",
+            "64e77f81abed24021e2679bc",
+            "6610574b94b288bc47221cd7"
+          ]
+        }
+      };
 
-      // const select = {
-      //   _id: 1, hospitals: 1
-      // };
-      // const salesReps = await this.mghSyncService.getUsers(query, select);
+      const select = {
+        _id: 1, hospitals: 1
+      };
+      const salesReps = await this.mghSyncService.getUsers(query, select);
 
-      // const hospitalsArray = salesReps.map(e => e.hospitals).flat();
+      const hospitalsArray = salesReps.map(e => e.hospitals).flat();
 
-      // const hospitals = [...new Set(hospitalsArray)];
+      const hospitals = [...new Set(hospitalsArray)];
 
 
       const hospitalQuery = {
         status: 'ACTIVE',
-        updated_at: {
-          $gte: datesFilter.fromDate,
-          $lte: datesFilter.toDate,
-        },
-        // _id: {
-        //   $in: hospitals
-        // }
+        // updated_at: {
+        //   $gte: datesFilter.fromDate,
+        //   $lte: datesFilter.toDate,
+        // },
+        _id: {
+          $in: hospitals
+        }
       };
 
       const projection = { _id: 1, name: 1 };

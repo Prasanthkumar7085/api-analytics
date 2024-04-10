@@ -423,9 +423,13 @@ export class SyncHelpers {
             finalArray = await this.getFinalManagersData(withoutReportingTo);
 
             if (finalArray.length) {
-                await this.salesRepsService.insertSalesRepsManagers(finalArray);
+                let insertedData = await this.salesRepsService.insertSalesRepsManagers(finalArray);
 
-                this.salesRepsService.updateSalesRepsManagersData();
+                if (insertedData.length) {
+                    const ids = insertedData.map((e) => e.id);
+                    this.salesRepsService.updateSalesRepsManagersData(ids);
+                }
+
             }
         }
 
@@ -577,6 +581,7 @@ export class SyncHelpers {
     async getSalesRepsByFacilites(facilities) {
         const query = {
             user_type: { $in: ["MARKETER", "HOSPITAL_MARKETING_MANAGER"] },
+            status: "ACTIVE",
             hospitals: {
                 $in: facilities
             }
@@ -622,10 +627,6 @@ export class SyncHelpers {
     async modifyFacilitiesData(transformedArray) {
 
         const salesRepsIdsAndRefIdsData = await this.getuniqueSalesReps(transformedArray);
-
-        console.log({ salesRepsIdsAndRefIdsData: salesRepsIdsAndRefIdsData[0] });
-
-        console.log({ transformedArray: transformedArray[0] });
 
         const updatedFacilities = transformedArray.map(facility => {
             const salesRep = salesRepsIdsAndRefIdsData.find(rep => rep.ref_id.toString() === facility.salesRepId);

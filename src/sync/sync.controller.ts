@@ -220,13 +220,17 @@ export class SyncController {
 
 			const finalManagersData = await this.syncHelpers.getFinalManagersData(salesRepsManagersData);
 
-			if (finalManagersData.length === 0) {
-				return res.status(200).json({ success: true, message: SALES_REPS_NOT_FOUND });
+			// if (finalManagersData.length === 0) {
+			// 	return res.status(200).json({ success: true, message: SALES_REPS_NOT_FOUND });
+			// }
+
+			let insertedData = await this.salesRepService.insertSalesRepsManagers(finalManagersData);
+
+			if (insertedData.length) {
+				const ids = insertedData.map((e)=> e.id);
+				this.salesRepService.updateSalesRepsManagersData(ids);
 			}
 
-			await this.salesRepService.insertSalesRepsManagers(finalManagersData);
-
-			this.salesRepService.updateSalesRepsManagersData();
 
 			return res.status(200).json({ success: true, message: SUCCUSS_INSERTED_MARKETING_MANAGERS });
 		}
@@ -366,7 +370,7 @@ export class SyncController {
 
 			const updatedFacilities = await this.syncHelpers.modifyFacilitiesData(transformedArray);
 
-			// this.facilitiesService.insertfacilities(updatedFacilities);
+			this.facilitiesService.insertfacilities(updatedFacilities);
 
 			return res.status(200).json({
 				success: true,

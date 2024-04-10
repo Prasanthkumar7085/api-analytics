@@ -1,6 +1,6 @@
 {
-  "id": "457bfed2-f625-4601-bea6-4e17d7553d61",
-  "prevId": "00000000-0000-0000-0000-000000000000",
+  "id": "a6fddaaa-d4df-4cc8-8556-3a4a58dc56b6",
+  "prevId": "8841b4c0-dbd2-4f1f-9f2b-c17a0c99a31a",
   "version": "5",
   "dialect": "pg",
   "tables": {
@@ -582,8 +582,7 @@
           "name": "reporting_to",
           "type": "serial",
           "primaryKey": false,
-          "notNull": true,
-          "default": null
+          "notNull": true
         },
         "role_id": {
           "name": "role_id",

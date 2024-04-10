@@ -448,9 +448,8 @@ export class SalesRepService {
 	}
 
 
-	async updateSalesRepsManagersData() {
-
-		return await db.execute(sql`UPDATE sales_reps SET reporting_to = id WHERE reporting_to != id AND role_id = 2;`);
+	async updateSalesRepsManagersData(ids) {
+		return await db.execute(sql`UPDATE sales_reps SET reporting_to = id WHERE id IN ${ids};`);
 	}
 
 
