@@ -623,6 +623,10 @@ export class SyncHelpers {
 
         const salesRepsIdsAndRefIdsData = await this.getuniqueSalesReps(transformedArray);
 
+        console.log({ salesRepsIdsAndRefIdsData: salesRepsIdsAndRefIdsData[0] });
+
+        console.log({ transformedArray: transformedArray[0] });
+
         const updatedFacilities = transformedArray.map(facility => {
             const salesRep = salesRepsIdsAndRefIdsData.find(rep => rep.ref_id.toString() === facility.salesRepId);
             return {
@@ -637,6 +641,19 @@ export class SyncHelpers {
 
 
     async getuniqueSalesReps(transformedArray) {
+        const salesRepsIds = transformedArray.map((e) => e.salesRepId);
+
+
+
+        const uniqueSalesRepsIds = [...new Set(salesRepsIds)];
+
+
+        const salesRepsIdsAndRefIdsData = await this.salesRepsService.getSalesRepsIdsAndRefIds(uniqueSalesRepsIds);
+        return salesRepsIdsAndRefIdsData;
+    }
+
+
+    async getuniqueMghSalesReps(transformedArray) {
         const salesRepsIds = transformedArray.map((e) => e.salesRepId);
 
 
@@ -855,7 +872,7 @@ export class SyncHelpers {
 
         const transformedData = this.transformMghFacilities(finalSalesReps, notExisted);
 
-        const salesReps = await this.getuniqueSalesReps(transformedData);
+        const salesReps = await this.getuniqueMghSalesReps(transformedData);
 
         const updatedFacilities = transformedData.map(facility => {
             const salesRep = salesReps.find(rep => rep.mgh_ref_id.toString() === facility.salesRepId);

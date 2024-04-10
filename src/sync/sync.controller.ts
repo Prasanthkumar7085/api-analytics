@@ -366,7 +366,7 @@ export class SyncController {
 
 			const updatedFacilities = await this.syncHelpers.modifyFacilitiesData(transformedArray);
 
-			this.facilitiesService.insertfacilities(updatedFacilities);
+			// this.facilitiesService.insertfacilities(updatedFacilities);
 
 			return res.status(200).json({
 				success: true,
