@@ -641,6 +641,24 @@ export class SyncHelpers {
     }
 
 
+    async modifyMghFacilitiesData(transformedArray) {
+
+        const salesRepsIdsAndRefIdsData = await this.getuniqueMghSalesReps(transformedArray);
+        console.log({ salesRepsIdsAndRefIdsData: salesRepsIdsAndRefIdsData[0] });
+        console.log({ transformedArray: transformedArray[0] });
+
+        const updatedFacilities = transformedArray.map(facility => {
+            const salesRep = salesRepsIdsAndRefIdsData.find(rep => rep.ref_id.toString() === facility.salesRepId);
+            return {
+                name: facility.name,
+                mghRefId: facility.mghRefId,
+                salesRepId: salesRep ? salesRep.id : 9
+            };
+        });
+
+        return updatedFacilities;
+    }
+
     async getuniqueSalesReps(transformedArray) {
         const salesRepsIds = transformedArray.map((e) => e.salesRepId);
 
@@ -815,7 +833,7 @@ export class SyncHelpers {
     async insertOrUpdateMghFacilities(modifiedData) {
         const analyticsFacilities = await this.facilitiesService.getAllFacilitiesData();
         const existed = [];
-        const notExisted = [];
+        let notExisted = [];
 
         modifiedData.forEach(modifiedRep => {
             const existingRep = analyticsFacilities.find(rep => rep.name.toLowerCase() === modifiedRep.name.toLowerCase());
@@ -835,7 +853,7 @@ export class SyncHelpers {
 
             const finalString = convertedData.join(', ');
 
-            this.facilitiesService.updateMghFacilities(finalString);
+            // this.facilitiesService.updateMghFacilities(finalString);
 
         }
 
@@ -843,12 +861,15 @@ export class SyncHelpers {
             this.toInsertMghFacilities(notExisted);
         }
 
+        return { existed, notExisted };
+
     }
 
     async toInsertMghFacilities(notExisted) {
         const notExistedFacilities = notExisted.map(e => e.mghRefId);
 
         const query = {
+            status: "ACTIVE",
             user_type: { $in: ["MARKETER", "HOSPITAL_MARKETING_MANAGER"] },
             hospitals: {
                 $in: notExistedFacilities
@@ -883,6 +904,7 @@ export class SyncHelpers {
                 salesRepId: salesRep ? salesRep.id : null
             };
         });
+
 
         this.facilitiesService.insertfacilities(updatedFacilities);
     }
