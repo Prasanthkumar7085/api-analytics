@@ -307,15 +307,16 @@ export class SyncController {
 			const query = {
 				_id: {
 					$in: [
+						"65c1589c40f38b52d862b809",
 						"65cf5a20cd2c7ce54e7177a5",
-						"65cf71d0e01fdcd8a23cf1de",
-						"65cfa4566cd21ee4e3ffcb89",
 						"65cfa4c6a2c4dce5a0007592",
-						"65cfa7bf6cd21ee4e3ffce74",
+						"65cfa5f1b92184e515ffbc86",
+						"6611a080dc8a118df7420284",
 						"65cfa081112d60e565b73da3",
 						"65cfa19966fab7e5b9f45a47",
-						"65cfa7ebf64af7e58b43e158",
-						"65cfab8744ae7ae53bda0d5c"
+						"65cfa6b1b92184e515ffbcce",
+						"65cfab8744ae7ae53bda0d5c",
+						"6611a25bed767c8e58870f78"
 					]
 				}
 			};
@@ -369,7 +370,8 @@ export class SyncController {
 
 			return res.status(200).json({
 				success: true,
-				message: SUCCESS_INSERTED_FACILICES
+				message: SUCCESS_INSERTED_FACILICES,
+				updatedFacilities
 			});
 		}
 		catch (error) {
