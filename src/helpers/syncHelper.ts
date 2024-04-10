@@ -362,19 +362,6 @@ export class SyncHelpers {
             //     $gte: datesFilter.fromDate,
             //     $lte: datesFilter.toDate,
             // },
-            _id: {
-                $in: [
-                    "65cfa081112d60e565b73da3",
-                    "65cfa19966fab7e5b9f45a47",
-                    "65cf5a20cd2c7ce54e7177a5",
-                    "65cfa4c6a2c4dce5a0007592",
-                    "65cfa7ebf64af7e58b43e158",
-                    "65cfa4566cd21ee4e3ffcb89",
-                    "65cfab8744ae7ae53bda0d5c",
-                    "65cf71d0e01fdcd8a23cf1de",
-                    "65cfa7bf6cd21ee4e3ffce74"
-                ]
-            }
         };
 
 
@@ -756,29 +743,7 @@ export class SyncHelpers {
         }
     }
 
-    async getMghSalesReps(datesFilter) {
-
-        const query = {
-            status: "ACTIVE",
-            user_type: { $in: [HOSPITAL_MARKETING_MANAGER, MARKETER] },
-            // updated_at: {
-            //     $gte: datesFilter.fromDate,
-            //     $lte: datesFilter.toDate,
-            // },
-            _id: {
-                $in: [
-                    "640b822542b30768cb575699",
-                    "65301618d78bd4eaa12f281c",
-                    "611fcb57b16f85217cf80d12",
-                    "64b707d286f7f57a60b5a622",
-                    "65301691d78bd4eaa12f2845",
-                    "65d76ccf871d317cf358f1bd",
-                    "651d7c490f68d73ac39a64b4",
-                    "64a5a5acead06a14f9c10625",
-                    "645bc32c04f62b2b3fdf788f"
-                ]
-            }
-        };
+    async getMghSalesReps(query) {
 
 
         const select = {

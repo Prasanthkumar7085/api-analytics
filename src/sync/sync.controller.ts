@@ -304,41 +304,41 @@ export class SyncController {
 
 			const datesFilter = this.syncHelpers.getFromAndToDates(7);
 
-			// const query = {
-			// 	_id: {
-			// 		$in: [
-			// 			"65cf5a20cd2c7ce54e7177a5",
-			// 			"65cf71d0e01fdcd8a23cf1de",
-			// 			"65cfa4566cd21ee4e3ffcb89",
-			// 			"65cfa4c6a2c4dce5a0007592",
-			// 			"65cfa7bf6cd21ee4e3ffce74",
-			// 			"65cfa081112d60e565b73da3",
-			// 			"65cfa19966fab7e5b9f45a47",
-			// 			"65cfa7ebf64af7e58b43e158",
-			// 			"65cfab8744ae7ae53bda0d5c"
-			// 		]
-			// 	}
-			// };
+			const query = {
+				_id: {
+					$in: [
+						"65cf5a20cd2c7ce54e7177a5",
+						"65cf71d0e01fdcd8a23cf1de",
+						"65cfa4566cd21ee4e3ffcb89",
+						"65cfa4c6a2c4dce5a0007592",
+						"65cfa7bf6cd21ee4e3ffce74",
+						"65cfa081112d60e565b73da3",
+						"65cfa19966fab7e5b9f45a47",
+						"65cfa7ebf64af7e58b43e158",
+						"65cfab8744ae7ae53bda0d5c"
+					]
+				}
+			};
 
-			// const select = {
-			// 	_id: 1, hospitals: 1
-			// };
-			// const salesReps = await this.lisService.getUsers(query, select);
+			const select = {
+				_id: 1, hospitals: 1
+			};
+			const salesReps = await this.lisService.getUsers(query, select);
 
-			// const hospitalsArray = salesReps.map(e => e.hospitals).flat();
+			const hospitalsArray = salesReps.map(e => e.hospitals).flat();
 
-			// const hospitals = [...new Set(hospitalsArray)];
+			const hospitals = [...new Set(hospitalsArray)];
 
 
 			const hospitalQuery = {
 				status: 'ACTIVE',
-				updated_at: {
-					$gte: datesFilter.fromDate,
-					$lte: datesFilter.toDate,
-				},
-				// _id: {
-				// 	$in: hospitals
-				// }
+				// updated_at: {
+				// 	$gte: datesFilter.fromDate,
+				// 	$lte: datesFilter.toDate,
+				// },
+				_id: {
+					$in: hospitals
+				}
 			};
 
 			const projection = { _id: 1, name: 1 };

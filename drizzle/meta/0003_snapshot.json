@@ -1,6 +1,6 @@
 {
-  "id": "9422d7a1-3395-4e20-9e76-920b60bfdc27",
-  "prevId": "6caf693e-c77b-4d93-aad5-158182dd8e80",
+  "id": "4a46938c-602e-40af-97b1-668578f06a97",
+  "prevId": "eb491567-a0b3-4eff-bc03-fe874f7a7e1c",
   "version": "5",
   "dialect": "pg",
   "tables": {
@@ -16,6 +16,12 @@
         },
         "name": {
           "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "display_name": {
+          "name": "display_name",
           "type": "text",
           "primaryKey": false,
           "notNull": false
@@ -46,16 +52,40 @@
           "name": "ref_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "default": null
+        },
+        "mgh_ref_id": {
+          "name": "mgh_ref_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "default": null
         },
         "sales_rep_id": {
           "name": "sales_rep_id",
           "type": "integer",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "default": null
         }
       },
-      "indexes": {},
+      "indexes": {
+        "facilties_mgh_ref_id_idx": {
+          "name": "facilties_mgh_ref_id_idx",
+          "columns": [
+            "mgh_ref_id"
+          ],
+          "isUnique": false
+        },
+        "facilties_ref_id_idx": {
+          "name": "facilties_ref_id_idx",
+          "columns": [
+            "ref_id"
+          ],
+          "isUnique": false
+        }
+      },
       "foreignKeys": {
         "facilities_sales_rep_id_sales_reps_id_fk": {
           "name": "facilities_sales_rep_id_sales_reps_id_fk",
@@ -94,10 +124,76 @@
           "name": "ref_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "default": null
+        },
+        "mgh_ref_id": {
+          "name": "mgh_ref_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "default": null
         }
       },
-      "indexes": {},
+      "indexes": {
+        "insurance_mgh_ref_id_idx": {
+          "name": "insurance_mgh_ref_id_idx",
+          "columns": [
+            "mgh_ref_id"
+          ],
+          "isUnique": false
+        },
+        "insurance_ref_id_idx": {
+          "name": "insurance_ref_id_idx",
+          "columns": [
+            "ref_id"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "labs": {
+      "name": "labs",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "code": {
+          "name": "code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ref_id": {
+          "name": "ref_id",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false,
+          "default": null
+        }
+      },
+      "indexes": {
+        "lab_ref_id_idx": {
+          "name": "lab_ref_id_idx",
+          "columns": [
+            "ref_id"
+          ],
+          "isUnique": false
+        }
+      },
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
@@ -316,6 +412,12 @@
           "type": "date",
           "primaryKey": false,
           "notNull": false
+        },
+        "lab_id": {
+          "name": "lab_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
         }
       },
       "indexes": {
@@ -365,6 +467,13 @@
           "name": "patient_id_idx",
           "columns": [
             "patient_id"
+          ],
+          "isUnique": false
+        },
+        "lab_id_idx": {
+          "name": "lab_id_idx",
+          "columns": [
+            "lab_id"
           ],
           "isUnique": false
         }
@@ -421,6 +530,19 @@
           ],
           "onDelete": "no action",
           "onUpdate": "no action"
+        },
+        "patient_claims_lab_id_labs_id_fk": {
+          "name": "patient_claims_lab_id_labs_id_fk",
+          "tableFrom": "patient_claims",
+          "tableTo": "labs",
+          "columnsFrom": [
+            "lab_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -446,7 +568,15 @@
           "name": "ref_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "default": null
+        },
+        "mgh_ref_id": {
+          "name": "mgh_ref_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "default": null
         },
         "reporting_to": {
           "name": "reporting_to",
@@ -461,7 +591,22 @@
           "notNull": false
         }
       },
-      "indexes": {},
+      "indexes": {
+        "sales_rep_mgh_ref_id_idx": {
+          "name": "sales_rep_mgh_ref_id_idx",
+          "columns": [
+            "mgh_ref_id"
+          ],
+          "isUnique": false
+        },
+        "sales_rep_ref_id_idx": {
+          "name": "sales_rep_ref_id_idx",
+          "columns": [
+            "ref_id"
+          ],
+          "isUnique": false
+        }
+      },
       "foreignKeys": {
         "sales_reps_role_id_user_role_id_fk": {
           "name": "sales_reps_role_id_user_role_id_fk",

@@ -2,7 +2,7 @@ import { Controller, Get, Res } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import mongoose from 'mongoose';
 import { Configuration } from 'src/config/config.service';
-import { INSURANCE_PAYORS_NOT_FOUND_IN_LIS_DATABASE, LABS_NOT_FOUND, LIS_FACILITIES_NOT_FOUND, PATIENT_CLAIMS_NOT_FOUND, SOMETHING_WENT_WRONG, SUCCESS_INSERTED_FACILICES, SUCCESS_SYNCED_INSURANCE_PAYORS, SUCCESS_SYNC_LABS, SUCCESS_SYNC_PATIENT_CLAIMS, SUCCUSS_INSERTED_MARKETING_MANAGERS } from 'src/constants/messageConstants';
+import { HOSPITAL_MARKETING_MANAGER, INSURANCE_PAYORS_NOT_FOUND_IN_LIS_DATABASE, LABS_NOT_FOUND, LIS_FACILITIES_NOT_FOUND, MARKETER, PATIENT_CLAIMS_NOT_FOUND, SOMETHING_WENT_WRONG, SUCCESS_INSERTED_FACILICES, SUCCESS_SYNCED_INSURANCE_PAYORS, SUCCESS_SYNC_LABS, SUCCESS_SYNC_PATIENT_CLAIMS, SUCCUSS_INSERTED_MARKETING_MANAGERS } from 'src/constants/messageConstants';
 import { SyncHelpers } from 'src/helpers/syncHelper';
 import { MghSyncService } from './mgh-sync.service';
 import { FacilitiesService } from 'src/facilities/facilities.service';
@@ -126,7 +126,16 @@ export class MghSyncController {
 
       const datesFilter = this.syncHelpers.getFromAndToDates(7);
 
-      const salesRepsData = await this.syncHelpers.getMghSalesReps(datesFilter);
+      const query = {
+        status: "ACTIVE",
+        user_type: { $in: [HOSPITAL_MARKETING_MANAGER] },
+        // updated_at: {
+        //     $gte: datesFilter.fromDate,
+        //     $lte: datesFilter.toDate,
+        // },
+    };
+
+      const salesRepsData = await this.syncHelpers.getMghSalesReps(query);
 
       const modifiedSalesReps = salesRepsData.map(item => ({
         mghRefId: item._id.toString(),
@@ -135,15 +144,60 @@ export class MghSyncController {
       }));
 
 
-      const data = await this.syncHelpers.getExistedAndNotExistedReps(modifiedSalesReps);
+      this.syncHelpers.getExistedAndNotExistedReps(modifiedSalesReps);
 
 
 
       return res.status(200).json({
         success: true,
-        message: SUCCUSS_INSERTED_MARKETING_MANAGERS,
-        data,
-        modifiedSalesReps
+        message: SUCCUSS_INSERTED_MARKETING_MANAGERS
+      });
+    } catch (err) {
+      console.log({ err });
+      return res.status(500).json({
+        success: false,
+        message: err || SOMETHING_WENT_WRONG
+      });
+    }
+  }
+
+
+  @Get("marketers")
+  async syncMarketers(@Res() res: any) {
+    try {
+      const configuration = new Configuration(new ConfigService());
+
+      const { lis_mgh_db_url } = configuration.getConfig();
+
+      await mongoose.connect(lis_mgh_db_url);
+
+      const datesFilter = this.syncHelpers.getFromAndToDates(7);
+
+      const query = {
+        status: "ACTIVE",
+        user_type: { $in: [MARKETER] },
+        // updated_at: {
+        //     $gte: datesFilter.fromDate,
+        //     $lte: datesFilter.toDate,
+        // },
+    };
+
+      const salesRepsData = await this.syncHelpers.getMghSalesReps(query);
+
+      const modifiedSalesReps = salesRepsData.map(item => ({
+        mghRefId: item._id.toString(),
+        name: item.name,
+        roleId: item.user_type === "MARKETER" ? 1 : (item.user_type === "HOSPITAL_MARKETING_MANAGER" ? 2 : null)
+      }));
+
+
+      this.syncHelpers.getExistedAndNotExistedReps(modifiedSalesReps);
+
+
+
+      return res.status(200).json({
+        success: true,
+        message: SUCCUSS_INSERTED_MARKETING_MANAGERS
       });
     } catch (err) {
       console.log({ err });
