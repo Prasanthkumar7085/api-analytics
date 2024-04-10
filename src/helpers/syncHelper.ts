@@ -43,17 +43,18 @@ export class SyncHelpers {
     }
 
 
-    async getCases(fromDate, facilities) {
+    async getCases(fromDate, toDate) {
         try {
+            console.log({ fromDate });
             let query = {
                 status: { $nin: ["ARCHIVE", "ARCHIVED"] },
-                // updated_at: {
-                //     $gte: fromDate,
-                //     $lte: toDate
-                // }
-                hospital: {
-                    $in: facilities
+                updated_at: {
+                    $gte: "2023-10-01",
+                    // $lte: toDate
                 }
+                // hospital: {
+                //     $in: facilities
+                // }
             };
 
             const select = {
@@ -130,10 +131,64 @@ export class SyncHelpers {
     }
 
 
+    modifyMghCasesForPatientClaims(cases, analyticsData) {
+        const facilities = analyticsData.facilities;
+        const caseTypes = analyticsData.caseTypes;
+        const insurancePayers = analyticsData.insurancePayers;
+        const labs = analyticsData.labs;
+
+        let modifiedArray = [];
+
+        for (let i = 0; i < cases.length; i++) {
+            const insurancePayer = cases[i].billing_info?.insurance?.primary_insurance?.payor;
+            let claimData: any = {};
+
+
+            claimData.accessionId = cases[i].accession_id;
+            claimData.serviceDate = cases[i].received_date;
+            claimData.collectionDate = cases[i].collection_date;
+            claimData.patientId = cases[i].patient_info._id.toString();
+
+            if (cases[i].status == "COMPLETE" || cases[i].status == "COMPLETED") claimData.reportsFinalized = true;
+
+            if (cases[i].ordering_physician) claimData.physicianId = cases[i].ordering_physician.toString();
+
+            if (cases[i].hospital) claimData = this.forMghFacilityAndSalesRep(cases[i], facilities, claimData);
+
+            if (insurancePayer) claimData = this.forInsurancePayerId(insurancePayer, insurancePayers, claimData);
+
+            if (cases[i].lab) claimData = this.forLabId(cases[i], labs, claimData);
+
+            claimData = this.forCaseTypeId(cases[i], caseTypes, claimData);
+
+            modifiedArray.push(claimData);
+        }
+
+
+        return modifiedArray;
+    }
+
+
     async insertPatientClaims(cases) {
         const analyticsData = await this.getAllAnalyticsData();
 
         let modifiedArray = this.modifyCasesForPatientClaims(cases, analyticsData);
+
+        let data;
+        if (modifiedArray.length) {
+
+            const seperatedArray = await this.seperateModifiedArray(modifiedArray);
+
+            data = this.insertOrUpdateModifiedClaims(seperatedArray);
+        }
+        return data;
+    }
+
+
+    async insertMghPatientClaims(cases) {
+        const analyticsData = await this.getAllAnalyticsData();
+
+        let modifiedArray = this.modifyMghCasesForPatientClaims(cases, analyticsData);
 
         if (modifiedArray.length) {
 
@@ -142,6 +197,7 @@ export class SyncHelpers {
             this.insertOrUpdateModifiedClaims(seperatedArray);
         }
     }
+
 
     forLabId(cases, labs, claimData) {
         const lab = labs.find(lab => lab.refId === cases.lab.toString());
@@ -166,6 +222,18 @@ export class SyncHelpers {
 
     forFacilityAndSalesRep(cases, facilities, claimData) {
         const facility = facilities.find(facility => facility.refId === cases.hospital.toString());
+
+        if (facility) {
+            claimData.facilityId = facility.id;
+            claimData.salesRepId = facility.salesRepId;
+        }
+
+        return claimData;
+    }
+
+
+    forMghFacilityAndSalesRep(cases, facilities, claimData) {
+        const facility = facilities.find(facility => facility.mghRefId === cases.hospital.toString());
 
         if (facility) {
             claimData.facilityId = facility.id;
@@ -971,10 +1039,10 @@ export class SyncHelpers {
         try {
             let query = {
                 status: { $nin: ["ARCHIVE", "ARCHIVED"] },
-                // updated_at: {
-                //     $gte: fromDate,
-                //     $lte: toDate
-                // }
+                updated_at: {
+                    $gte: "2023-10-01",
+                    // $lte: toDate
+                },
                 hospital: {
                     $in: facilities
                 }

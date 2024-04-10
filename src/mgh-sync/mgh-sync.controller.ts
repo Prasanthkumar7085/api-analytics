@@ -49,11 +49,11 @@ export class MghSyncController {
         });
       }
 
-      this.syncHelpers.insertPatientClaims(cases);
+      this.syncHelpers.insertMghPatientClaims(cases);
 
       return res.status(200).json({
         success: true,
-        message: SUCCESS_SYNC_PATIENT_CLAIMS
+        message: SUCCESS_SYNC_PATIENT_CLAIMS,
       });
     } catch (err) {
       console.log({ err });

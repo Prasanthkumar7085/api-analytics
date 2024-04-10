@@ -48,7 +48,7 @@ export class SyncController {
 			facilities = facilities.filter(item => item !== null);
 
 
-			const cases = await this.syncHelpers.getCases(fromDate, facilities);
+			const cases = await this.syncHelpers.getCases(fromDate, toDate);
 
 			if (cases.length == 0) {
 				return res.status(200).json({
@@ -56,12 +56,14 @@ export class SyncController {
 					message: PATIENT_CLAIMS_NOT_FOUND
 				});
 			}
+			console.log({ cases: cases.length });
 
-			this.syncHelpers.insertPatientClaims(cases);
+			const data = await this.syncHelpers.insertPatientClaims(cases);
 
 			return res.status(200).json({
 				success: true,
-				message: SUCCESS_SYNC_PATIENT_CLAIMS
+				message: SUCCESS_SYNC_PATIENT_CLAIMS,
+				data
 			});
 
 		} catch (err) {
@@ -227,7 +229,7 @@ export class SyncController {
 			let insertedData = await this.salesRepService.insertSalesRepsManagers(finalManagersData);
 
 			if (insertedData.length) {
-				const ids = insertedData.map((e)=> e.id);
+				const ids = insertedData.map((e) => e.id);
 				this.salesRepService.updateSalesRepsManagersData(ids);
 			}
 
