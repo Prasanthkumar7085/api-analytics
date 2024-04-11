@@ -1,4 +1,4 @@
-import { Schema, model } from "mongoose";
+import mongoose, { Schema, model } from "mongoose";
 import { HOSPITAL_STATUS } from "../constants/lisConstants";
 
 
@@ -179,4 +179,4 @@ HospitalSchema.index(
         background: true,
     }
 );
-export const HospitalModel = model("Hospital", HospitalSchema, "hospitals");
+export const HospitalModel = mongoose.model("Hospital", HospitalSchema);
