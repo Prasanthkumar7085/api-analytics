@@ -1,1 +1,0 @@
-ALTER TABLE "case_types" ADD COLUMN "display_name" text;

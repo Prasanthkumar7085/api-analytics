@@ -15,6 +15,7 @@ export class SalesRepService {
             SELECT
                 p.sales_rep_id,
                 s.name AS sales_rep_name,
+				s.email AS email,
                 CAST(COUNT(DISTINCT p.facility_id) AS INTEGER) AS no_of_facilities,
                 CAST(ROUND(SUM(p.expected_amount):: NUMERIC, 2) AS FLOAT) AS expected_amount,
                 CAST(ROUND(SUM(p.billable_amount)::NUMERIC, 2) AS FLOAT) AS generated_amount,
@@ -28,7 +29,8 @@ export class SalesRepService {
             ${queryString ? sql`WHERE ${sql.raw(queryString)}` : sql``}
             GROUP BY 
 				p.sales_rep_id, 
-				s.name
+				s.name,
+				s.email
 			ORDER BY
 				sales_rep_name
         `;
@@ -448,9 +450,8 @@ export class SalesRepService {
 	}
 
 
-	async updateSalesRepsManagersData() {
-
-		return await db.execute(sql`UPDATE sales_reps SET reporting_to = id WHERE reporting_to != id AND role_id = 2;`);
+	async updateSalesRepsManagersData(ids) {
+		return await db.execute(sql`UPDATE sales_reps SET reporting_to = id WHERE id IN ${ids};`);
 	}
 
 

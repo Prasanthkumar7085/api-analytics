@@ -5,78 +5,8 @@
     {
       "idx": 0,
       "version": "5",
-      "when": 1709871919709,
-      "tag": "0000_empty_taskmaster",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "5",
-      "when": 1709872044930,
-      "tag": "0001_flawless_grim_reaper",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "5",
-      "when": 1709875156995,
-      "tag": "0002_curly_nighthawk",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "5",
-      "when": 1710849295733,
-      "tag": "0003_moaning_magik",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "5",
-      "when": 1711345730437,
-      "tag": "0004_zippy_dark_phoenix",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "5",
-      "when": 1711978662490,
-      "tag": "0005_purple_sir_ram",
-      "breakpoints": true
-    },
-    {
-      "idx": 6,
-      "version": "5",
-      "when": 1712306448117,
-      "tag": "0006_open_aaron_stack",
-      "breakpoints": true
-    },
-    {
-      "idx": 7,
-      "version": "5",
-      "when": 1712333517723,
-      "tag": "0007_confused_the_order",
-      "breakpoints": true
-    },
-    {
-      "idx": 8,
-      "version": "5",
-      "when": 1712399311974,
-      "tag": "0008_thin_chat",
-      "breakpoints": true
-    },
-    {
-      "idx": 9,
-      "version": "5",
-      "when": 1712399363400,
-      "tag": "0009_peaceful_grim_reaper",
-      "breakpoints": true
-    },
-    {
-      "idx": 10,
-      "version": "5",
-      "when": 1712781328478,
-      "tag": "0010_huge_tigra",
+      "when": 1712812690269,
+      "tag": "0000_lame_goliath",
       "breakpoints": true
     }
   ]

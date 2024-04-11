@@ -1,1 +1,0 @@
-ALTER TABLE "facilities" ALTER COLUMN "sales_rep_id" SET DEFAULT null;

@@ -47,10 +47,10 @@ export class SyncHelpers {
         try {
             let query = {
                 status: { $nin: ["ARCHIVE", "ARCHIVED"] },
-                // updated_at: {
-                //     $gte: fromDate,
-                //     $lte: toDate
-                // }
+                created_at: {
+                    $gte: "2023-10-01",
+                    // $lte: toDate
+                },
                 hospital: {
                     $in: facilities
                 }
@@ -130,18 +130,75 @@ export class SyncHelpers {
     }
 
 
+    modifyMghCasesForPatientClaims(cases, analyticsData) {
+        const facilities = analyticsData.facilities;
+        const caseTypes = analyticsData.caseTypes;
+        const insurancePayers = analyticsData.insurancePayers;
+        const labs = analyticsData.labs;
+
+        let modifiedArray = [];
+
+        for (let i = 0; i < cases.length; i++) {
+            const insurancePayer = cases[i].billing_info?.insurance?.primary_insurance?.payor;
+            let claimData: any = {};
+
+
+            claimData.accessionId = cases[i].accession_id;
+            claimData.serviceDate = cases[i].received_date;
+            claimData.collectionDate = cases[i].collection_date;
+            claimData.patientId = cases[i].patient_info._id.toString();
+
+            if (cases[i].status == "COMPLETE" || cases[i].status == "COMPLETED") claimData.reportsFinalized = true;
+
+            if (cases[i].ordering_physician) claimData.physicianId = cases[i].ordering_physician.toString();
+
+            if (cases[i].hospital) claimData = this.forMghFacilityAndSalesRep(cases[i], facilities, claimData);
+
+            if (insurancePayer) claimData = this.forInsurancePayerId(insurancePayer, insurancePayers, claimData);
+
+            if (cases[i].lab) claimData = this.forLabId(cases[i], labs, claimData);
+
+            claimData = this.forCaseTypeId(cases[i], caseTypes, claimData);
+
+            modifiedArray.push(claimData);
+        }
+
+
+        return modifiedArray;
+    }
+
+
     async insertPatientClaims(cases) {
         const analyticsData = await this.getAllAnalyticsData();
 
         let modifiedArray = this.modifyCasesForPatientClaims(cases, analyticsData);
 
+        let data;
         if (modifiedArray.length) {
 
             const seperatedArray = await this.seperateModifiedArray(modifiedArray);
 
-            this.insertOrUpdateModifiedClaims(seperatedArray);
+            data = this.insertOrUpdateModifiedClaims(seperatedArray);
         }
+        return data;
     }
+
+
+    async insertMghPatientClaims(cases) {
+        const analyticsData = await this.getAllAnalyticsData();
+
+        let modifiedArray = this.modifyMghCasesForPatientClaims(cases, analyticsData);
+
+        let data;
+        if (modifiedArray.length) {
+
+            const seperatedArray = await this.seperateModifiedArray(modifiedArray);
+
+            data = this.insertOrUpdateModifiedClaims(seperatedArray);
+        }
+        return data;
+    }
+
 
     forLabId(cases, labs, claimData) {
         const lab = labs.find(lab => lab.refId === cases.lab.toString());
@@ -166,6 +223,18 @@ export class SyncHelpers {
 
     forFacilityAndSalesRep(cases, facilities, claimData) {
         const facility = facilities.find(facility => facility.refId === cases.hospital.toString());
+
+        if (facility) {
+            claimData.facilityId = facility.id;
+            claimData.salesRepId = facility.salesRepId;
+        }
+
+        return claimData;
+    }
+
+
+    forMghFacilityAndSalesRep(cases, facilities, claimData) {
+        const facility = facilities.find(facility => facility.mghRefId === cases.hospital.toString());
 
         if (facility) {
             claimData.facilityId = facility.id;
@@ -362,19 +431,6 @@ export class SyncHelpers {
             //     $gte: datesFilter.fromDate,
             //     $lte: datesFilter.toDate,
             // },
-            _id: {
-                $in: [
-                    "65cfa081112d60e565b73da3",
-                    "65cfa19966fab7e5b9f45a47",
-                    "65cf5a20cd2c7ce54e7177a5",
-                    "65cfa4c6a2c4dce5a0007592",
-                    "65cfa7ebf64af7e58b43e158",
-                    "65cfa4566cd21ee4e3ffcb89",
-                    "65cfab8744ae7ae53bda0d5c",
-                    "65cf71d0e01fdcd8a23cf1de",
-                    "65cfa7bf6cd21ee4e3ffce74"
-                ]
-            }
         };
 
 
@@ -436,9 +492,13 @@ export class SyncHelpers {
             finalArray = await this.getFinalManagersData(withoutReportingTo);
 
             if (finalArray.length) {
-                await this.salesRepsService.insertSalesRepsManagers(finalArray);
+                let insertedData = await this.salesRepsService.insertSalesRepsManagers(finalArray);
 
-                this.salesRepsService.updateSalesRepsManagersData();
+                if (insertedData.length) {
+                    const ids = insertedData.map((e) => e.id);
+                    this.salesRepsService.updateSalesRepsManagersData(ids);
+                }
+
             }
         }
 
@@ -590,6 +650,7 @@ export class SyncHelpers {
     async getSalesRepsByFacilites(facilities) {
         const query = {
             user_type: { $in: ["MARKETER", "HOSPITAL_MARKETING_MANAGER"] },
+            status: "ACTIVE",
             hospitals: {
                 $in: facilities
             }
@@ -649,7 +710,38 @@ export class SyncHelpers {
     }
 
 
+    async modifyMghFacilitiesData(transformedArray) {
+
+        const salesRepsIdsAndRefIdsData = await this.getuniqueMghSalesReps(transformedArray);
+        console.log({ salesRepsIdsAndRefIdsData: salesRepsIdsAndRefIdsData[0] });
+        console.log({ transformedArray: transformedArray[0] });
+
+        const updatedFacilities = transformedArray.map(facility => {
+            const salesRep = salesRepsIdsAndRefIdsData.find(rep => rep.ref_id.toString() === facility.salesRepId);
+            return {
+                name: facility.name,
+                mghRefId: facility.mghRefId,
+                salesRepId: salesRep ? salesRep.id : 9
+            };
+        });
+
+        return updatedFacilities;
+    }
+
     async getuniqueSalesReps(transformedArray) {
+        const salesRepsIds = transformedArray.map((e) => e.salesRepId);
+
+
+
+        const uniqueSalesRepsIds = [...new Set(salesRepsIds)];
+
+
+        const salesRepsIdsAndRefIdsData = await this.salesRepsService.getSalesRepsIdsAndRefIds(uniqueSalesRepsIds);
+        return salesRepsIdsAndRefIdsData;
+    }
+
+
+    async getuniqueMghSalesReps(transformedArray) {
         const salesRepsIds = transformedArray.map((e) => e.salesRepId);
 
 
@@ -756,29 +848,7 @@ export class SyncHelpers {
         }
     }
 
-    async getMghSalesReps(datesFilter) {
-
-        const query = {
-            status: "ACTIVE",
-            user_type: { $in: [HOSPITAL_MARKETING_MANAGER, MARKETER] },
-            // updated_at: {
-            //     $gte: datesFilter.fromDate,
-            //     $lte: datesFilter.toDate,
-            // },
-            _id: {
-                $in: [
-                    "640b822542b30768cb575699",
-                    "65301618d78bd4eaa12f281c",
-                    "611fcb57b16f85217cf80d12",
-                    "64b707d286f7f57a60b5a622",
-                    "65301691d78bd4eaa12f2845",
-                    "65d76ccf871d317cf358f1bd",
-                    "651d7c490f68d73ac39a64b4",
-                    "64a5a5acead06a14f9c10625",
-                    "645bc32c04f62b2b3fdf788f"
-                ]
-            }
-        };
+    async getMghSalesReps(query) {
 
 
         const select = {
@@ -832,7 +902,7 @@ export class SyncHelpers {
     async insertOrUpdateMghFacilities(modifiedData) {
         const analyticsFacilities = await this.facilitiesService.getAllFacilitiesData();
         const existed = [];
-        const notExisted = [];
+        let notExisted = [];
 
         modifiedData.forEach(modifiedRep => {
             const existingRep = analyticsFacilities.find(rep => rep.name.toLowerCase() === modifiedRep.name.toLowerCase());
@@ -852,7 +922,7 @@ export class SyncHelpers {
 
             const finalString = convertedData.join(', ');
 
-            this.facilitiesService.updateMghFacilities(finalString);
+            // this.facilitiesService.updateMghFacilities(finalString);
 
         }
 
@@ -860,12 +930,15 @@ export class SyncHelpers {
             this.toInsertMghFacilities(notExisted);
         }
 
+        return { existed, notExisted };
+
     }
 
     async toInsertMghFacilities(notExisted) {
         const notExistedFacilities = notExisted.map(e => e.mghRefId);
 
         const query = {
+            status: "ACTIVE",
             user_type: { $in: ["MARKETER", "HOSPITAL_MARKETING_MANAGER"] },
             hospitals: {
                 $in: notExistedFacilities
@@ -890,7 +963,7 @@ export class SyncHelpers {
 
         const transformedData = this.transformMghFacilities(finalSalesReps, notExisted);
 
-        const salesReps = await this.getuniqueSalesReps(transformedData);
+        const salesReps = await this.getuniqueMghSalesReps(transformedData);
 
         const updatedFacilities = transformedData.map(facility => {
             const salesRep = salesReps.find(rep => rep.mgh_ref_id.toString() === facility.salesRepId);
@@ -900,6 +973,7 @@ export class SyncHelpers {
                 salesRepId: salesRep ? salesRep.id : null
             };
         });
+
 
         this.facilitiesService.insertfacilities(updatedFacilities);
     }
@@ -966,10 +1040,10 @@ export class SyncHelpers {
         try {
             let query = {
                 status: { $nin: ["ARCHIVE", "ARCHIVED"] },
-                // updated_at: {
-                //     $gte: fromDate,
-                //     $lte: toDate
-                // }
+                created_at: {
+                    $gte: "2023-10-01",
+                    // $lte: toDate
+                },
                 hospital: {
                     $in: facilities
                 }
