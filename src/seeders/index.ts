@@ -1,9 +1,10 @@
 import roles from "./roles";
-import insurance from "./insurancePayors"
-import salesRep from "./salesReps"
-import facilities from "./facilities"
-import patientClaims from "./patientClaims"
-import caseTypes from "./caseTypes"
+import insurance from "./insurancePayors";
+import salesRep from "./salesReps";
+import facilities from "./facilities";
+import patientClaims from "./patientClaims";
+import caseTypes from "./caseTypes";
+import mgh from "./mghMarketers";
 
 // roles.seed("Roles");
 
@@ -13,8 +14,10 @@ import caseTypes from "./caseTypes"
 
 // facilities.seed("Facilities")
 
-patientClaims.seed("Patient Claims");
+// patientClaims.seed("Patient Claims");
 
-// caseTypes.seed('Case Types')
+// caseTypes.seed('Case Types');
+
+mgh.seed();
 
 
