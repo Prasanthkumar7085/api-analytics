@@ -1,0 +1,1 @@
+ALTER TABLE "sales_reps" ADD COLUMN "email" varchar DEFAULT null;

@@ -85,6 +85,13 @@
       "when": 1712756959143,
       "tag": "0011_redundant_penance",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "5",
+      "when": 1712815626498,
+      "tag": "0012_yellow_sasquatch",
+      "breakpoints": true
     }
   ]
 }
