@@ -5,6 +5,7 @@ import facilities from "./facilities";
 import patientClaims from "./patientClaims";
 import caseTypes from "./caseTypes";
 import mgh from "./mghMarketers";
+import dlw from "./dlwMarketers";
 
 // roles.seed("Roles");
 
@@ -18,6 +19,8 @@ import mgh from "./mghMarketers";
 
 // caseTypes.seed('Case Types');
 
-mgh.seed();
+// mgh.seed();
+
+dlw.seed();
 
 
