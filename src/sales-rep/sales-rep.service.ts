@@ -469,7 +469,7 @@ export class SalesRepService {
 	}
 
 	async getAllSalesReps() {
-		return await db.select().from(sales_reps);
+		return await db.select().from(sales_reps).orderBy(sales_reps.id);
 	}
 
 	async updateSalesReps(queryString) {
