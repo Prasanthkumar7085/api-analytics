@@ -5,7 +5,8 @@ import { Injectable } from "@nestjs/common";
 import { LisService } from "src/lis/lis.service";
 import { RevenueStatsService } from "src/revenue-stats/revenue-stats.service";
 import { SortHelper } from "./sortHelper";
-import { caseTypes } from "src/constants/statsConstants";
+import { caseTypes } from "src/constants/lisConstants";
+import * as fs from 'fs'
 
 
 @Injectable()
@@ -30,6 +31,7 @@ export class RevenueStatsHelpers {
 
             // Get the data from CSV
             const csvFileData = await this.fileUploadDataServiceProvider.processCsv(file);
+
             // modify raw data from csvFileData
             const modifiedData = await this.modifyRawData(csvFileData)
 
@@ -40,7 +42,7 @@ export class RevenueStatsHelpers {
     }
 
 
-    modifyRawData(csvFileData) {
+    async modifyRawData(csvFileData) {
         let rawData = csvFileData.map((e) => ({
             accession_id: e['Chart #'],
             date_of_service: e['Service Date'] ? this.modifyDate(e['Service Date']) : null,
@@ -54,12 +56,11 @@ export class RevenueStatsHelpers {
             patient_adjustment_amount: e['Patient Adjustment Amount'],
             patient_write_of_amount: e['Patient Write-Off Amount'],
             line_item_balance: e['Line Item Balance'],
-            insurance_name: e['Primary Insurance'],
-            patient_id: e['Patient Id']
+            insurance_name: e['Primary Insurance']
         }))
-
         // Need to Group the Raw Data
         const modifiedData = this.groupingKeys(rawData);
+
         return modifiedData;
     }
 
@@ -115,7 +116,7 @@ export class RevenueStatsHelpers {
                     patient_write_of_amount: [item.patient_write_of_amount],
                     line_item_balance: [item.line_item_balance],
                     insurance_name: item.insurance_name,
-                    patient_id: item.patient_id
+                    ordering_provider: item.ordering_provider
                 };
                 acc.push(newEntry);
             }
@@ -135,19 +136,30 @@ export class RevenueStatsHelpers {
 
     sumOfRawData(data) {
         data.forEach((entry) => {
-            entry.total_amount = Math.floor(entry.line_item_total.reduce((sum, value) => sum + Number(value), 0));
+            const lineItemTotal = entry.line_item_total.reduce((sum, value) => sum + parseFloat(value), 0);
+            entry.line_item_total = lineItemTotal;
+            entry.total_amount = lineItemTotal;
 
-            const insurance_payment_amount_sum = entry.insurance_payment_amount.reduce((sum, value) => sum + Number(value), 0);
-            const insurance_adjustment_amount_sum = entry.insurance_adjustment_amount.reduce((sum, value) => sum + Number(value), 0);
-            const insurance_write_of_amount_sum = entry.insurance_write_of_amount.reduce((sum, value) => sum + Number(value), 0);
-            const patient_payment_amount_sum = entry.patient_payment_amount.reduce((sum, value) => sum + Number(value), 0);
-            const patient_adjustment_amount_sum = entry.patient_adjustment_amount.reduce((sum, value) => sum + Number(value), 0);
-            const patient_write_of_amount_sum = entry.patient_write_of_amount.reduce((sum, value) => sum + Number(value), 0);
+            const insurance_payment_amount_sum = entry.insurance_payment_amount.reduce((sum, value) => sum + parseFloat(value), 0);
+            const insurance_adjustment_amount_sum = entry.insurance_adjustment_amount.reduce((sum, value) => sum + parseFloat(value), 0);
+            const insurance_write_of_amount_sum = entry.insurance_write_of_amount.reduce((sum, value) => sum + parseFloat(value), 0);
+            const patient_payment_amount_sum = entry.patient_payment_amount.reduce((sum, value) => sum + parseFloat(value), 0);
+            const patient_adjustment_amount_sum = entry.patient_adjustment_amount.reduce((sum, value) => sum + parseFloat(value), 0);
+            const patient_write_of_amount_sum = entry.patient_write_of_amount.reduce((sum, value) => sum + parseFloat(value), 0);
+            const line_item_balance = entry.line_item_balance.reduce((sum, value) => sum + parseFloat(value), 0);
 
 
-            entry.paid_amount = Math.floor(insurance_payment_amount_sum + insurance_adjustment_amount_sum + insurance_write_of_amount_sum + patient_payment_amount_sum + patient_adjustment_amount_sum + patient_write_of_amount_sum);
+            entry.paid_amount = insurance_payment_amount_sum + insurance_adjustment_amount_sum + insurance_write_of_amount_sum + patient_payment_amount_sum + patient_adjustment_amount_sum + patient_write_of_amount_sum;
 
-            entry.pending_amount = Math.floor(entry.line_item_balance.reduce((sum, value) => sum + Number(value), 0));
+            entry.pending_amount = entry.total_amount - entry.paid_amount;
+
+            entry.insurance_payment_amount = insurance_payment_amount_sum;
+            entry.insurance_adjustment_amount = insurance_adjustment_amount_sum;
+            entry.insurance_write_of_amount = insurance_write_of_amount_sum;
+            entry.patient_payment_amount = patient_payment_amount_sum;
+            entry.patient_adjustment_amount = patient_adjustment_amount_sum;
+            entry.patient_write_of_amount = patient_write_of_amount_sum;
+            entry.line_item_balance = line_item_balance;
         });
 
 
@@ -169,8 +181,13 @@ export class RevenueStatsHelpers {
             }
         }
 
+        const select = {
+            accession_id: 1, _id: 1, case_types: 1, hospital: 1, hospital_marketers: 1,
+            'patient_info._id': 1, 'patient_info.first_name': 1, 'patient_info.middle_name': 1, 'patient_info.last_name': 1
+        }
+
         // Get the hospital, marketers and case_type based on the accession_ids from modified data
-        const caseDataArray = await this.lisService.getCaseByAccessionId(query);
+        const caseDataArray = await this.lisService.getCases(query, select);
 
         let mergedArray: any = [];
         if (caseDataArray.length) {
@@ -186,6 +203,10 @@ export class RevenueStatsHelpers {
     mergeArrays(caseDataArray, modifiedData) {
         // Merge arrays based on hospital_marketer and date
         const mergedArrays = caseDataArray.map(objA => {
+            const patientId = objA.patient_info ? objA.patient_info._id.toString() : null;
+
+            const patientInfo = this.forPatientInfo(objA.patient_info);
+
             const matchingObjB = modifiedData.find(objB => objB.accession_id === objA.accession_id);
             return {
                 case_id: objA._id,
@@ -193,14 +214,31 @@ export class RevenueStatsHelpers {
                 hospital: objA.hospital,
                 hospital_marketers: objA.hospital_marketers,
                 process_status: "PENDING",
-                ...matchingObjB
+                ...matchingObjB,
+                patient_id: patientId,
+                patient_first_name: patientInfo.first_name,
+                patient_middle_name: patientInfo.middle_name,
+                patient_last_name: patientInfo.last_name
             };
         });
+
         return mergedArrays;
 
     }
 
+    forPatientInfo(patientInfo){
+        const firstName = patientInfo ? patientInfo.first_name : "";
+        const middleName = patientInfo ? patientInfo.middle_name : "";
+        const lastName = patientInfo ? patientInfo.last_name : ""
 
+        const patientDetails = {
+            first_name: firstName,
+            middle_name: middleName,
+            last_name: lastName
+        }
+
+        return patientDetails;
+    }
 
 
     processData(data) {
@@ -370,37 +408,55 @@ export class RevenueStatsHelpers {
 
 
     async forHospitalWiseData(orderBy, orderType, statsQuery) {
-        let revenueStatsData: any = await this.revenueStatsService.findAll(statsQuery)
-
+        let revenueStatsData: any = []
+        // await this.revenueStatsService.findAll(statsQuery)
         const result = {};
 
         revenueStatsData.forEach((entry) => {
+            const marketerId = entry.marketer_id;
 
+            // Iterate over hospital wise counts for each entry
             entry.hospital_wise_counts.forEach((hospitalData) => {
                 const hospitalId = hospitalData.hospital;
 
+                // If the hospital entry does not exist in result, initialize it
                 if (!result[hospitalId]) {
-                    // Initialize if not exists
-                    result[hospitalId] = { hospital: hospitalId, ...hospitalData };
-                } else {
-                    // Sum values
-                    Object.keys(hospitalData).forEach((key) => {
-                        if (key !== 'hospital') {
-                            result[hospitalId][key] += hospitalData[key];
-                        }
-                    });
+                    result[hospitalId] = {
+                        marketer_id: marketerId,
+                        hospital: hospitalId,
+                        paid_amount: 0,
+                        total_amount: 0,
+                        pending_amount: 0,
+                        case_type_wise_counts: {} // Initialize case_type_wise_counts
+                    };
                 }
+
+                // Sum values for paid_amount, total_amount, and pending_amount
+                result[hospitalId].paid_amount += hospitalData.paid_amount;
+                result[hospitalId].total_amount += hospitalData.total_amount;
+                result[hospitalId].pending_amount += hospitalData.pending_amount;
+
+                // Sum values for case_type_wise_counts
+                hospitalData.case_type_wise_counts.forEach((caseTypeData) => {
+                    const caseType = caseTypeData.case_type;
+                    if (!result[hospitalId].case_type_wise_counts[caseType]) {
+                        result[hospitalId].case_type_wise_counts[caseType] = {
+                            paid_amount: 0,
+                            total_amount: 0,
+                            pending_amount: 0
+                        };
+                    }
+                    result[hospitalId].case_type_wise_counts[caseType].paid_amount += caseTypeData.paid_amount;
+                    result[hospitalId].case_type_wise_counts[caseType].total_amount += caseTypeData.total_amount;
+                    result[hospitalId].case_type_wise_counts[caseType].pending_amount += caseTypeData.pending_amount;
+                });
             });
         });
+
 
         let dataArray = Object.values(result);
 
         dataArray = this.sortHelper.hospitalWise(orderBy, orderType, dataArray);
-        // // Remove case_type_wise_counts property from each object
-        dataArray = dataArray.map((item) => {
-            const { case_type_wise_counts, ...itemWithoutCounts }: any = item;
-            return itemWithoutCounts;
-        });
         return dataArray;
     }
 
@@ -426,7 +482,8 @@ export class RevenueStatsHelpers {
         }
 
         // Find the existed raw stats from our raw collection in our db
-        const existedData = await this.revenueStatsService.getRevenueRawData(queryString);
+        const existedData = []
+        //  await this.revenueStatsService.getRevenueRawData(queryString);
 
         // Based on our db eisted raw stats, seperating the modified data into matched and not-matched
         const { matchedObjects, notMatchedObjects } = await this.seperateExistedAndNotExistedData(modifiedData, existedData);
@@ -502,7 +559,7 @@ export class RevenueStatsHelpers {
 
     async toInsertStats(notMatchedObjects) {
         if (notMatchedObjects.length > 0) {
-            await this.revenueStatsService.insertStats(notMatchedObjects);
+            // await this.revenueStatsService.insertStats(notMatchedObjects);
         }
     }
 
@@ -615,7 +672,7 @@ export class RevenueStatsHelpers {
         });
         const finalString = convertedData.join(',');
 
-        await this.revenueStatsService.updateManyStats(finalString);
+        // await this.revenueStatsService.updateManyStats(finalString);
     }
 
     async updateRawStats(matchedObjects) {
@@ -636,13 +693,13 @@ export class RevenueStatsHelpers {
                 const formattedDate = new Date(entry.date_of_service).toISOString();
                 const formattedMarketers = entry.hospital_marketers.map(m => `('${JSON.stringify(m)}'::jsonb)`).join(', ');
 
-                return `('${entry.case_id}', '${entry.hospital}', '${entry.accession_id}', ARRAY[${formattedCptCodes}]::jsonb[], ARRAY[${formattedLineItemTotal}]::jsonb[], ARRAY[${formattedInsurancePaymentAmount}]::jsonb[], ARRAY[${formattedInsuranceAdjustmentAmount}]::jsonb[], ARRAY[${formattedInsuranceWriteOfAmount}]::jsonb[], ARRAY[${formattedPatientPaymentAmount}]::jsonb[], ARRAY[${formattedPatientAdjustmentAmount}]::jsonb[], ARRAY[${formattedPatientWriteOfAmount}]::jsonb[], ARRAY[${formattedLineItemBalance}]::jsonb[], '${entry.insurance_name}', ${entry.total_amount}, ${entry.paid_amount}, ${entry.pending_amount}, '{"total_amount_difference":${entry.difference_values.total_amount_difference},"paid_amount_difference":${entry.difference_values.paid_amount_difference},"pending_amount_difference":${entry.difference_values.pending_amount_difference}}'::jsonb, ${entry.values_changed}, '${entry.process_status}', '${entry.payment_status}', '${formattedDate}'::timestamp, ARRAY[${formattedMarketers}]::jsonb[])`;
-
+                const formattedQueryEntry = `('${entry.case_id}', '${entry.hospital}', '${entry.accession_id}', ARRAY[${formattedCptCodes}]::jsonb[], ARRAY[${formattedLineItemTotal}]::jsonb[], ARRAY[${formattedInsurancePaymentAmount}]::jsonb[], ARRAY[${formattedInsuranceAdjustmentAmount}]::jsonb[], ARRAY[${formattedInsuranceWriteOfAmount}]::jsonb[], ARRAY[${formattedPatientPaymentAmount}]::jsonb[], ARRAY[${formattedPatientAdjustmentAmount}]::jsonb[], ARRAY[${formattedPatientWriteOfAmount}]::jsonb[], ARRAY[${formattedLineItemBalance}]::jsonb[], '${entry.insurance_name}', ${entry.total_amount}, ${entry.paid_amount}, ${entry.pending_amount}, '{"total_amount_difference":${entry.difference_values.total_amount_difference},"paid_amount_difference":${entry.difference_values.paid_amount_difference},"pending_amount_difference":${entry.difference_values.pending_amount_difference}}'::jsonb, ${entry.values_changed}, '${entry.process_status}', '${entry.payment_status}', '${formattedDate}'::timestamp, ARRAY[${formattedMarketers}]::jsonb[], '${entry.patient_id}')`;
+                return formattedQueryEntry;
             });
 
             const finalString = convertedData.join(',');
 
-            await this.revenueStatsService.updateManyRaw(finalString);
+            // await this.revenueStatsService.updateManyRaw(finalString);
         }
     }
 
@@ -660,6 +717,92 @@ export class RevenueStatsHelpers {
             lowercaseCaseType = "pgx"
         }
         return lowercaseCaseType
+    }
+
+    mergedStatsData(revenueStatsData, volumeStatsData) {
+
+        let mergedStats = [];
+
+        // Merge the arrays based on marketer_id
+        mergedStats = volumeStatsData.map(volumeStat => {
+            const matchingRevenueStat = revenueStatsData.find(revenueStat => revenueStat.marketer_id === volumeStat.marketer_id);
+
+            if (matchingRevenueStat) {
+                return {
+                    _sum: { ...volumeStat._sum, ...matchingRevenueStat._sum },
+                    marketer_id: volumeStat.marketer_id
+                };
+            } else {
+                return volumeStat;
+            }
+        });
+
+        // Check for unmatched revenueStatsData and add them to the mergedStats
+        revenueStatsData.forEach(revenueStat => {
+            const existingStat = mergedStats.find(mergedStat => mergedStat.marketer_id === revenueStat.marketer_id);
+            if (!existingStat) {
+                mergedStats.push(revenueStat);
+            }
+        });
+
+        return mergedStats;
+    }
+
+
+    async groupRevenueStatsData(statsData) {
+        const groupedData = statsData.reduce((result, item) => {
+            // Increment the total_cases for each case_type_wise_counts
+            item.case_type_wise_counts.forEach((caseType) => {
+                const { case_type, paid_amount, total_amount, pending_amount } = caseType;
+
+                // If the case_type doesn't exist in the result object, create a new entry
+                if (!result[case_type]) {
+                    result[case_type] = {
+                        case_type: case_type,
+                        paid_amount: 0,
+                        pending_amount: 0,
+                        total_amount: 0,
+                    };
+                }
+
+                // Increment the counts for the specific case_type
+                result[case_type].pending_amount += pending_amount;
+                result[case_type].paid_amount += paid_amount;
+                result[case_type].total_amount += total_amount;
+            });
+
+            return result;
+        }, {});
+
+
+        // Convert the groupedData object back to an array
+        const groupedArray = Object.values(groupedData);
+
+        return groupedArray;
+    }
+
+    mergeIndividualVolumeAndRevenueStats(revenueStatsData, volumeStatsData) {
+        const mergedData = revenueStatsData.map(revenueItem => {
+            const matchingVolumeItem = volumeStatsData.find(volumeItem =>
+                volumeItem.marketer_id === revenueItem.marketer_id && volumeItem.hospital === revenueItem.hospital
+            );
+
+            return {
+                marketer_id: revenueItem.marketer_id,
+                hospital: revenueItem.hospital,
+                revenue_stats: {
+                    paid_amount: revenueItem.paid_amount,
+                    total_amount: revenueItem.total_amount,
+                    pending_amount: revenueItem.pending_amount,
+                    case_type_wise_counts: { ...revenueItem.case_type_wise_counts }
+                },
+                volume_stats: { ...matchingVolumeItem }
+            };
+
+        });
+
+
+        return mergedData;
     }
 
 }
