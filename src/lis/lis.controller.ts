@@ -3,6 +3,7 @@ import { LisService } from './lis.service';
 import { CreateLiDto } from './dto/create-li.dto';
 import { UpdateLiDto } from './dto/update-li.dto';
 import { SOMETHING_WENT_WRONG, SUCCESS_USERS, USER_DETAILES_FETCHED, USER_SIGNIN_SUCCESS } from 'src/constants/messageConstants';
+import { SigninDto } from './dto/signin.dto';
 
 @Controller({
   version: '1.0',
@@ -18,13 +19,13 @@ export class LisController {
       const query = {
         hospital_marketing_manager: { $in: [managerId] },
         user_type: "MARKETER"
-      }
+      };
 
       const projection = {
         first_name: -1,
         middle_name: -1,
         last_name: -1
-      }
+      };
 
       let usersData = await this.lisService.getUsers(query, projection);
 
@@ -32,13 +33,13 @@ export class LisController {
         success: true,
         message: SUCCESS_USERS,
         data: usersData
-      })
+      });
     } catch (err) {
       console.log({ err });
       return res.status(500).json({
         success: false,
         message: err.message || SOMETHING_WENT_WRONG
-      })
+      });
     }
   }
 
@@ -51,31 +52,32 @@ export class LisController {
         success: true,
         message: USER_DETAILES_FETCHED,
         data: userData
-      })
+      });
     } catch (err) {
       console.log({ err });
       return res.status(500).json({
         success: false,
         message: err.message || SOMETHING_WENT_WRONG
-      })
+      });
     }
   }
 
 
   @Post("signin")
-  async signin(@Res() res: any){
+  async signin(@Res() res: any, @Body() body: SigninDto) {
     try {
+      console.log({ body });
 
       return res.status(200).json({
         success: true,
         message: USER_SIGNIN_SUCCESS
-      })
-    } catch(err){
-      console.log({err});
+      });
+    } catch (err) {
+      console.log({ err });
       return res.status(500).json({
         success: false,
         message: err || SOMETHING_WENT_WRONG
-      })
+      });
     }
   }
 }
