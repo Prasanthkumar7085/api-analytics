@@ -66,7 +66,6 @@ export class LisController {
   @Post("signin")
   async signin(@Res() res: any, @Body() body: SigninDto) {
     try {
-      console.log({ body });
 
       return res.status(200).json({
         success: true,
