@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, Res } from '@nestjs/
 import { LisService } from './lis.service';
 import { CreateLiDto } from './dto/create-li.dto';
 import { UpdateLiDto } from './dto/update-li.dto';
-import { SOMETHING_WENT_WRONG, SUCCESS_USERS } from 'src/constants/messageConstants';
+import { SOMETHING_WENT_WRONG, SUCCESS_USERS, USER_DETAILES_FETCHED, USER_SIGNIN_SUCCESS } from 'src/constants/messageConstants';
 
 @Controller({
   version: '1.0',
@@ -49,7 +49,7 @@ export class LisController {
 
       return res.status(200).json({
         success: true,
-        message: "User Details Fetched Successfully",
+        message: USER_DETAILES_FETCHED,
         data: userData
       })
     } catch (err) {
@@ -57,6 +57,24 @@ export class LisController {
       return res.status(500).json({
         success: false,
         message: err.message || SOMETHING_WENT_WRONG
+      })
+    }
+  }
+
+
+  @Post("signin")
+  async signin(@Res() res: any){
+    try {
+
+      return res.status(200).json({
+        success: true,
+        message: USER_SIGNIN_SUCCESS
+      })
+    } catch(err){
+      console.log({err});
+      return res.status(500).json({
+        success: false,
+        message: err || SOMETHING_WENT_WRONG
       })
     }
   }
