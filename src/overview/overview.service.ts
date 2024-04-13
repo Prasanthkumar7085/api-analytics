@@ -116,4 +116,27 @@ export class OverviewService {
         return data.rows;
     }
 
+
+    async getOverviewVolumeData(queryString: string) {
+
+        // this sql query is used to calculate the overall revenue generated and paid amount
+        let query = sql`
+            SELECT 
+                TO_CHAR(service_date, 'Mon YYYY') AS month,
+                CAST(COUNT(*) AS INTEGER) AS total_cases,
+				CAST(COUNT(*) FILTER(WHERE reports_finalized = TRUE) AS INTEGER) AS completed_cases,
+				CAST(COUNT(*) FILTER (WHERE reports_finalized = FALSE) AS INTEGER) AS pending_cases
+            FROM patient_claims
+            ${queryString ? sql`WHERE ${sql.raw(queryString)}` : sql``}
+            GROUP BY 
+                TO_CHAR(service_date, 'Mon YYYY')
+            ORDER BY 
+                TO_DATE(TO_CHAR(service_date, 'Mon YYYY'), 'Mon YYYY')
+        `;
+
+        const data = await db.execute(query);
+
+        return data.rows;
+    }
+
 }
