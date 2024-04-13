@@ -9,10 +9,14 @@ import { JwtService } from '@nestjs/jwt';
 import { testPanelsDataSchema } from 'src/schemas/testPanelSchema';
 import { HospitalSchema } from 'src/schemas/hospitalSchema';
 import { labDataSchema } from 'src/schemas/lab';
+import { MghDbConnections } from 'src/helpers/mghDbconnection';
+import { MghSyncService } from 'src/mgh-sync/mgh-sync.service';
+import { Configuration } from 'src/config/config.service';
+import { ConfigService } from '@nestjs/config';
 
 @Module({
   controllers: [LisController],
-  providers: [LisService, JwtService],
+  providers: [LisService, JwtService, MghDbConnections, MghSyncService, Configuration, ConfigService],
   imports: [
     MongooseModule.forRoot(process.env.LIS_DLW_DB_URL + '&authSource=admin'),
     MongooseModule.forFeature([

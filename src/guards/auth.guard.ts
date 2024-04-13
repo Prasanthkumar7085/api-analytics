@@ -50,7 +50,6 @@ export class AuthGuard implements CanActivate {
 
         const { ls_api_key } = configuration.getConfig();
 
-        console.log(ls_api_key)
         if (ls_api_key !== apiKey) {
           throw new CustomForbiddenException(FORBIDDEN_EXCEPTION);
         }
