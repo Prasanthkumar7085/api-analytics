@@ -27,8 +27,15 @@ export class Configuration {
         const lab_id = this.configService.get<string>('LAB_ID');
         const ls_api_key = this.configService.get<string>('LS_API_KEY');
         const lis_mgh_db_url = this.configService.get<string>('LIS_MGH_DB_URL');
+        const jwt = {
+            token_secret: "DRXqa9r4UsjO5F0wMybN2BdTiKGmzAoLs82jjj#wsjld",
+            token_life: 604800, // in seconds - 1 Hr
+            refresh_token_secret: "wXyjKsdjlj#12ZpuoDsmg1MLP8CaHkfO2bUhrF6W",
+            refresh_token_life: 604800, // in seconds - 7 Days
+            patient_portal_token_refresh_life: 60000,
+        };
 
-        return { lis_dlw_db_url, lab_id, ls_api_key, lis_mgh_db_url };
+        return { lis_dlw_db_url, lab_id, ls_api_key, lis_mgh_db_url, jwt };
     }
 
 }
