@@ -231,8 +231,7 @@ export class FacilitiesService {
         return data.rows;
     }
 
-
-    async getInsurancePayors(id: number, queryString: string) {
+    async getInsurancePayersRevenue(id: number, queryString: string) {
 
         // This query calculates revenue data grouped by insurance for a specific facility.
         let statement = sql`
@@ -258,6 +257,34 @@ export class FacilitiesService {
 
         return data.rows;
     }
+
+    async getInsurancePayersVolume(id: number, queryString: string) {
+
+        // This query calculates revenue data grouped by insurance for a specific facility.
+        let statement = sql`
+            SELECT
+            	ip.id AS insurance_id, 
+                ip.name AS insurance_name,
+                CAST(COUNT(*) AS INTEGER) AS total_cases,
+				CAST(COUNT(*) FILTER(WHERE p.reports_finalized = TRUE) AS INTEGER) AS completed_cases,
+				CAST(COUNT(*) FILTER (WHERE p.reports_finalized = FALSE) AS INTEGER) AS pending_cases
+            FROM patient_claims p
+            JOIN insurance_payors ip 
+                ON p.insurance_payer_id = ip.id
+            WHERE p.facility_id = ${id}
+            ${queryString ? sql`AND ${sql.raw(queryString)}` : sql``}
+            GROUP BY 
+                ip.id,
+                insurance_name
+            ORDER BY
+                insurance_name
+        `;
+
+        const data = await db.execute(statement);
+
+        return data.rows;
+    }
+    
 
     async getOneInsuranceRevenueMonthWiseData(facilityId: number, payorId: number, queryString: string) {
 
