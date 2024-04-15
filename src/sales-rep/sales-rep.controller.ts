@@ -50,7 +50,9 @@ export class SalesRepController {
 
 			let salesReps = await this.salesRepService.getAll(queryString);
 
-			const salesRepsData = await this.salesRepService.getAllSalesReps();
+			const salesRepsQueryString = this.filterHelper.salesRepsFilter(query);
+
+			const salesRepsData = await this.salesRepService.getSalesReps(salesRepsQueryString);
 
 			salesRepsData.forEach(rep => {
 				if (!this.salesRepExists(salesReps, rep.id)) {
@@ -74,7 +76,7 @@ export class SalesRepController {
 			return res.status(200).json({
 				success: true,
 				message: SUCCESS_FETCHED_SALES_REP,
-				data: salesReps
+				data: salesRepsData
 			});
 		}
 		catch (error) {

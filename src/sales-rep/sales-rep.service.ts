@@ -473,6 +473,17 @@ export class SalesRepService {
 		return await db.select().from(sales_reps).orderBy(sales_reps.id);
 	}
 
+
+	async getSalesReps(queryString) {
+		const rawQuery = sql`
+		select * from sales_reps
+		where
+		${queryString ? sql`${sql.raw(queryString)}` : sql``}
+		`;
+		const data = await db.execute(rawQuery);
+		return data.rows;
+	}
+
 	async updateSalesReps(queryString) {
 		const rawQuery = sql`
         UPDATE sales_reps AS t
