@@ -48,13 +48,12 @@ export class SalesRepController {
 
 			const queryString = this.filterHelper.salesRep(query);
 
-			const salesReps = await this.salesRepService.getAll(queryString);
+			let salesReps = await this.salesRepService.getAll(queryString);
 
 			const salesRepsData = await this.salesRepService.getAllSalesReps();
 
 			salesRepsData.forEach(rep => {
 				if (!this.salesRepExists(salesReps, rep.id)) {
-					console.log(rep.id);
 					salesReps.push({
 						sales_rep_id: rep.id,
 						sales_rep_name: rep.name,
@@ -69,6 +68,8 @@ export class SalesRepController {
 					});
 				}
 			});
+
+			salesReps = this.sortHelper.sort(salesReps, "sales_rep_name");
 
 			return res.status(200).json({
 				success: true,
@@ -376,7 +377,7 @@ export class SalesRepController {
 
 			const queryString = this.filterHelper.salesRepFacilities(query);
 
-			const salesReps = await this.salesRepService.getFacilitiesRevenue(id, queryString);
+			let salesReps: any = await this.salesRepService.getFacilitiesRevenue(id, queryString);
 
 			const salesRepFacilities = await this.salesRepService.getAllFacilitiesBySalesRep(id);
 
@@ -392,6 +393,8 @@ export class SalesRepController {
 					});
 				}
 			});
+
+			salesReps = this.sortHelper.sort(salesReps, "facility_name");
 
 			return res.status(200).json({
 				success: true,
