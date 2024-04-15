@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { sql } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { facilities } from 'src/drizzle/schemas/facilities';
+import { sales_reps } from 'src/drizzle/schemas/salesReps';
 import { db } from 'src/seeders/db';
 
 
@@ -9,6 +10,11 @@ export class FacilitiesService {
 
     async getAllFacilitiesData() {
         return await db.select().from(facilities);
+    }
+
+
+    async getAllFacilitiesWithSalesRep() {
+        return await db.select().from(facilities).leftJoin(sales_reps, eq(facilities.salesRepId, sales_reps.id));
     }
 
 
@@ -337,7 +343,7 @@ export class FacilitiesService {
     }
 
     async updateMghFacilities(queryString) {
-		const rawQuery = sql`
+        const rawQuery = sql`
         UPDATE facilities AS t
         SET
           id = u.id,
@@ -349,6 +355,6 @@ export class FacilitiesService {
         ) as u(id, mghRefId)
         WHERE t.id = u.id`;
 
-		return db.execute(rawQuery);
-	}
+        return db.execute(rawQuery);
+    }
 }
