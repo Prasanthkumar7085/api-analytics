@@ -4,6 +4,7 @@ import { AuthGuard } from 'src/guards/auth.guard';
 import { FilterHelper } from 'src/helpers/filterHelper';
 import { SyncHelpers } from 'src/helpers/syncHelper';
 import { SalesRepService } from './sales-rep.service';
+import { SortHelper } from 'src/helpers/sortHelper';
 
 
 @Controller({
@@ -14,7 +15,8 @@ export class SalesRepController {
 	constructor(
 		private readonly salesRepService: SalesRepService,
 		private readonly filterHelper: FilterHelper,
-		private readonly syncHelper: SyncHelpers
+		private readonly syncHelper: SyncHelpers,
+		private readonly sortHelper: SortHelper
 	) { }
 
 	@UseGuards(AuthGuard)
@@ -376,6 +378,21 @@ export class SalesRepController {
 
 			const salesReps = await this.salesRepService.getFacilitiesRevenue(id, queryString);
 
+			const salesRepFacilities = await this.salesRepService.getAllFacilitiesBySalesRep(id);
+
+			salesRepFacilities.forEach(facility => {
+				if (!this.facilityExists(salesReps, facility.id)) {
+					salesReps.push({
+						facility_id: facility.id,
+						facility_name: facility.name,
+						generated_amount: 0,
+						paid_amount: 0,
+						pending_amount: 0,
+						total_cases: 0
+					});
+				}
+			});
+
 			return res.status(200).json({
 				success: true,
 				message: SUCCESS_FETCHED_SALES_REP_FACILITY_WISE_STATS,
@@ -400,7 +417,7 @@ export class SalesRepController {
 
 			const queryString = this.filterHelper.salesRepFacilities(query);
 
-			const salesReps = await this.salesRepService.getFacilitiesVolume(id, queryString);
+			let salesReps: any = await this.salesRepService.getFacilitiesVolume(id, queryString);
 
 			const salesRepFacilities = await this.salesRepService.getAllFacilitiesBySalesRep(id);
 
@@ -415,6 +432,8 @@ export class SalesRepController {
 					});
 				}
 			});
+
+			salesReps = this.sortHelper.sort(salesReps, "facility_name");
 
 			return res.status(200).json({
 				success: true,
