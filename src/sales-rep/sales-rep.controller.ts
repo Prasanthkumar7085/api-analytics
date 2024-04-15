@@ -381,6 +381,26 @@ export class SalesRepController {
 
 			const salesReps = await this.salesRepService.getFacilitiesVolume(id, queryString);
 
+			const salesRepFacilities = await this.salesRepService.getAllFacilitiesBySalesRep(id);
+
+			console.log({ salesRepFacilities: salesRepFacilities.length });
+			console.log({ salesReps: salesReps.length });
+
+			salesRepFacilities.forEach(facility => {
+				if (!salesReps.some(e => e.facility_id === id)) {
+					salesReps.push({
+						"facility_id": facility.id,
+						"facility_name": facility.name,
+						"total_cases": 0, // You can set any default value for these properties
+						"completed_cases": 0,
+						"pending_cases": 0
+					});
+				}
+			});
+
+			console.log({ salesRepsData: salesReps.length });
+
+
 			return res.status(200).json({
 				success: true,
 				message: SUCCESS_FETCHED_SALES_REP_FACILITY_WISE_STATS_VOLUME,

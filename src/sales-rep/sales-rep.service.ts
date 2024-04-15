@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { db } from '../seeders/db';
 import { eq, sql } from 'drizzle-orm';
 import { sales_reps } from 'src/drizzle/schemas/salesReps';
+import { facilities } from 'src/drizzle/schemas/facilities';
 
 
 @Injectable()
@@ -493,6 +494,10 @@ export class SalesRepService {
 		const data = await db.execute(sql`SELECT id, mgh_ref_id FROM sales_reps WHERE mgh_ref_id IN ${marketersIds}`);
 
 		return data.rows;
+	}
+
+	async getAllFacilitiesBySalesRep(salesRepId) {
+		return db.select().from(facilities).where(eq(facilities.salesRepId, salesRepId));
 	}
 }
 
