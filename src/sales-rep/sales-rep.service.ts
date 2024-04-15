@@ -476,9 +476,8 @@ export class SalesRepService {
 
 	async getSalesReps(queryString) {
 		const rawQuery = sql`
-		select * from sales_reps
-		where
-		${queryString ? sql`${sql.raw(queryString)}` : sql``}
+		    SELECT * FROM sales_reps
+		    ${queryString ? sql`WHERE ${sql.raw(queryString)}` : sql``}
 		`;
 		const data = await db.execute(rawQuery);
 		return data.rows;

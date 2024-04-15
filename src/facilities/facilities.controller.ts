@@ -27,8 +27,6 @@ export class FacilitiesController {
 
 			let data = await this.facilitiesService.getAllFacilities(queryString);
 
-			console.log({ data: data.length });
-
 			const facilitiesData = await this.facilitiesService.getAllFacilitiesWithSalesRep();
 
 			facilitiesData.forEach(e => {
