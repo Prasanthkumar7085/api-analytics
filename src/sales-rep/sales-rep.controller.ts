@@ -47,6 +47,27 @@ export class SalesRepController {
 			const queryString = this.filterHelper.salesRep(query);
 
 			const salesReps = await this.salesRepService.getAll(queryString);
+
+			const salesRepsData = await this.salesRepService.getAllSalesReps();
+
+			salesRepsData.forEach(rep => {
+				if (!this.salesRepExists(salesReps, rep.id)) {
+					console.log(rep.id);
+					salesReps.push({
+						sales_rep_id: rep.id,
+						sales_rep_name: rep.name,
+						email: rep.email,
+						no_of_facilities: 0,
+						expected_amount: 0,
+						generated_amount: 0,
+						paid_amount: 0,
+						pending_amount: 0,
+						total_cases: 0,
+						pending_cases: 0
+					});
+				}
+			});
+
 			return res.status(200).json({
 				success: true,
 				message: SUCCESS_FETCHED_SALES_REP,
@@ -383,9 +404,6 @@ export class SalesRepController {
 
 			const salesRepFacilities = await this.salesRepService.getAllFacilitiesBySalesRep(id);
 
-			console.log({ salesRepFacilities: salesRepFacilities.length });
-			console.log({ salesReps: salesReps.length });
-
 			salesRepFacilities.forEach(facility => {
 				if (!this.facilityExists(salesReps, facility.id)) {
 					salesReps.push({
@@ -397,9 +415,6 @@ export class SalesRepController {
 					});
 				}
 			});
-
-			console.log({ salesRepsData: salesReps.length });
-
 
 			return res.status(200).json({
 				success: true,
@@ -415,11 +430,6 @@ export class SalesRepController {
 				message: error || SOMETHING_WENT_WRONG
 			});
 		}
-	}
-
-
-	facilityExists(finalResp, id) {
-		return finalResp.some(facility => facility.facility_id === id);
 	}
 
 	@UseGuards(AuthGuard)
@@ -518,6 +528,16 @@ export class SalesRepController {
 				message: error || SOMETHING_WENT_WRONG
 			});
 		}
+	}
+
+
+	facilityExists(finalResp, id) {
+		return finalResp.some(facility => facility.facility_id === id);
+	}
+
+
+	salesRepExists(finalResp, id) {
+		return finalResp.some(rep => rep.sales_rep_id === id);
 	}
 
 }
