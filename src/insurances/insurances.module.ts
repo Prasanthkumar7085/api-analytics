@@ -12,10 +12,11 @@ import { testPanelsDataSchema } from 'src/schemas/testPanelSchema';
 import { HospitalSchema } from 'src/schemas/hospitalSchema';
 import { SalesRepService } from 'src/sales-rep/sales-rep.service';
 import { labDataSchema } from 'src/schemas/lab';
+import { SortHelper } from 'src/helpers/sortHelper';
 
 @Module({
   controllers: [InsurancesController],
-  providers: [InsurancesService, FilterHelper, JwtService, LisService, SalesRepService],
+  providers: [InsurancesService, FilterHelper, JwtService, LisService, SalesRepService, SortHelper],
   imports: [
     MongooseModule.forFeature([
       { name: 'User', schema: UserSchema },
