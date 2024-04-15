@@ -27,6 +27,8 @@ export class FacilitiesController {
 
 			let data = await this.facilitiesService.getAllFacilities(queryString);
 
+			console.log({ data: data.length });
+
 			const facilitiesData = await this.facilitiesService.getAllFacilitiesWithSalesRep();
 
 			facilitiesData.forEach(e => {
@@ -45,6 +47,8 @@ export class FacilitiesController {
 			});
 
 			data = this.sortHelper.sort(data, "facility_name");
+
+			console.log({ data: data.length });
 
 			return res.status(200).json({
 				success: true,
