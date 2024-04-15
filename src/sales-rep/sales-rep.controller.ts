@@ -387,13 +387,13 @@ export class SalesRepController {
 			console.log({ salesReps: salesReps.length });
 
 			salesRepFacilities.forEach(facility => {
-				if (!salesReps.some(e => e.facility_id === id)) {
+				if (!this.facilityExists(salesReps, facility.id)) {
 					salesReps.push({
-						"facility_id": facility.id,
-						"facility_name": facility.name,
-						"total_cases": 0, // You can set any default value for these properties
-						"completed_cases": 0,
-						"pending_cases": 0
+						facility_id: facility.id,
+						facility_name: facility.name,
+						total_cases: 0,
+						completed_cases: 0,
+						pending_cases: 0
 					});
 				}
 			});
@@ -415,6 +415,11 @@ export class SalesRepController {
 				message: error || SOMETHING_WENT_WRONG
 			});
 		}
+	}
+
+
+	facilityExists(finalResp, id) {
+		return finalResp.some(facility => facility.facility_id === id);
 	}
 
 	@UseGuards(AuthGuard)
