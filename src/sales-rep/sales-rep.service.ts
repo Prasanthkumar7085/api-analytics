@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { db } from '../seeders/db';
-import { eq, sql } from 'drizzle-orm';
+import { and, eq, inArray, ne, sql } from 'drizzle-orm';
 import { sales_reps } from 'src/drizzle/schemas/salesReps';
 import { facilities } from 'src/drizzle/schemas/facilities';
 
@@ -465,8 +465,17 @@ export class SalesRepService {
 		return await db.select().from(sales_reps).where(eq(sales_reps.refId, refId));
 	}
 
-	async findSingleManagerSalesReps(reportingTo) {
+	async getSalesRepsByManager(reportingTo) {
 		return await db.select().from(sales_reps).where(eq(sales_reps.reportingTo, reportingTo));
+	}
+
+	async findSingleManagerSalesReps(reportingTo) {
+		return await db.select().from(sales_reps).where(and(eq(sales_reps.reportingTo, reportingTo), ne(sales_reps.roleId, 3)));
+	}
+
+
+	async findMultiManagersSalesReps(reportingTo) {
+		return await db.select().from(sales_reps).where(and(inArray(sales_reps.reportingTo, reportingTo), ne(sales_reps.roleId, 3)));
 	}
 
 	async getAllSalesReps() {

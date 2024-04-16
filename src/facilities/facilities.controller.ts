@@ -23,30 +23,30 @@ export class FacilitiesController {
 	async getAllFacilities(@Res() res: any, @Query() query: any) {
 		try {
 
-			const queryString = await this.filterHelper.facilitiesDateFilter(query);	// date filter on service data in patient_claims table
+			const queryString = await this.filterHelper.facilitiesFilter(query);	// date filter on service data in patient_claims table
 
 			let data = await this.facilitiesService.getAllFacilities(queryString);
 
-			const facilitiesData = await this.facilitiesService.getAllFacilitiesWithSalesRep();
+			if (data.length) {
+				const facilitiesData = await this.facilitiesService.getAllFacilitiesWithSalesRep();
 
-			facilitiesData.forEach(e => {
-				if (!this.facilityExists(data, e.facilities.id)) {
-					data.push({
-						facility_id: e.facilities.id,
-						facility_name: e.facilities.name,
-						sales_rep_id: e.sales_reps.id,
-						sales_rep_name: e.sales_reps.name,
-						generated_amount: 0,
-						paid_amount: 0,
-						pending_amount: 0,
-						total_cases: 0
-					});
-				}
-			});
+				facilitiesData.forEach(e => {
+					if (!this.facilityExists(data, e.facilities.id)) {
+						data.push({
+							facility_id: e.facilities.id,
+							facility_name: e.facilities.name,
+							sales_rep_id: e.sales_reps.id,
+							sales_rep_name: e.sales_reps.name,
+							generated_amount: 0,
+							paid_amount: 0,
+							pending_amount: 0,
+							total_cases: 0
+						});
+					}
+				});
 
-			data = this.sortHelper.sort(data, "facility_name");
-
-			console.log({ data: data.length });
+				data = this.sortHelper.sort(data, "facility_name");
+			}
 
 			return res.status(200).json({
 				success: true,

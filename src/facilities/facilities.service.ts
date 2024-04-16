@@ -23,7 +23,7 @@ export class FacilitiesService {
         // This query calculates the revenue_data and total no.of cases of facilities grouped by facility.
         // along with date filter on service date.
         let statement = sql`
-            SELECT
+                SELECT
                 p.facility_id AS facility_id,
                 f.name AS facility_name,
                 sr.id AS sales_rep_id,
@@ -33,20 +33,19 @@ export class FacilitiesService {
                 CAST(ROUND(SUM(p.pending_amount)::NUMERIC, 2) AS FLOAT) AS pending_amount,
                 CAST(COUNT(*) AS INTEGER) AS total_cases
             FROM patient_claims p
-            JOIN facilities f
-                ON p.facility_id = f.id
-            JOIN sales_reps sr
-                ON p.sales_rep_id = sr.id
+            JOIN facilities f ON p.facility_id = f.id
+            JOIN sales_reps sr ON p.sales_rep_id = sr.id
             ${queryString ? sql`WHERE ${sql.raw(queryString)}` : sql``}
             GROUP BY
                 p.facility_id,
-				f.name,
+                f.name,
                 sr.id,
                 sr.name
             ORDER BY
-				f.name,
-                sr.name
+                f.name,
+                sr.name;
         `;
+
 
         const data = await db.execute(statement);
 
@@ -284,7 +283,7 @@ export class FacilitiesService {
 
         return data.rows;
     }
-    
+
 
     async getOneInsuranceRevenueMonthWiseData(facilityId: number, payorId: number, queryString: string) {
 

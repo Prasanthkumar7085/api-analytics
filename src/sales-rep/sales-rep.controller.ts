@@ -1,10 +1,11 @@
 import { Controller, Delete, Get, Param, Query, Req, Res, UseGuards } from '@nestjs/common';
-import { HOSPITAL_MARKETING_MANAGER, SOMETHING_WENT_WRONG, SUCCESS_DELETED_DATA_IN_TABLE, SUCCESS_FECTED_SALE_REP_REVENUE_STATS, SUCCESS_FECTED_SALE_REP_VOLUME_STATS, SUCCESS_FETCHED_CASE_TYPES_STATS_REVENUE, SUCCESS_FETCHED_ONE_SALES_REP, SUCCESS_FETCHED_PATIENT_CLAIMS_COUNT, SUCCESS_FETCHED_SALES_REP, SUCCESS_FETCHED_SALES_REPS, SUCCESS_FETCHED_SALES_REP_CASE_TYPE_MONTHLY_VOLUME, SUCCESS_FETCHED_SALES_REP_FACILITY_WISE_STATS, SUCCESS_FETCHED_SALES_REP_FACILITY_WISE_STATS_VOLUME, SUCCESS_FETCHED_SALES_REP_INSURANCE_PAYORS_DATA_REVENUE, SUCCESS_FETCHED_SALES_REP_INSURANCE_PAYORS_DATA_VOLUME, SUCCESS_FETCHED_SALES_REP_INSURANCE_PAYORS_MONTH_WISE_DATA, SUCCESS_FETCHED_SALES_REP_OVERALL_REVENUE, SUCCESS_FETCHED_SALES_REP_OVERALL_VOLUME, SUCCESS_FETCHED_SALES_REP_TREND_REVENUE, SUCCESS_FETCHED_SALES_REP_TREND_VOLUME } from 'src/constants/messageConstants';
+import { SOMETHING_WENT_WRONG, SUCCESS_DELETED_DATA_IN_TABLE, SUCCESS_FECTED_SALE_REP_REVENUE_STATS, SUCCESS_FECTED_SALE_REP_VOLUME_STATS, SUCCESS_FETCHED_CASE_TYPES_STATS_REVENUE, SUCCESS_FETCHED_ONE_SALES_REP, SUCCESS_FETCHED_PATIENT_CLAIMS_COUNT, SUCCESS_FETCHED_SALES_REP, SUCCESS_FETCHED_SALES_REPS, SUCCESS_FETCHED_SALES_REP_CASE_TYPE_MONTHLY_VOLUME, SUCCESS_FETCHED_SALES_REP_FACILITY_WISE_STATS, SUCCESS_FETCHED_SALES_REP_FACILITY_WISE_STATS_VOLUME, SUCCESS_FETCHED_SALES_REP_INSURANCE_PAYORS_DATA_REVENUE, SUCCESS_FETCHED_SALES_REP_INSURANCE_PAYORS_DATA_VOLUME, SUCCESS_FETCHED_SALES_REP_INSURANCE_PAYORS_MONTH_WISE_DATA, SUCCESS_FETCHED_SALES_REP_OVERALL_REVENUE, SUCCESS_FETCHED_SALES_REP_OVERALL_VOLUME, SUCCESS_FETCHED_SALES_REP_TREND_REVENUE, SUCCESS_FETCHED_SALES_REP_TREND_VOLUME } from 'src/constants/messageConstants';
 import { AuthGuard } from 'src/guards/auth.guard';
 import { FilterHelper } from 'src/helpers/filterHelper';
 import { SyncHelpers } from 'src/helpers/syncHelper';
 import { SalesRepService } from './sales-rep.service';
 import { SortHelper } from 'src/helpers/sortHelper';
+import { HOSPITAL_MARKETING_MANAGER } from 'src/constants/lisConstants';
 
 
 @Controller({
@@ -50,28 +51,30 @@ export class SalesRepController {
 
 			let salesReps = await this.salesRepService.getAll(queryString);
 
-			const salesRepsQueryString = this.filterHelper.salesRepsFilter(query);
+			if (salesReps.length) {
+				const salesRepsQueryString = this.filterHelper.salesRepsFilter(query);
 
-			const salesRepsData = await this.salesRepService.getSalesReps(salesRepsQueryString);
+				const salesRepsData = await this.salesRepService.getSalesReps(salesRepsQueryString);
 
-			salesRepsData.forEach(rep => {
-				if (!this.salesRepExists(salesReps, rep.id)) {
-					salesReps.push({
-						sales_rep_id: rep.id,
-						sales_rep_name: rep.name,
-						email: rep.email,
-						no_of_facilities: 0,
-						expected_amount: 0,
-						generated_amount: 0,
-						paid_amount: 0,
-						pending_amount: 0,
-						total_cases: 0,
-						pending_cases: 0
-					});
-				}
-			});
+				salesRepsData.forEach(rep => {
+					if (!this.salesRepExists(salesReps, rep.id)) {
+						salesReps.push({
+							sales_rep_id: rep.id,
+							sales_rep_name: rep.name,
+							email: rep.email,
+							no_of_facilities: 0,
+							expected_amount: 0,
+							generated_amount: 0,
+							paid_amount: 0,
+							pending_amount: 0,
+							total_cases: 0,
+							pending_cases: 0
+						});
+					}
+				});
 
-			salesReps = this.sortHelper.sort(salesReps, "sales_rep_name");
+				salesReps = this.sortHelper.sort(salesReps, "sales_rep_name");
+			}
 
 			return res.status(200).json({
 				success: true,
@@ -100,8 +103,7 @@ export class SalesRepController {
 
 			if (req.user.user_type === HOSPITAL_MARKETING_MANAGER) {
 				if (salesRepData.length > 0) {
-					salesRepData = await this.salesRepService.findSingleManagerSalesReps(salesRepData[0].reportingTo);
-
+					salesRepData = await this.salesRepService.getSalesRepsByManager(salesRepData[0].reportingTo);
 				}
 			}
 

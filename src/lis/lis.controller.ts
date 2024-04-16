@@ -1,12 +1,13 @@
 import { Body, Controller, Get, Param, Post, Res } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
-import { FORBIDDEN, INVALID_CREDENTIALS, SOMETHING_WENT_WRONG, SUCCESS_USERS, USER_DETAILES_FETCHED, USER_SIGNIN_SUCCESS, USER_STATUS_ERR_MESSAGE } from 'src/constants/messageConstants';
+import { FORBIDDEN, INVALID_CREDENTIALS, SOMETHING_WENT_WRONG, SUCCESS_USERS, USER_DETAILES_FETCHED, USER_NOT_ALLOWED, USER_SIGNIN_SUCCESS, USER_STATUS_ERR_MESSAGE } from 'src/constants/messageConstants';
 import { MghDbConnections } from 'src/helpers/mghDbconnection';
 import { MghSyncService } from 'src/mgh-sync/mgh-sync.service';
 import { SigninDto } from './dto/signin.dto';
 import { LisService } from './lis.service';
 import { Configuration } from 'src/config/config.service';
 import * as jwt from 'jsonwebtoken';
+import { HOSPITAL_MARKETING_MANAGER, LAB_ADMIN, MARKETER, SALES_DIRECTOR } from 'src/constants/lisConstants';
 
 @Controller({
   version: '1.0',
@@ -115,11 +116,20 @@ export class LisController {
 
 
   async checkUserDetails(userDetails, res, password) {
+    const userType = userDetails.user_type;
+
     if (userDetails.status !== "ACTIVE") {
       return res.status(403).json({
         success: false,
         message: USER_STATUS_ERR_MESSAGE + userDetails.status,
         errorCode: FORBIDDEN
+      });
+    }
+
+    if (userType !== LAB_ADMIN && userType !== SALES_DIRECTOR && userType !== HOSPITAL_MARKETING_MANAGER && userType !== MARKETER) {
+      return res.status(401).json({
+        success: false,
+        message: USER_NOT_ALLOWED
       });
     }
 
