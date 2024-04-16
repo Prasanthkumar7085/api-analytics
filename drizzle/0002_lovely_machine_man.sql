@@ -1,1 +1,0 @@
-ALTER TABLE "sales_reps" ALTER COLUMN "reporting_to" SET DEFAULT null;

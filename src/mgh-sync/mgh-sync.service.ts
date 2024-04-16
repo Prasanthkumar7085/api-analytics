@@ -38,4 +38,11 @@ export class MghSyncService {
         return await InsurancePayorsModel.find(query).select(projection);
 
     }
+
+    async getUserByUserName(username) {
+        return await UserModel.findOne({
+            username,
+            status: { $ne: "ARCHIVED" },
+        }).lean();
+    }
 }

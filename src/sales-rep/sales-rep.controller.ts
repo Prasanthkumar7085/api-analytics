@@ -4,6 +4,7 @@ import { AuthGuard } from 'src/guards/auth.guard';
 import { FilterHelper } from 'src/helpers/filterHelper';
 import { SyncHelpers } from 'src/helpers/syncHelper';
 import { SalesRepService } from './sales-rep.service';
+import { SortHelper } from 'src/helpers/sortHelper';
 
 
 @Controller({
@@ -14,7 +15,8 @@ export class SalesRepController {
 	constructor(
 		private readonly salesRepService: SalesRepService,
 		private readonly filterHelper: FilterHelper,
-		private readonly syncHelper: SyncHelpers
+		private readonly syncHelper: SyncHelpers,
+		private readonly sortHelper: SortHelper
 	) { }
 
 	@UseGuards(AuthGuard)
@@ -46,7 +48,31 @@ export class SalesRepController {
 
 			const queryString = this.filterHelper.salesRep(query);
 
-			const salesReps = await this.salesRepService.getAll(queryString);
+			let salesReps = await this.salesRepService.getAll(queryString);
+
+			const salesRepsQueryString = this.filterHelper.salesRepsFilter(query);
+
+			const salesRepsData = await this.salesRepService.getSalesReps(salesRepsQueryString);
+
+			salesRepsData.forEach(rep => {
+				if (!this.salesRepExists(salesReps, rep.id)) {
+					salesReps.push({
+						sales_rep_id: rep.id,
+						sales_rep_name: rep.name,
+						email: rep.email,
+						no_of_facilities: 0,
+						expected_amount: 0,
+						generated_amount: 0,
+						paid_amount: 0,
+						pending_amount: 0,
+						total_cases: 0,
+						pending_cases: 0
+					});
+				}
+			});
+
+			salesReps = this.sortHelper.sort(salesReps, "sales_rep_name");
+
 			return res.status(200).json({
 				success: true,
 				message: SUCCESS_FETCHED_SALES_REP,
@@ -353,7 +379,24 @@ export class SalesRepController {
 
 			const queryString = this.filterHelper.salesRepFacilities(query);
 
-			const salesReps = await this.salesRepService.getFacilitiesRevenue(id, queryString);
+			let salesReps: any = await this.salesRepService.getFacilitiesRevenue(id, queryString);
+
+			const salesRepFacilities = await this.salesRepService.getAllFacilitiesBySalesRep(id);
+
+			salesRepFacilities.forEach(facility => {
+				if (!this.facilityExists(salesReps, facility.id)) {
+					salesReps.push({
+						facility_id: facility.id,
+						facility_name: facility.name,
+						generated_amount: 0,
+						paid_amount: 0,
+						pending_amount: 0,
+						total_cases: 0
+					});
+				}
+			});
+
+			salesReps = this.sortHelper.sort(salesReps, "facility_name");
 
 			return res.status(200).json({
 				success: true,
@@ -379,7 +422,23 @@ export class SalesRepController {
 
 			const queryString = this.filterHelper.salesRepFacilities(query);
 
-			const salesReps = await this.salesRepService.getFacilitiesVolume(id, queryString);
+			let salesReps: any = await this.salesRepService.getFacilitiesVolume(id, queryString);
+
+			const salesRepFacilities = await this.salesRepService.getAllFacilitiesBySalesRep(id);
+
+			salesRepFacilities.forEach(facility => {
+				if (!this.facilityExists(salesReps, facility.id)) {
+					salesReps.push({
+						facility_id: facility.id,
+						facility_name: facility.name,
+						total_cases: 0,
+						completed_cases: 0,
+						pending_cases: 0
+					});
+				}
+			});
+
+			salesReps = this.sortHelper.sort(salesReps, "facility_name");
 
 			return res.status(200).json({
 				success: true,
@@ -493,6 +552,16 @@ export class SalesRepController {
 				message: error || SOMETHING_WENT_WRONG
 			});
 		}
+	}
+
+
+	facilityExists(finalResp, id) {
+		return finalResp.some(facility => facility.facility_id === id);
+	}
+
+
+	salesRepExists(finalResp, id) {
+		return finalResp.some(rep => rep.sales_rep_id === id);
 	}
 
 }

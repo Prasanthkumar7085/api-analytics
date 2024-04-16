@@ -3,6 +3,7 @@ import { SOMETHING_WENT_WRONG, SUCCESS_FETCHED_ALL_INSURANCES_DATA, SUCCESS_FETC
 import { AuthGuard } from 'src/guards/auth.guard';
 import { FilterHelper } from 'src/helpers/filterHelper';
 import { InsurancesService } from './insurances.service';
+import { SortHelper } from 'src/helpers/sortHelper';
 
 
 @Controller({
@@ -12,7 +13,8 @@ import { InsurancesService } from './insurances.service';
 export class InsurancesController {
 	constructor(
 		private readonly insurancesService: InsurancesService,
-		private readonly filterHelper: FilterHelper
+		private readonly filterHelper: FilterHelper,
+		private readonly sortHelper: SortHelper
 	) { }
 
 	@UseGuards(AuthGuard)
@@ -23,7 +25,25 @@ export class InsurancesController {
 			// here filter is used to make a string for date filter.
 			const queryString = await this.filterHelper.overviewFilter(query);
 
-			const data = await this.insurancesService.getAllInsurancesData(queryString);
+			let data = await this.insurancesService.getAllInsurancesData(queryString);
+
+			const insurances = await this.insurancesService.getAllInsurances();
+
+			insurances.forEach(insurance => {
+				if (!this.insuranceExists(data, insurance.id)) {
+					data.push({
+						insurance_payor_id: insurance.id,
+						insurance_payor_name: insurance.name,
+						no_of_facilities: 0,
+						total_cases: 0,
+						generated_amount: 0,
+						paid_amount: 0,
+						pending_amount: 0
+					});
+				}
+			});
+
+			data = this.sortHelper.sort(data, "insurance_payor_name");
 
 			return res.status(200).json({
 				success: true,
@@ -46,7 +66,7 @@ export class InsurancesController {
 	async getOneInsurancePayorDetails(@Res() res: any, @Param('id') id: any) {
 		try {
 
-			const data = await this.insurancesService.getOneInsurancePayorDetails(id)
+			const data = await this.insurancesService.getOneInsurancePayorDetails(id);
 
 			return res.status(200).json({
 				success: true,
@@ -140,5 +160,10 @@ export class InsurancesController {
 				message: error || SOMETHING_WENT_WRONG
 			});
 		}
+	}
+
+
+	insuranceExists(finalResp, id) {
+		return finalResp.some(rep => rep.insurance_payor_id === id);
 	}
 }

@@ -64,8 +64,9 @@ CREATE TABLE IF NOT EXISTS "sales_reps" (
 	"name" text,
 	"ref_id" text DEFAULT null,
 	"mgh_ref_id" text DEFAULT null,
-	"reporting_to" serial DEFAULT null NOT NULL,
-	"role_id" integer
+	"reporting_to" serial NOT NULL,
+	"role_id" integer,
+	"email" varchar DEFAULT null
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "user_role" (

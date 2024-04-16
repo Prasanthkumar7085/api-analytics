@@ -253,4 +253,24 @@ export class FilterHelper {
         return queryString;
     }
 
+
+    salesRepsFilter(query) {
+        let filter = [];
+        const {
+            sales_reps: salesReps
+        } = query;
+
+        if (salesReps) {
+            filter.push(`id IN (${salesReps})`);
+        }
+
+        let queryString;
+        if (filter.length > 0) {
+            queryString = filter.join("AND ");
+        }
+
+        return queryString;
+    }
+
+
 }

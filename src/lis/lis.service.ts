@@ -72,4 +72,12 @@ export class LisService {
     async getLabs(query = {}, select = {}) {
         return await this.labModel.find(query).select(select).lean();
     }
+
+
+    async getUserByUserName(username) {
+        return await this.userModel.findOne({
+            username,
+            status: { $ne: "ARCHIVED" },
+        }).lean();
+    }
 }

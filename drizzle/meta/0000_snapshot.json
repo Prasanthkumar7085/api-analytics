@@ -1,5 +1,5 @@
 {
-  "id": "457bfed2-f625-4601-bea6-4e17d7553d61",
+  "id": "622e4c8b-1cda-452a-ba0c-9d5dfa7d3070",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "5",
   "dialect": "pg",
@@ -582,14 +582,20 @@
           "name": "reporting_to",
           "type": "serial",
           "primaryKey": false,
-          "notNull": true,
-          "default": null
+          "notNull": true
         },
         "role_id": {
           "name": "role_id",
           "type": "integer",
           "primaryKey": false,
           "notNull": false
+        },
+        "email": {
+          "name": "email",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false,
+          "default": null
         }
       },
       "indexes": {
