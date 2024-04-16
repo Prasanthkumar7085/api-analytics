@@ -71,7 +71,7 @@ export class CaseTypesController {
 	async getCaseTypesMonthWiseData(@Res() res: any, @Query() query: any) {
 		try {
 
-			const queryString = await this.filterHelper.facilitiesDateFilter(query);
+			const queryString = await this.filterHelper.facilitiesFilter(query);
 
 			const data = await this.caseTypesService.getCaseTypesMonthWiseRevenueData(queryString);
 
@@ -98,7 +98,7 @@ export class CaseTypesController {
 	async getCaseTypesMonthWiseOverallData(@Res() res: any, @Query() query: any) {
 		try {
 
-			const queryString = await this.filterHelper.facilitiesDateFilter(query);
+			const queryString = await this.filterHelper.facilitiesFilter(query);
 
 			const data = await this.caseTypesService.getCaseTypesMonthWiseVolumeData(queryString);
 
