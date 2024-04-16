@@ -1,7 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { CaseTypesService } from "src/case-types/case-types.service";
 import { ARCHIVED } from "src/constants/lisConstants";
-import { HOSPITAL_MARKETING_MANAGER, MARKETER } from "src/constants/messageConstants";
 import { FacilitiesService } from "src/facilities/facilities.service";
 import { InsurancesService } from "src/insurances/insurances.service";
 import { LabsService } from "src/labs/labs.service";

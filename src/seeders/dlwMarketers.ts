@@ -2,9 +2,9 @@ import { ConfigService } from "@nestjs/config";
 import mongoose from "mongoose";
 import { Configuration } from "../config/config.service";
 import { UserModel } from "../schemas/userSchema";
-import { HOSPITAL_MARKETING_MANAGER, MARKETER } from "../constants/messageConstants";
 import { HospitalModel } from "../schemas/hospitalSchema";
 import * as fs from 'fs';
+import { HOSPITAL_MARKETING_MANAGER, MARKETER } from "src/constants/lisConstants";
 
 
 export default {

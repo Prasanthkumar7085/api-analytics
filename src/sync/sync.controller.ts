@@ -3,7 +3,7 @@ import { SyncService } from './sync.service';
 import { LisService } from 'src/lis/lis.service';
 import {
 	PATIENT_CLAIMS_NOT_FOUND, REMOVED_ARCHIVED_CLAIMS, SUCCESS_SYNC_PATIENT_CLAIMS, CASE_TYPES_NOT_FOUND_IN_LIS_DATABASE, INSURANCE_PAYORS_NOT_FOUND_IN_LIS_DATABASE, CASE_TYPES_NOT_FOUND, INSURANCE_PAYORS_NOT_FOUND, SOMETHING_WENT_WRONG, SUCCESS_SYNCED_CASE_TYPES, SUCCESS_SYNCED_INSURANCE_PAYORS,
-	HOSPITAL_MARKETING_MANAGER, FACILITIES_NOT_FOUND, SALES_REPS_NOT_FOUND, SUCCUSS_INSERTED_MARKETING_MANAGERS, SUCCUSS_INSERTED_SALES_REPS, SUCCESS_INSERTED_FACILICES, LIS_FACILITIES_NOT_FOUND, MARKETER,
+	 FACILITIES_NOT_FOUND, SALES_REPS_NOT_FOUND, SUCCUSS_INSERTED_MARKETING_MANAGERS, SUCCUSS_INSERTED_SALES_REPS, SUCCESS_INSERTED_FACILICES, LIS_FACILITIES_NOT_FOUND,
 	SUCCESS_SYNC_LABS,
 	LABS_NOT_FOUND
 } from 'src/constants/messageConstants';
@@ -14,6 +14,7 @@ import { InsurancesService } from "src/insurances/insurances.service";
 import { CaseTypesService } from 'src/case-types/case-types.service';
 import { SalesRepService } from 'src/sales-rep/sales-rep.service';
 import { FacilitiesService } from 'src/facilities/facilities.service';
+import { HOSPITAL_MARKETING_MANAGER, MARKETER } from 'src/constants/lisConstants';
 
 @Controller({
 	version: '1.0',

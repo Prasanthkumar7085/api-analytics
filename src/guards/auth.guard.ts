@@ -16,9 +16,10 @@ import {
 } from 'src/helpers/exceptions';
 import { jwtConstants } from 'src/constants/jwt.constants';
 import { LisService } from 'src/lis/lis.service';
-import { FORBIDDEN_EXCEPTION, HOSPITAL_MARKETING_MANAGER, INVALID_TOKEN_EXCEPTION, MARKETER, USER_NOTFOUND_EXCEPTION } from 'src/constants/messageConstants';
+import { FORBIDDEN_EXCEPTION, INVALID_TOKEN_EXCEPTION, USER_NOTFOUND_EXCEPTION } from 'src/constants/messageConstants';
 import { SalesRepService } from 'src/sales-rep/sales-rep.service';
 import { Configuration } from 'src/config/config.service';
+import { HOSPITAL_MARKETING_MANAGER, MARKETER, SALES_DIRECTOR } from 'src/constants/lisConstants';
 
 
 @Injectable()
@@ -78,7 +79,7 @@ export class AuthGuard implements CanActivate {
 
         request.user = user;
 
-        if (user.user_type === MARKETER || user.user_type === HOSPITAL_MARKETING_MANAGER) {
+        if (user.user_type === MARKETER || user.user_type === HOSPITAL_MARKETING_MANAGER || user.user_type === SALES_DIRECTOR) {
           const query = this.addQueryBySalesRep(user, request.query);
 
           request.query = query;
@@ -115,14 +116,68 @@ export class AuthGuard implements CanActivate {
 
       let salesRepData = await this.salesRepService.findOneSalesRep(refId);
 
-      if (salesRepData.length > 0 && userDetails.user_type === HOSPITAL_MARKETING_MANAGER) {
-        const data = await this.salesRepService.findSingleManagerSalesReps(salesRepData[0].reportingTo);
+      let ids = [];
 
-        if (data.length > 0) {
-          const ids = data.map(e => e.id);
+      if (salesRepData.length) {
+
+        if (userDetails.user_type === MARKETER) {
+          ids.push(salesRepData[0].id);
 
           query.sales_reps = ids;
         }
+
+
+        if (userDetails.user_type === HOSPITAL_MARKETING_MANAGER) {
+
+          const data = await this.salesRepService.findSingleManagerSalesReps(salesRepData[0].id);
+
+          if (data.length > 0) {
+            ids = data.map(e => e.id);
+          }
+
+          ids.push(salesRepData[0].id);
+
+          query.sales_reps = ids;
+        }
+
+
+        if (userDetails.user_type === SALES_DIRECTOR) {
+          const data = await this.salesRepService.findSingleManagerSalesReps(salesRepData[0].id);
+
+          if (data.length) {
+            const managers = data.filter(item => item.roleId === 2);
+
+            const marketers = data.filter(item => item.roleId !== 2);
+
+            if (managers.length) {
+              const managersIds = managers.map(e => e.id);
+
+              const data = await this.salesRepService.findMultiManagersSalesReps(managersIds);
+
+              if (data.length) {
+                const finalIds = data.map(e => e.id);
+                ids = [...ids, ...finalIds];
+              }
+
+              ids = [...ids, ...managersIds];
+
+            }
+
+
+            if (marketers.length) {
+              const marketersIds = marketers.map(e => e.id);
+              ids = [...ids, ...marketersIds];
+            }
+
+
+          } else {
+            ids.push(salesRepData[0].id);
+          }
+
+          query.sales_reps = ids;
+
+        }
+
       }
 
       return query;
