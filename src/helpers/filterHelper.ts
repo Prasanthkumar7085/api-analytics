@@ -229,6 +229,26 @@ export class FilterHelper {
         return queryString;
     }
 
+    facilitiesFilter(query) {
+        let filter = [];
+
+        const { from_date, to_date, sales_reps } = query;
+
+        if (from_date && to_date) {
+            filter.push(`service_date BETWEEN '${from_date}' AND '${to_date}'`);
+        }
+
+        if (sales_reps) {
+            filter.push(`p.sales_rep_id IN (${sales_reps})`);
+        }
+
+        let queryString;
+        if (filter.length > 0) {
+            queryString = filter.join("AND ");
+        }
+        return queryString;
+    }
+
     overviewFilter(query) {
         let filter = [];
         const {

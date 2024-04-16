@@ -46,7 +46,7 @@ export class CaseTypesController {
 		try {
 
 			// here filter is used to make a string for date filter.
-			const queryString = await this.filterHelper.facilitiesDateFilter(query);
+			const queryString = await this.filterHelper.facilitiesFilter(query);
 
 			const data = await this.caseTypesService.getCaseTypeStatsData(queryString);
 
