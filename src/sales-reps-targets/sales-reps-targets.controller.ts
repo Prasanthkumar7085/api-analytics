@@ -1,4 +1,4 @@
-import { Controller, Get, Patch, Post, Query, Res } from '@nestjs/common';
+import { Body, Controller, Get, Patch, Post, Query, Res } from '@nestjs/common';
 import { salesRepsTargets } from 'sales-reps-targets';
 import { SALES_REPS_TARGET_DATA_ADDED_SUCCESS, SALES_REPS_TARGET_DATA_UPDATED_SUCCESS, SOMETHING_WENT_WRONG, SUCCESS_FETCHED_SALES_REPS_TARGET_DATA } from 'src/constants/messageConstants';
 import { SalesRepsTargetsService } from './sales-reps-targets.service';
@@ -54,21 +54,23 @@ export class SalesRepsTargetsController {
 
   @Post()
   async add(
-    @Res() res: any, req: Request,
+    @Res() res: any,
+    @Body() body: any,
     @Query() query: any) {
     try {
 
-      const data = {
+      const randomIndex = Math.floor(Math.random() * salesRepsTargets.length);
 
-        "sales_rep": "Chester Boyle",
-        "volume": 97,
-        "facilities": 63,
-        "target_start_date": "2024-02-17",
-        "target_end_date": "2024-03-04",
-        "created_at": "2024-04-08T18:33:36.327Z",
-        "updated_at": "2024-04-15T13:03:52.555Z"
+      const randomId = salesRepsTargets[randomIndex]._id;
+
+      let data = {
+        ...body,
+        created_at: new Date(),
+        updated_at: new Date(),
+        _id: randomId
 
       };
+
       return res.status(200).json({
         success: true,
         message: SALES_REPS_TARGET_DATA_ADDED_SUCCESS,
