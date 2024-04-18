@@ -8,6 +8,7 @@ import { SortHelper } from 'src/helpers/sortHelper';
 import { HOSPITAL_MARKETING_MANAGER } from 'src/constants/lisConstants';
 import { query } from 'express';
 import { SalesRepHelper } from 'src/helpers/salesRepHelper';
+import { SalesRepsTargetsService } from 'src/sales-reps-targets/sales-reps-targets.service';
 
 
 @Controller({
@@ -20,7 +21,9 @@ export class SalesRepController {
 		private readonly filterHelper: FilterHelper,
 		private readonly syncHelper: SyncHelpers,
 		private readonly sortHelper: SortHelper,
-		private readonly salesRepHelper: SalesRepHelper
+		private readonly salesRepHelper: SalesRepHelper,
+		private readonly salesRepsTargetsService: SalesRepsTargetsService,
+
 	) { }
 
 	@UseGuards(AuthGuard)
@@ -190,10 +193,23 @@ export class SalesRepController {
 
 			const data = await this.salesRepService.getVolumeStats(id, queryString);
 
+			const salesRepTargetData = await this.salesRepsTargetsService.getOneSalesRepTargetDataBySalesRepId(id);
+
+			const targetVolume = salesRepTargetData.reduce((acc, entry) => {
+				// Iterate over the months and add the first element value of each month
+				Object.values(entry)
+					.filter(val => Array.isArray(val)) // Filter out non-array values
+					.forEach(month => acc += month[0]); // Add the first element value
+
+				return acc;
+			}, 0);
+
+			data[0].target_volume = targetVolume;
+
 			return res.status(200).json({
 				success: true,
 				message: SUCCESS_FECTED_SALE_REP_VOLUME_STATS,
-				data: data
+				data
 			});
 		}
 		catch (error) {

@@ -70,6 +70,15 @@ export class SalesRepsTargetsService {
   }
 
 
+  async getOneSalesRepTargetDataBySalesRepId(id: number) {
+    return await db.select()
+      .from(sales_reps_targets)
+      .where(eq(sales_reps_targets.salesRepId, id))
+      .execute();
+  }
+
+
+
 }
 
 
