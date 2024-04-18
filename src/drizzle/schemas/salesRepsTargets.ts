@@ -10,12 +10,12 @@ export const sales_reps_targets = pgTable('sales_reps_targets', {
     jan: jsonb('jan').$type<number[]>().default([0, 0, 0, 0]),
     feb: jsonb('feb').$type<number[]>().default([0, 0, 0, 0]),
     mar: jsonb('mar').$type<number[]>().default([0, 0, 0, 0]),
-    april: jsonb('april').$type<number[]>().default([0, 0, 0, 0]),
+    apr: jsonb('apr').$type<number[]>().default([0, 0, 0, 0]),
     may: jsonb('may').$type<number[]>().default([0, 0, 0, 0]),// [target_volume,target_facilites,achieved_volume, achieved_facilities]
-    june: jsonb('june').$type<number[]>().default([0, 0, 0, 0]),// [target_volume,target_facilites,achieved_volume, achieved_facilities]
-    july: jsonb('july').$type<number[]>().default([0, 0, 0, 0]),// [target_volume,target_facilites,achieved_volume, achieved_facilities]
+    jun: jsonb('jun').$type<number[]>().default([0, 0, 0, 0]),// [target_volume,target_facilites,achieved_volume, achieved_facilities]
+    jul: jsonb('jul').$type<number[]>().default([0, 0, 0, 0]),// [target_volume,target_facilites,achieved_volume, achieved_facilities]
     aug: jsonb('aug').$type<number[]>().default([0, 0, 0, 0]),// [target_volume,target_facilites,achieved_volume, achieved_facilities]
-    sep: jsonb('sep').$type<number[]>().default([0, 0, 0, 0]),// [target_volume,target_facilites,achieved_volume, achieved_facilities]
+    sept: jsonb('sept').$type<number[]>().default([0, 0, 0, 0]),// [target_volume,target_facilites,achieved_volume, achieved_facilities]
     oct: jsonb('oct').$type<number[]>().default([0, 0, 0, 0]),// [target_volume,target_facilites,achieved_volume, achieved_facilities]
     nov: jsonb('nov').$type<number[]>().default([0, 0, 0, 0]),// [target_volume,target_facilites,achieved_volume, achieved_facilities]
     dec: jsonb('dec').$type<number[]>().default([0, 0, 0, 0]),// [target_volume,target_facilites,achieved_volume, achieved_facilities]
