@@ -1,26 +1,14 @@
 import { Injectable } from '@nestjs/common';
-import { CreateSalesRepsTargetDto } from './dto/create-sales-reps-target.dto';
-import { UpdateSalesRepsTargetDto } from './dto/update-sales-reps-target.dto';
+import { sales_reps_targets } from 'src/drizzle/schemas/salesRepsTargets';
+import { db } from '../seeders/db';
+import { patient_claims } from 'src/drizzle/schemas/patientClaims';
+import { sql } from 'drizzle-orm';
 
 @Injectable()
 export class SalesRepsTargetsService {
-  create(createSalesRepsTargetDto: CreateSalesRepsTargetDto) {
-    return 'This action adds a new salesRepsTarget';
+
+  async getAllSalesRepsTargets() {
+    return await db.select().from(sales_reps_targets).orderBy(sales_reps_targets.id);
   }
 
-  findAll() {
-    return `This action returns all salesRepsTargets`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} salesRepsTarget`;
-  }
-
-  update(id: number, updateSalesRepsTargetDto: UpdateSalesRepsTargetDto) {
-    return `This action updates a #${id} salesRepsTarget`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} salesRepsTarget`;
-  }
 }
