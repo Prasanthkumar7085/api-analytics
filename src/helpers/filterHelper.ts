@@ -341,5 +341,4 @@ export class FilterHelper {
 
         return queryString;
     }
-
 }

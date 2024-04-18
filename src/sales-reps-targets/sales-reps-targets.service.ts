@@ -70,11 +70,14 @@ export class SalesRepsTargetsService {
   }
 
 
-  async getOneSalesRepTargetDataBySalesRepId(id: number) {
-    return await db.select()
-      .from(sales_reps_targets)
-      .where(eq(sales_reps_targets.salesRepId, id))
-      .execute();
+  async getOneSalesRepTarget(queryString) {
+    const rawQuery = sql`
+        SELECT * FROM sales_reps_targets
+        ${queryString ? sql`WHERE ${sql.raw(queryString)}` : sql``}
+    `;
+    const data = await db.execute(rawQuery);
+
+    return data.rows;
   }
 
 

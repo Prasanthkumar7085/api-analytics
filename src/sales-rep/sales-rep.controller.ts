@@ -66,7 +66,6 @@ export class SalesRepController {
 				query.sales_reps = salesRepIds;
 				targets = await this.salesRepHelper.getTargets(query);
 
-				
 
 				salesReps = this.salesRepHelper.mergeSalesRepAndTargets(salesReps, targets);
 			}
@@ -195,7 +194,12 @@ export class SalesRepController {
 
 			const data = await this.salesRepService.getVolumeStats(id, queryString);
 
-			const salesRepTargetData = await this.salesRepsTargetsService.getOneSalesRepTargetDataBySalesRepId(id);
+			query.sales_reps = [id];
+
+			const targetQueryString = this.filterHelper.salesRepsTargets(query);
+			console.log({ targetQueryString });
+
+			const salesRepTargetData = await this.salesRepsTargetsService.getOneSalesRepTarget(targetQueryString);
 
 			const targetVolume = salesRepTargetData.reduce((acc, entry) => {
 				// Iterate over the months and add the first element value of each month
@@ -211,7 +215,8 @@ export class SalesRepController {
 			return res.status(200).json({
 				success: true,
 				message: SUCCESS_FECTED_SALE_REP_VOLUME_STATS,
-				data
+				data,
+				salesRepTargetData
 			});
 		}
 		catch (error) {

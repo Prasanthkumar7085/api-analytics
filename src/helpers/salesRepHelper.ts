@@ -812,6 +812,13 @@ export class SalesRepHelper {
                 salesRep.target_facilities = target.target_facilities;
                 salesRep.target_reached = target.target_reached;
             }
+
+            if (salesRep.total_cases >= salesRep.target_volume && salesRep.active_facilities >= salesRep.target_facilities) {
+                salesRep.target_reached = true;
+            } else {
+                salesRep.target_reached = false;
+            }
+
             return salesRep;
         });
     }
