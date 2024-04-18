@@ -801,7 +801,7 @@ export class SalesRepHelper {
                 target_achived_facilites: total[3]
             };
 
-            if (respData.target_achived_volume >= respData.target_volume && respData.target_achived_facilites >= respData.target_facilities) {
+            if (respData.target_achived_volume >= respData.target_volume) {
                 respData.target_reached = true;
             } else {
                 respData.target_reached = false;
