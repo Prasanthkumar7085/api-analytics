@@ -11,34 +11,18 @@ import { SalesRepsTargetsService } from './sales-reps-targets.service';
 export class SalesRepsTargetsController {
   constructor(private readonly salesRepsTargetsService: SalesRepsTargetsService) { }
 
-
   @Get()
   async getAll(
     @Res() res: any, req: Request,
     @Query() query: any) {
     try {
 
-      let filterData;
-
-      if (query.from_date && query.to_date) {
-
-        var startDate = new Date(query.from_date);
-        var endDate = new Date(query.to_date);
-
-        filterData = salesRepsTargets.filter(entry => {
-          const date = new Date(entry.target_end_date);
-          return (date >= startDate && date <= endDate);
-        });
-
-      }
-      else {
-        filterData = salesRepsTargets;
-      }
+      const saleRepsTargetData = await this.salesRepsTargetsService.getAllSalesRepsTargets();
 
       return res.status(200).json({
         success: true,
         message: SUCCESS_FETCHED_SALES_REPS_TARGET_DATA,
-        data: filterData
+        data: saleRepsTargetData
       });
     }
     catch (error) {
