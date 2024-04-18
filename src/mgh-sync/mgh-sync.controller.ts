@@ -40,10 +40,8 @@ export class MghSyncController {
       let facilities = facilitiesArray.map(e => e.mghRefId);
 
       facilities = facilities.filter(item => item !== null);
-      console.log({ facilities });
 
       const cases = await this.syncHelpers.getMghCases(fromDate, facilities);
-      console.log({ cases: cases.length });
 
       if (cases.length == 0) {
         return res.status(200).json({

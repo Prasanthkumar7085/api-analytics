@@ -17,7 +17,7 @@ export class SalesRepService {
                 p.sales_rep_id,
                 s.name AS sales_rep_name,
 				s.email AS email,
-                CAST(COUNT(DISTINCT p.facility_id) AS INTEGER) AS no_of_facilities,
+                CAST(COUNT(DISTINCT p.facility_id) AS INTEGER) AS active_facilities,
                 CAST(ROUND(SUM(p.expected_amount):: NUMERIC, 2) AS FLOAT) AS expected_amount,
                 CAST(ROUND(SUM(p.billable_amount)::NUMERIC, 2) AS FLOAT) AS generated_amount,
                 CAST(ROUND(SUM(p.cleared_amount)::NUMERIC, 2) AS FLOAT) AS paid_amount,
@@ -517,6 +517,11 @@ export class SalesRepService {
 
 	async getAllFacilitiesBySalesRep(salesRepId) {
 		return db.select().from(facilities).where(eq(facilities.salesRepId, salesRepId));
+	}
+
+	async getAllFacilitiesCountBySalesRep(ids) {
+		const data = await db.execute(sql`SELECT count(*) AS total_facilities, sales_rep_id FROM facilities WHERE sales_rep_id IN ${ids} GROUP BY sales_rep_id;`);
+		return data.rows;
 	}
 }
 

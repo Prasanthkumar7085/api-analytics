@@ -52,28 +52,8 @@ export class SalesRepController {
 			let salesReps = await this.salesRepService.getAll(queryString);
 
 			if (salesReps.length) {
-				const salesRepsQueryString = this.filterHelper.salesRepsFilter(query);
-
-				const salesRepsData = await this.salesRepService.getSalesReps(salesRepsQueryString);
-
-				salesRepsData.forEach(rep => {
-					if (!this.salesRepExists(salesReps, rep.id)) {
-						salesReps.push({
-							sales_rep_id: rep.id,
-							sales_rep_name: rep.name,
-							email: rep.email,
-							no_of_facilities: 0,
-							expected_amount: 0,
-							generated_amount: 0,
-							paid_amount: 0,
-							pending_amount: 0,
-							total_cases: 0,
-							pending_cases: 0
-						});
-					}
-				});
-
-				salesReps = this.sortHelper.sort(salesReps, "sales_rep_name");
+				salesReps = await this.manualSortAndAddingSalesReps(query, salesReps);
+				salesReps = await this.getFacilitiesBySalesRep(salesReps);
 			}
 
 			return res.status(200).json({
@@ -564,6 +544,53 @@ export class SalesRepController {
 
 	salesRepExists(finalResp, id) {
 		return finalResp.some(rep => rep.sales_rep_id === id);
+	}
+
+
+	async manualSortAndAddingSalesReps(query, salesReps) {
+		const salesRepsQueryString = this.filterHelper.salesRepsFilter(query);
+
+		const salesRepsData = await this.salesRepService.getSalesReps(salesRepsQueryString);
+
+		salesRepsData.forEach(rep => {
+			if (!this.salesRepExists(salesReps, rep.id)) {
+				salesReps.push({
+					sales_rep_id: rep.id,
+					sales_rep_name: rep.name,
+					email: rep.email,
+					no_of_facilities: 0,
+					expected_amount: 0,
+					generated_amount: 0,
+					paid_amount: 0,
+					pending_amount: 0,
+					total_cases: 0,
+					pending_cases: 0
+				});
+			}
+		});
+
+		salesReps = this.sortHelper.sort(salesReps, "sales_rep_name");
+
+		return salesReps;
+	}
+
+
+	async getFacilitiesBySalesRep(salesReps) {
+		const salesRepIds = salesReps.map(e => e.sales_rep_id);
+
+		const facilities = await this.salesRepService.getAllFacilitiesCountBySalesRep(salesRepIds);
+
+		for (const rep of salesReps) {
+			const facility: any = facilities.find(fac => fac.sales_rep_id === rep.sales_rep_id);
+			if (facility) {
+				rep.total_facilities = parseInt(facility.total_facilities);
+			} else {
+				rep.total_facilities = 0; // If no facilities found, set to 0 or handle as needed
+			}
+		}
+
+		return salesReps;
+
 	}
 
 }
