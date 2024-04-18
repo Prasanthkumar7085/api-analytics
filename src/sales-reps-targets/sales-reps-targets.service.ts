@@ -65,6 +65,10 @@ export class SalesRepsTargetsService {
   }
 
 
+  async getAllSalesRepsTargetsData() {
+    return await db.select().from(sales_reps_targets).orderBy(sales_reps_targets.id);
+  }
+
 
 }
 
