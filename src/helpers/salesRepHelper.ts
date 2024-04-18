@@ -3,6 +3,7 @@ import * as fs from 'fs';
 import { SalesRepService } from "src/sales-rep/sales-rep.service";
 import { FilterHelper } from "./filterHelper";
 import { SortHelper } from "./sortHelper";
+import { SalesRepsTargetsService } from "src/sales-reps-targets/sales-reps-targets.service";
 
 
 @Injectable()
@@ -10,7 +11,9 @@ export class SalesRepHelper {
     constructor(
         private readonly salesRepService: SalesRepService,
         private readonly filterHelper: FilterHelper,
-        private readonly sortHelper: SortHelper
+        private readonly sortHelper: SortHelper,
+		private readonly salesRepsTargetsService: SalesRepsTargetsService,
+
     ) { }
 
     getsingleRepVolumeFacilityWise(marketerId, fromDate, toDate) {
@@ -696,7 +699,7 @@ export class SalesRepHelper {
     async getTargets(query) {
         const queryString = this.filterHelper.salesRepsTargets(query);
 
-        let targets: any = await this.salesRepService.getSalesRepTargets(queryString);
+        let targets: any = await this.salesRepsTargetsService.getSalesRepTargets(queryString);
 
         const fromDate = query.from_date;
         const toDate = query.to_date;
@@ -705,49 +708,10 @@ export class SalesRepHelper {
             targets = this.getFilteredTargets(targets, fromDate, toDate);
         }
 
-        const groupedData = targets.reduce((acc, item) => {
-            const { sales_rep_id, ...rest } = item;
-            if (!acc[sales_rep_id]) {
-                acc[sales_rep_id] = { sales_rep_id, ...rest };
-            } else {
-                Object.keys(rest).forEach(key => {
-                    if (Array.isArray(acc[sales_rep_id][key])) {
-                        acc[sales_rep_id][key] = acc[sales_rep_id][key].map((val, index) => val + rest[key][index]);
-                    }
-                });
-            }
-            return acc;
-        }, {});
-
-        // Convert groupedData object to array
-        const result = Object.values(groupedData).map(({ id, year, ...rest }) => rest);
-
-        const mergedResult = result.map(item => {
-            const total = Object.values(item)
-                .filter(val => Array.isArray(val)) // Filter out arrays
-                .reduce((acc, curr) => {
-                    return acc.map((num, i) => num + curr[i]); // Sum corresponding elements
-                });
-
-            const respData: any = {
-                sales_rep_id: item.sales_rep_id,
-                target_volume: total[0],
-                target_facilities: total[1],
-                target_achived_volume: total[2],
-                target_achived_facilites: total[3]
-            };
-
-            if (respData.target_achived_volume >= respData.target_volume && respData.target_achived_facilites >= respData.target_facilities) {
-                respData.target_reached = true;
-            } else {
-                respData.target_reached = false;
-            }
-
-            return respData;
-        });
-
-        return mergedResult;
+        return targets;
     }
+
+
 
 
     getFilteredTargets(targets, fromDate, toDate) {
@@ -805,8 +769,50 @@ export class SalesRepHelper {
 
 
     mergeSalesRepAndTargets(salesReps, targets) {
-        return salesReps.map(salesRep => {
-            const target = targets.find(target => target.sales_rep_id === salesRep.sales_rep_id);
+        const groupedData = targets.reduce((acc, item) => {
+            const { sales_rep_id, ...rest } = item;
+            if (!acc[sales_rep_id]) {
+                acc[sales_rep_id] = { sales_rep_id, ...rest };
+            } else {
+                Object.keys(rest).forEach(key => {
+                    if (Array.isArray(acc[sales_rep_id][key])) {
+                        acc[sales_rep_id][key] = acc[sales_rep_id][key].map((val, index) => val + rest[key][index]);
+                    }
+                });
+            }
+            return acc;
+        }, {});
+
+        // Convert groupedData object to array
+        const result = Object.values(groupedData).map(({ id, year, ...rest }) => rest);
+
+        const mergedResult = result.map(item => {
+            const total = Object.values(item)
+                .filter(val => Array.isArray(val)) // Filter out arrays
+                .reduce((acc, curr) => {
+                    return acc.map((num, i) => num + curr[i]); // Sum corresponding elements
+                });
+
+            const respData: any = {
+                sales_rep_id: item.sales_rep_id,
+                target_volume: total[0],
+                target_facilities: total[1],
+                target_achived_volume: total[2],
+                target_achived_facilites: total[3]
+            };
+
+            if (respData.target_achived_volume >= respData.target_volume && respData.target_achived_facilites >= respData.target_facilities) {
+                respData.target_reached = true;
+            } else {
+                respData.target_reached = false;
+            }
+
+            return respData;
+        });
+
+        // merge the salesRep with target
+        const finalResponse = salesReps.map(salesRep => {
+            const target = mergedResult.find(target => target.sales_rep_id === salesRep.sales_rep_id);
             if (target) {
                 salesRep.target_volume = target.target_volume;
                 salesRep.target_facilities = target.target_facilities;
@@ -821,6 +827,8 @@ export class SalesRepHelper {
 
             return salesRep;
         });
+
+        return finalResponse;
     }
 
 }

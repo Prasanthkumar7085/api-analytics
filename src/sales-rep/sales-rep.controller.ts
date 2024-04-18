@@ -2,14 +2,10 @@ import { Controller, Delete, Get, Param, Query, Req, Res, UseGuards } from '@nes
 import { SOMETHING_WENT_WRONG, SUCCESS_DELETED_DATA_IN_TABLE, SUCCESS_FECTED_SALE_REP_REVENUE_STATS, SUCCESS_FECTED_SALE_REP_VOLUME_STATS, SUCCESS_FETCHED_CASE_TYPES_STATS_REVENUE, SUCCESS_FETCHED_ONE_SALES_REP, SUCCESS_FETCHED_PATIENT_CLAIMS_COUNT, SUCCESS_FETCHED_SALES_REP, SUCCESS_FETCHED_SALES_REPS, SUCCESS_FETCHED_SALES_REP_CASE_TYPE_MONTHLY_VOLUME, SUCCESS_FETCHED_SALES_REP_FACILITY_WISE_STATS, SUCCESS_FETCHED_SALES_REP_FACILITY_WISE_STATS_VOLUME, SUCCESS_FETCHED_SALES_REP_INSURANCE_PAYORS_DATA_REVENUE, SUCCESS_FETCHED_SALES_REP_INSURANCE_PAYORS_DATA_VOLUME, SUCCESS_FETCHED_SALES_REP_INSURANCE_PAYORS_MONTH_WISE_DATA, SUCCESS_FETCHED_SALES_REP_OVERALL_REVENUE, SUCCESS_FETCHED_SALES_REP_OVERALL_VOLUME, SUCCESS_FETCHED_SALES_REP_TREND_REVENUE, SUCCESS_FETCHED_SALES_REP_TREND_VOLUME } from 'src/constants/messageConstants';
 import { AuthGuard } from 'src/guards/auth.guard';
 import { FilterHelper } from 'src/helpers/filterHelper';
+import { SalesRepHelper } from 'src/helpers/salesRepHelper';
+import { SortHelper } from 'src/helpers/sortHelper';
 import { SyncHelpers } from 'src/helpers/syncHelper';
 import { SalesRepService } from './sales-rep.service';
-import { SortHelper } from 'src/helpers/sortHelper';
-import { HOSPITAL_MARKETING_MANAGER } from 'src/constants/lisConstants';
-import { query } from 'express';
-import { SalesRepHelper } from 'src/helpers/salesRepHelper';
-import { SalesRepsTargetsService } from 'src/sales-reps-targets/sales-reps-targets.service';
-
 
 @Controller({
 	version: '1.0',
@@ -22,7 +18,6 @@ export class SalesRepController {
 		private readonly syncHelper: SyncHelpers,
 		private readonly sortHelper: SortHelper,
 		private readonly salesRepHelper: SalesRepHelper,
-		private readonly salesRepsTargetsService: SalesRepsTargetsService,
 
 	) { }
 
@@ -65,7 +60,6 @@ export class SalesRepController {
 				const salesRepIds = salesReps.map(e => e.sales_rep_id);
 				query.sales_reps = salesRepIds;
 				targets = await this.salesRepHelper.getTargets(query);
-
 
 				salesReps = this.salesRepHelper.mergeSalesRepAndTargets(salesReps, targets);
 			}
@@ -196,10 +190,7 @@ export class SalesRepController {
 
 			query.sales_reps = [id];
 
-			const targetQueryString = this.filterHelper.salesRepsTargets(query);
-			console.log({ targetQueryString });
-
-			const salesRepTargetData = await this.salesRepsTargetsService.getOneSalesRepTarget(targetQueryString);
+			const salesRepTargetData = await this.salesRepHelper.getTargets(query);
 
 			const targetVolume = salesRepTargetData.reduce((acc, entry) => {
 				// Iterate over the months and add the first element value of each month
@@ -215,8 +206,7 @@ export class SalesRepController {
 			return res.status(200).json({
 				success: true,
 				message: SUCCESS_FECTED_SALE_REP_VOLUME_STATS,
-				data,
-				salesRepTargetData
+				data
 			});
 		}
 		catch (error) {

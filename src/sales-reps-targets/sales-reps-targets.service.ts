@@ -70,16 +70,15 @@ export class SalesRepsTargetsService {
   }
 
 
-  async getOneSalesRepTarget(queryString) {
+  async getSalesRepTargets(queryString) {
     const rawQuery = sql`
-        SELECT * FROM sales_reps_targets
-        ${queryString ? sql`WHERE ${sql.raw(queryString)}` : sql``}
-    `;
+		select * from sales_reps_targets
+		${queryString ? sql`WHERE ${sql.raw(queryString)}` : sql``}
+		`;
     const data = await db.execute(rawQuery);
 
     return data.rows;
   }
-
 
 
 }
