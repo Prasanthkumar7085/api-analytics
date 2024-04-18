@@ -1,7 +1,8 @@
-import { Body, Controller, Get, Patch, Post, Query, Res } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Query, Req, Res } from '@nestjs/common';
 import { salesRepsTargets } from 'sales-reps-targets';
-import { SALES_REPS_TARGET_DATA_ADDED_SUCCESS, SALES_REPS_TARGET_DATA_UPDATED_SUCCESS, SOMETHING_WENT_WRONG, SUCCESS_FETCHED_SALES_REPS_TARGET_DATA } from 'src/constants/messageConstants';
+import { SALES_REPS_TARGET_DATA_ADDED_SUCCESS, SALES_REPS_TARGET_DATA_NOT_FOUND, SALES_REPS_TARGET_DATA_UPDATED_SUCCESS, SOMETHING_WENT_WRONG, SUCCESS_FETCHED_SALES_REPS_TARGET_DATA } from 'src/constants/messageConstants';
 import { SalesRepsTargetsService } from './sales-reps-targets.service';
+import { UpdateSalesRepTargetsDto } from './dto/update-sales-reps-target.dto';
 @Controller(
   {
     version: '1.0',
@@ -13,11 +14,12 @@ export class SalesRepsTargetsController {
 
   @Get()
   async getAll(
-    @Res() res: any, req: Request,
+    @Res() res: any,
+    @Req() req: Request,
     @Query() query: any) {
     try {
 
-      const saleRepsTargetData = await this.salesRepsTargetsService.getAllSalesRepsTargets();
+      const saleRepsTargetData = await this.salesRepsTargetsService.getAllSalesRepsTargets(query.year);
 
       return res.status(200).json({
         success: true,
@@ -72,28 +74,42 @@ export class SalesRepsTargetsController {
     }
   }
 
-  @Patch(':id')
-  async update(
-    @Res() res: any, req: Request,
-    @Query() query: any) {
-    try {
+  // @Patch(':id')
+  // async update(
+  //   @Res() res: any,
+  //   @Param('id') id: number,
+  //   @Body() updateSalesRepTargetDto: UpdateSalesRepTargetsDto) {
+  //   try {
 
+  //     const saleRepTargetData = await this.salesRepsTargetsService.getOneSalesRepTargetDataById(id);
 
-      return res.status(200).json({
-        success: true,
-        message: SALES_REPS_TARGET_DATA_UPDATED_SUCCESS,
+  //     if (saleRepTargetData.length === 0) {
 
-      });
-    }
-    catch (error) {
-      console.log({ error });
+  //       return res.status(404).json({
+  //         success: false,
+  //         message: SALES_REPS_TARGET_DATA_NOT_FOUND,
+  //         data: saleRepTargetData
 
-      return res.status(500).json({
-        success: false,
-        message: error || SOMETHING_WENT_WRONG
-      });
-    }
-  }
+  //       });
+  //     }
+
+  //     await this.salesRepsTargetsService.updateSalesRepsTargets(id, updateSalesRepTargetDto);
+
+  //     return res.status(200).json({
+  //       success: true,
+  //       message: SALES_REPS_TARGET_DATA_UPDATED_SUCCESS,
+
+  //     });
+  //   }
+  //   catch (error) {
+  //     console.log({ error });
+
+  //     return res.status(500).json({
+  //       success: false,
+  //       message: error || SOMETHING_WENT_WRONG
+  //     });
+  //   }
+  // }
 
 
 }
