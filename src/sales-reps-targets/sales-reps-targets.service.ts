@@ -8,7 +8,36 @@ import { sql } from 'drizzle-orm';
 export class SalesRepsTargetsService {
 
   async getAllSalesRepsTargets() {
-    return await db.select().from(sales_reps_targets).orderBy(sales_reps_targets.id);
+    let query = sql`
+        SELECT 
+            s.name AS sales_rep_name,
+            srt.sales_rep_id,
+            srt.year,
+            srt.jan,
+            srt.feb,
+            srt.mar,
+            srt.april,
+            srt.may,
+            srt.june,
+            srt.july,
+            srt.aug,
+            srt.sep,
+            srt.oct,
+            srt.nov,
+            srt.dec
+        FROM 
+            sales_reps_targets srt
+        JOIN 
+            sales_reps s ON srt.sales_rep_id = s.id
+    `;
+
+    const data = await db.execute(query);
+
+    return data.rows;
   }
 
+
+
 }
+
+
