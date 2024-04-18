@@ -74,42 +74,42 @@ export class SalesRepsTargetsController {
     }
   }
 
-  // @Patch(':id')
-  // async update(
-  //   @Res() res: any,
-  //   @Param('id') id: number,
-  //   @Body() updateSalesRepTargetDto: UpdateSalesRepTargetsDto) {
-  //   try {
+  @Patch(':id')
+  async update(
+    @Res() res: any,
+    @Param('id') id: number,
+    @Body() updateSalesRepTargetDto: UpdateSalesRepTargetsDto) {
+    try {
 
-  //     const saleRepTargetData = await this.salesRepsTargetsService.getOneSalesRepTargetDataById(id);
+      const saleRepTargetData = await this.salesRepsTargetsService.getOneSalesRepTargetDataById(id);
 
-  //     if (saleRepTargetData.length === 0) {
+      if (saleRepTargetData.length === 0) {
 
-  //       return res.status(404).json({
-  //         success: false,
-  //         message: SALES_REPS_TARGET_DATA_NOT_FOUND,
-  //         data: saleRepTargetData
+        return res.status(404).json({
+          success: false,
+          message: SALES_REPS_TARGET_DATA_NOT_FOUND,
+          data: saleRepTargetData
 
-  //       });
-  //     }
+        });
+      }
 
-  //     await this.salesRepsTargetsService.updateSalesRepsTargets(id, updateSalesRepTargetDto);
+      await this.salesRepsTargetsService.updateSalesRepsTargets(id, updateSalesRepTargetDto);
 
-  //     return res.status(200).json({
-  //       success: true,
-  //       message: SALES_REPS_TARGET_DATA_UPDATED_SUCCESS,
+      return res.status(200).json({
+        success: true,
+        message: SALES_REPS_TARGET_DATA_UPDATED_SUCCESS,
 
-  //     });
-  //   }
-  //   catch (error) {
-  //     console.log({ error });
+      });
+    }
+    catch (error) {
+      console.log({ error });
 
-  //     return res.status(500).json({
-  //       success: false,
-  //       message: error || SOMETHING_WENT_WRONG
-  //     });
-  //   }
-  // }
+      return res.status(500).json({
+        success: false,
+        message: error || SOMETHING_WENT_WRONG
+      });
+    }
+  }
 
 
 }

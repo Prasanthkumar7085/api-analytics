@@ -42,7 +42,6 @@ export class SalesRepsTargetsService {
     return data.rows;
   }
 
-
   async getOneSalesRepTargetDataById(id: number) {
     return await db.select()
       .from(sales_reps_targets)
@@ -50,20 +49,21 @@ export class SalesRepsTargetsService {
       .execute();
   }
 
-  // async updateSalesRepsTargets(id: number, salesRepTargetDto: UpdateSalesRepTargetsDto) {
+  async updateSalesRepsTargets(id: number, salesRepTargetDto: UpdateSalesRepTargetsDto) {
 
-  //   const month = salesRepTargetDto.month as string;
+    const { month, targets_data } = salesRepTargetDto;
 
-  //   const rawQuery = sql`
-  //   UPDATE sales_reps_targets
-  //   SET ${month}[1] = ${sql.raw(salesRepTargetDto.target_volume)},
-  //       ${month}[2] = ${sql.raw(salesRepTargetDto.target_facilities)}
-  //   WHERE sales_rep_id = ${id}
-  //   AND year = ${salesRepTargetDto.year}
-  // `;
+    const targetsDataJson = JSON.stringify(targets_data);
 
-  //   return db.execute(rawQuery);
-  // }
+    const rawQuery = sql`
+        UPDATE sales_reps_targets
+        SET ${sql.raw(month)} =  ${targetsDataJson}::jsonb
+        WHERE id = ${id}
+    `;
+
+    return await db.execute(rawQuery);
+  }
+
 
 
 }
