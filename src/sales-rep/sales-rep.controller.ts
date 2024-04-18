@@ -6,6 +6,7 @@ import { SyncHelpers } from 'src/helpers/syncHelper';
 import { SalesRepService } from './sales-rep.service';
 import { SortHelper } from 'src/helpers/sortHelper';
 import { HOSPITAL_MARKETING_MANAGER } from 'src/constants/lisConstants';
+import { query } from 'express';
 
 
 @Controller({
@@ -75,17 +76,14 @@ export class SalesRepController {
 
 	@UseGuards(AuthGuard)
 	@Get("ref-id")
-	async getSalesRepByRefId(@Res() res: any, @Req() req: any) {
+	async getSalesRepByRefId(@Res() res: any, @Req() req: any, @Query() query: any) {
 		try {
-			const refId = req.user._id.toString();
+			const refId = req.user.ref_id;
+			const mghRefId = req.user.mgh_ref_id;
 
-			let salesRepData = await this.salesRepService.findOneSalesRep(refId);
+			const queryString = this.filterHelper.salesRepsByRefIdFilter(refId, mghRefId);
 
-			if (req.user.user_type === HOSPITAL_MARKETING_MANAGER) {
-				if (salesRepData.length > 0) {
-					salesRepData = await this.salesRepService.getSalesRepsByManager(salesRepData[0].reportingTo);
-				}
-			}
+			let salesRepData = await this.salesRepService.getSalesReps(queryString);
 
 			return res.status(200).json({
 				success: true,
@@ -93,6 +91,7 @@ export class SalesRepController {
 				data: salesRepData
 			});
 		} catch (err) {
+			console.log({ err });
 			return res.status(500).json({
 				success: false,
 				message: err || SOMETHING_WENT_WRONG
