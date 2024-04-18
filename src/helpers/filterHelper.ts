@@ -315,11 +315,23 @@ export class FilterHelper {
     salesRepsTargets(query) {
         let filter = [];
         const {
-            sales_reps: salesReps
+            sales_reps: salesReps,
+            from_date: fromDate,
+            to_date: toDate
         } = query;
-      
+
         if (salesReps) {
             filter.push(`sales_rep_id IN (${salesReps})`);
+        }
+
+        if (fromDate && toDate) {
+            const from = new Date(fromDate);
+            const to = new Date(toDate);
+
+            // Getting years without using for loops
+            const yearRange = Array.from({ length: to.getFullYear() - from.getFullYear() + 1 }, (_, index) => from.getFullYear() + index);
+
+            filter.push(`year IN (${yearRange})`);
         }
 
         let queryString;

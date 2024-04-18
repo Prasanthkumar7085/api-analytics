@@ -63,6 +63,8 @@ export class SalesRepController {
 				query.sales_reps = salesRepIds;
 				targets = await this.salesRepHelper.getTargets(query);
 
+				
+
 				salesReps = this.salesRepHelper.mergeSalesRepAndTargets(salesReps, targets);
 			}
 

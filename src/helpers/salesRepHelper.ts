@@ -529,7 +529,6 @@ export class SalesRepHelper {
                     });
                 }
             } else {
-                console.log(234);
                 total += item.total_cases;
 
                 item.case_type_wise_counts.forEach(caseType => {
@@ -697,7 +696,14 @@ export class SalesRepHelper {
     async getTargets(query) {
         const queryString = this.filterHelper.salesRepsTargets(query);
 
-        const targets: any = await this.salesRepService.getSalesRepTargets(queryString);
+        let targets: any = await this.salesRepService.getSalesRepTargets(queryString);
+
+        const fromDate = query.from_date;
+        const toDate = query.to_date;
+
+        if (fromDate && toDate) {
+            targets = this.getFilteredTargets(targets, fromDate, toDate);
+        }
 
         const groupedData = targets.reduce((acc, item) => {
             const { sales_rep_id, ...rest } = item;
@@ -742,6 +748,61 @@ export class SalesRepHelper {
 
         return mergedResult;
     }
+
+
+    getFilteredTargets(targets, fromDate, toDate) {
+        const monthsAndYears = this.getMonthsAndYears(fromDate, toDate);
+
+        let result = [];
+
+        // Iterate through each target
+        targets.forEach(target => {
+            // Check if the target's year matches with any year in monthsAndYears
+            const matchedYear = monthsAndYears.find(yearObj => yearObj.year === target.year);
+            if (matchedYear) {
+                // Construct the response object
+                const responseObj = {
+                    sales_rep_id: target.sales_rep_id,
+                    year: target.year
+                };
+                // Filter the monthsAndYears array to include only months for the current year
+                const monthsForYear = monthsAndYears.filter(yearObj => yearObj.year === target.year);
+                // Iterate through the filtered monthsAndYears array and extract the data
+                monthsForYear.forEach(monthYear => {
+                    const monthKey = monthYear.month.toLowerCase();
+                    if (target.hasOwnProperty(monthKey)) {
+                        responseObj[monthKey] = target[monthKey];
+                    }
+                });
+                // Push the response object to the result array
+                result.push(responseObj);
+            }
+        });
+
+        return result;
+
+    }
+
+
+    getMonthsAndYears(fromDate, toDate) {
+        const from = new Date(fromDate);
+        const to = new Date(toDate);
+
+        const monthsAndYears = [];
+        let currentMonth = from;
+
+        while (currentMonth <= to) {
+            const year = currentMonth.getFullYear();
+            const monthName = currentMonth.toLocaleString('default', { month: 'short' }); // Get month name
+            monthsAndYears.push({ year, month: monthName });
+
+            // Move to the next month
+            currentMonth.setMonth(currentMonth.getMonth() + 1);
+        }
+
+        return monthsAndYears;
+    }
+
 
     mergeSalesRepAndTargets(salesReps, targets) {
         return salesReps.map(salesRep => {
