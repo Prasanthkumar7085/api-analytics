@@ -523,5 +523,15 @@ export class SalesRepService {
 		const data = await db.execute(sql`SELECT count(*) AS total_facilities, sales_rep_id FROM facilities WHERE sales_rep_id IN ${ids} GROUP BY sales_rep_id;`);
 		return data.rows;
 	}
+
+	async getSalesRepTargets(queryString) {
+		const rawQuery = sql`
+		select * from sales_reps_targets
+		${queryString ? sql`WHERE ${sql.raw(queryString)}` : sql``}
+		`;
+		const data = await db.execute(rawQuery);
+
+		return data.rows;
+	}
 }
 

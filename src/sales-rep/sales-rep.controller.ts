@@ -7,6 +7,7 @@ import { SalesRepService } from './sales-rep.service';
 import { SortHelper } from 'src/helpers/sortHelper';
 import { HOSPITAL_MARKETING_MANAGER } from 'src/constants/lisConstants';
 import { query } from 'express';
+import { SalesRepHelper } from 'src/helpers/salesRepHelper';
 
 
 @Controller({
@@ -18,7 +19,8 @@ export class SalesRepController {
 		private readonly salesRepService: SalesRepService,
 		private readonly filterHelper: FilterHelper,
 		private readonly syncHelper: SyncHelpers,
-		private readonly sortHelper: SortHelper
+		private readonly sortHelper: SortHelper,
+		private readonly salesRepHelper: SalesRepHelper
 	) { }
 
 	@UseGuards(AuthGuard)
@@ -52,9 +54,16 @@ export class SalesRepController {
 
 			let salesReps = await this.salesRepService.getAll(queryString);
 
+			let targets;
 			if (salesReps.length) {
-				salesReps = await this.manualSortAndAddingSalesReps(query, salesReps);
-				salesReps = await this.getFacilitiesBySalesRep(salesReps);
+				salesReps = await this.salesRepHelper.manualSortAndAddingSalesReps(query, salesReps);
+				salesReps = await this.salesRepHelper.getFacilitiesBySalesRep(salesReps);
+
+				const salesRepIds = salesReps.map(e => e.sales_rep_id);
+				query.sales_reps = salesRepIds;
+				targets = await this.salesRepHelper.getTargets(query);
+
+				salesReps = this.salesRepHelper.mergeSalesRepAndTargets(salesReps, targets);
 			}
 
 			return res.status(200).json({
@@ -365,7 +374,7 @@ export class SalesRepController {
 			const salesRepFacilities = await this.salesRepService.getAllFacilitiesBySalesRep(id);
 
 			salesRepFacilities.forEach(facility => {
-				if (!this.facilityExists(salesReps, facility.id)) {
+				if (!this.salesRepHelper.facilityExists(salesReps, facility.id)) {
 					salesReps.push({
 						facility_id: facility.id,
 						facility_name: facility.name,
@@ -408,7 +417,7 @@ export class SalesRepController {
 			const salesRepFacilities = await this.salesRepService.getAllFacilitiesBySalesRep(id);
 
 			salesRepFacilities.forEach(facility => {
-				if (!this.facilityExists(salesReps, facility.id)) {
+				if (!this.salesRepHelper.facilityExists(salesReps, facility.id)) {
 					salesReps.push({
 						facility_id: facility.id,
 						facility_name: facility.name,
@@ -534,62 +543,4 @@ export class SalesRepController {
 			});
 		}
 	}
-
-
-	facilityExists(finalResp, id) {
-		return finalResp.some(facility => facility.facility_id === id);
-	}
-
-
-	salesRepExists(finalResp, id) {
-		return finalResp.some(rep => rep.sales_rep_id === id);
-	}
-
-
-	async manualSortAndAddingSalesReps(query, salesReps) {
-		const salesRepsQueryString = this.filterHelper.salesRepsFilter(query);
-
-		const salesRepsData = await this.salesRepService.getSalesReps(salesRepsQueryString);
-
-		salesRepsData.forEach(rep => {
-			if (!this.salesRepExists(salesReps, rep.id)) {
-				salesReps.push({
-					sales_rep_id: rep.id,
-					sales_rep_name: rep.name,
-					email: rep.email,
-					no_of_facilities: 0,
-					expected_amount: 0,
-					generated_amount: 0,
-					paid_amount: 0,
-					pending_amount: 0,
-					total_cases: 0,
-					pending_cases: 0
-				});
-			}
-		});
-
-		salesReps = this.sortHelper.sort(salesReps, "sales_rep_name");
-
-		return salesReps;
-	}
-
-
-	async getFacilitiesBySalesRep(salesReps) {
-		const salesRepIds = salesReps.map(e => e.sales_rep_id);
-
-		const facilities = await this.salesRepService.getAllFacilitiesCountBySalesRep(salesRepIds);
-
-		for (const rep of salesReps) {
-			const facility: any = facilities.find(fac => fac.sales_rep_id === rep.sales_rep_id);
-			if (facility) {
-				rep.total_facilities = parseInt(facility.total_facilities);
-			} else {
-				rep.total_facilities = 0; // If no facilities found, set to 0 or handle as needed
-			}
-		}
-
-		return salesReps;
-
-	}
-
 }

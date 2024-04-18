@@ -20,11 +20,12 @@ import { labDataSchema } from 'src/schemas/lab';
 import { MghSyncService } from 'src/mgh-sync/mgh-sync.service';
 import { SortHelper } from 'src/helpers/sortHelper';
 import { MghDbConnections } from 'src/helpers/mghDbconnection';
+import { SalesRepHelper } from 'src/helpers/salesRepHelper';
 
 @Module({
   controllers: [SalesRepController],
   providers: [SalesRepService, FilterHelper, JwtService, LisService, SyncHelpers, CaseTypesService, FacilitiesService, InsurancesService,
-    SyncService, LabsService, MghSyncService, SortHelper, MghDbConnections],
+    SyncService, LabsService, MghSyncService, SortHelper, MghDbConnections, SalesRepHelper],
   imports: [
     MongooseModule.forRoot(process.env.LIS_DLW_DB_URL + '&authSource=admin'),
     MongooseModule.forFeature([
