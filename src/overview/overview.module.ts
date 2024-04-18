@@ -12,9 +12,11 @@ import { testPanelsDataSchema } from 'src/schemas/testPanelSchema';
 import { HospitalSchema } from 'src/schemas/hospitalSchema';
 import { SalesRepService } from 'src/sales-rep/sales-rep.service';
 import { labDataSchema } from 'src/schemas/lab';
+import { MghDbConnections } from 'src/helpers/mghDbconnection';
+import { MghSyncService } from 'src/mgh-sync/mgh-sync.service';
 @Module({
   controllers: [OverviewController],
-  providers: [OverviewService, FilterHelper, JwtService, LisService, SalesRepService],
+  providers: [OverviewService, FilterHelper, JwtService, LisService, SalesRepService, MghDbConnections, MghSyncService],
   imports: [
     MongooseModule.forFeature([
       { name: 'User', schema: UserSchema },

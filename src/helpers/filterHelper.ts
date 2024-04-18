@@ -293,4 +293,23 @@ export class FilterHelper {
     }
 
 
+    salesRepsByRefIdFilter(refId, mghRefId) {
+        let filter = [];
+
+        if (refId) {
+            filter.push(`ref_id = '${refId}'`);
+        }
+
+        if (mghRefId) {
+            filter.push(`mgh_ref_id = '${mghRefId}'`);
+        }
+
+        let queryString;
+        if (filter.length > 0) {
+            queryString = filter.join("AND ");
+        }
+
+        return queryString;
+    }
+
 }

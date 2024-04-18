@@ -20,6 +20,8 @@ import { FORBIDDEN_EXCEPTION, INVALID_TOKEN_EXCEPTION, USER_NOTFOUND_EXCEPTION }
 import { SalesRepService } from 'src/sales-rep/sales-rep.service';
 import { Configuration } from 'src/config/config.service';
 import { HOSPITAL_MARKETING_MANAGER, MARKETER, SALES_DIRECTOR } from 'src/constants/lisConstants';
+import { MghDbConnections } from 'src/helpers/mghDbconnection';
+import { MghSyncService } from 'src/mgh-sync/mgh-sync.service';
 
 
 @Injectable()
@@ -29,6 +31,8 @@ export class AuthGuard implements CanActivate {
     private jwtService: JwtService,
     private lisService: LisService,
     private readonly salesRepService: SalesRepService,
+    private readonly mghDbConnections: MghDbConnections,
+    private readonly mghSyncService: MghSyncService
   ) { }
   async canActivate(context: ExecutionContext) {
     try {
@@ -66,11 +70,24 @@ export class AuthGuard implements CanActivate {
           throw new CustomUnprocessableEntityException(INVALID_TOKEN_EXCEPTION);
         }
 
-        const user = await this.lisService.getUserById(decodedToken.id);
+        const [dlwUserDetails, mghUserDetails] = await Promise.all([
+          this.lisService.getUserById(decodedToken.id),
+          this.forMgh(decodedToken.id)
+        ]);
 
 
-        if (!user) {
-          throw new CustomUnauthorizedException(USER_NOTFOUND_EXCEPTION);
+        if (!dlwUserDetails && !mghUserDetails) {
+          throw new CustomUnprocessableEntityException(USER_NOTFOUND_EXCEPTION);
+        }
+
+        const user: any = dlwUserDetails ? dlwUserDetails.toObject() : mghUserDetails.toObject();
+
+        if (dlwUserDetails) {
+          user.ref_id = dlwUserDetails._id.toString();
+        }
+
+        if (mghUserDetails) {
+          user.mgh_ref_id = mghUserDetails._id.toString();
         }
 
         await this.jwtService.verify(token, {
@@ -185,5 +202,12 @@ export class AuthGuard implements CanActivate {
       console.log({ err });
       throw err;
     }
+  }
+
+  async forMgh(id) {
+    await this.mghDbConnections.connect();
+    const mghUserDetails = await this.mghSyncService.getUserById(id);
+
+    return mghUserDetails;
   }
 }
