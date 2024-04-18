@@ -18,12 +18,12 @@ export class SalesRepsTargetsService {
             srt.jan,
             srt.feb,
             srt.mar,
-            srt.april,
+            srt.apr,
             srt.may,
-            srt.june,
-            srt.july,
+            srt.jun,
+            srt.jul,
             srt.aug,
-            srt.sep,
+            srt.sept,
             srt.oct,
             srt.nov,
             srt.dec
@@ -62,6 +62,19 @@ export class SalesRepsTargetsService {
     `;
 
     return await db.execute(rawQuery);
+  }
+
+
+  async getAllSalesRepsTargetsData() {
+    return await db.select().from(sales_reps_targets).orderBy(sales_reps_targets.id);
+  }
+
+
+  async getOneSalesRepTargetDataBySalesRepId(id: number) {
+    return await db.select()
+      .from(sales_reps_targets)
+      .where(eq(sales_reps_targets.salesRepId, id))
+      .execute();
   }
 
 

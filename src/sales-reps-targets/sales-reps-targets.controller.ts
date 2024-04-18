@@ -3,6 +3,7 @@ import { salesRepsTargets } from 'sales-reps-targets';
 import { SALES_REPS_TARGET_DATA_ADDED_SUCCESS, SALES_REPS_TARGET_DATA_NOT_FOUND, SALES_REPS_TARGET_DATA_UPDATED_SUCCESS, SOMETHING_WENT_WRONG, SUCCESS_FETCHED_SALES_REPS_TARGET_DATA } from 'src/constants/messageConstants';
 import { SalesRepsTargetsService } from './sales-reps-targets.service';
 import { UpdateSalesRepTargetsDto } from './dto/update-sales-reps-target.dto';
+import { SalesRepService } from 'src/sales-rep/sales-rep.service';
 @Controller(
   {
     version: '1.0',
@@ -10,7 +11,11 @@ import { UpdateSalesRepTargetsDto } from './dto/update-sales-reps-target.dto';
   })
 
 export class SalesRepsTargetsController {
-  constructor(private readonly salesRepsTargetsService: SalesRepsTargetsService) { }
+  constructor(
+    private readonly salesRepsTargetsService: SalesRepsTargetsService,
+    private readonly salesRepService: SalesRepService,
+
+  ) { }
 
   @Get()
   async getAll(
@@ -102,8 +107,6 @@ export class SalesRepsTargetsController {
       });
     }
     catch (error) {
-      console.log({ error });
-
       return res.status(500).json({
         success: false,
         message: error || SOMETHING_WENT_WRONG
@@ -111,6 +114,67 @@ export class SalesRepsTargetsController {
     }
   }
 
+  @Get('summary')
+  async salesRepsTargetsSummary(@Res() res: any,) {
+
+    try {
+
+      const month = 'feb';
+      const year = 2023;
+
+      const salesRepsData = await this.salesRepService.getAllSalesReps();
+
+      const salesRepTargetData = await this.salesRepsTargetsService.getAllSalesRepsTargetsData();
+
+      console.log(salesRepTargetData);
+
+
+      const modifiedData = salesRepsData.map(rep => {
+        const target = salesRepTargetData.find(target => target.salesRepId === rep.id && target.year === 2023);
+        if (target) {
+          return {
+            sales_rep_id: rep.id,
+            sales_rep_name: rep.name,
+            email: rep.email,
+            year: year,
+            month: month,
+            target_volume: target[month][0],
+            target_facilities: target[month][1],
+            target_volume_reached: target[month][2],
+            target_facilities_reached: target[month][3]
+          };
+        }
+      });
+
+      let subject = 'testnig'
+      let emailData = {
+        email: ['tharunampolu9.8@gmail.com'],
+        subject: subject,
+      };
+      // let emailData = await this.emailSendingDataToManagersAndPhysicians(caseData, accessionId, content)
+      // if (emailData.email.length) {
+      //   await new EmailServiceProvider().sendPatientReportFnaliizedEmail(
+      //     emailData,
+      //     emailContent
+      //   );
+      // }
+
+
+      return res.status(200).json({
+        success: true,
+        message: SALES_REPS_TARGET_DATA_UPDATED_SUCCESS,
+        data: modifiedData
+
+      });
+
+    }
+    catch (err) {
+      return res.status(500).json({
+        success: false,
+        message: err || SOMETHING_WENT_WRONG
+      });
+    }
+  }
 
 }
 
