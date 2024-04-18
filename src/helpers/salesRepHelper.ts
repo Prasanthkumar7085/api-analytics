@@ -819,7 +819,7 @@ export class SalesRepHelper {
                 salesRep.target_reached = target.target_reached;
             }
 
-            if (salesRep.total_cases >= salesRep.target_volume && salesRep.active_facilities >= salesRep.target_facilities) {
+            if (salesRep.total_cases >= salesRep.target_volume) {
                 salesRep.target_reached = true;
             } else {
                 salesRep.target_reached = false;
