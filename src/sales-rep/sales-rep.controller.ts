@@ -58,7 +58,7 @@ export class SalesRepController {
 				salesReps = await this.salesRepHelper.getFacilitiesBySalesRep(salesReps);
 
 				const salesRepIds = salesReps.map(e => e.sales_rep_id);
-				query.sales_reps = salesRepIds;
+				query.sales_reps = salesRepIds;	
 				targets = await this.salesRepHelper.getTargets(query);
 
 				salesReps = this.salesRepHelper.mergeSalesRepAndTargets(salesReps, targets);

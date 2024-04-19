@@ -12,7 +12,7 @@ export class SalesRepHelper {
         private readonly salesRepService: SalesRepService,
         private readonly filterHelper: FilterHelper,
         private readonly sortHelper: SortHelper,
-		private readonly salesRepsTargetsService: SalesRepsTargetsService,
+        private readonly salesRepsTargetsService: SalesRepsTargetsService,
 
     ) { }
 
@@ -706,8 +706,9 @@ export class SalesRepHelper {
 
         if (fromDate && toDate) {
             targets = this.getFilteredTargets(targets, fromDate, toDate);
-        }
 
+            targets = this.calculateTargetsRatio(targets, fromDate, toDate);
+        }
         return targets;
     }
 
@@ -830,5 +831,61 @@ export class SalesRepHelper {
 
         return finalResponse;
     }
+
+
+    calculateTargetsRatio(data, fromDate, toDate) {
+        // Convert from_date and to_date to Date objects
+        const fromDateObj = new Date(fromDate);
+        const toDateObj = new Date(toDate);
+
+        const fromDateMonth = fromDateObj.toLocaleString('en-US', { month: 'short' });
+        const fromDateYear = fromDateObj.getFullYear();
+
+        const toDateMonth = toDateObj.toLocaleString('en-US', { month: 'short' });
+        const toDateYear = toDateObj.getFullYear();
+
+        // Loop through each object in the data array
+        for (let i = 0; i < data.length; i++) {
+            const obj = data[i];
+            // Loop through each month in the object
+            for (const month in obj) {
+                // Skip sales_rep_id and year properties
+                if (month === 'sales_rep_id' || month === 'year') {
+                    continue;
+                }
+
+                const target = obj[month][0];
+
+                if (fromDateMonth.toLowerCase() === month.toLowerCase() && obj["year"] === fromDateYear) {
+                    // Get the sales value for the month
+                    const adjustedSales = this.getAdjustedtargets(fromDateObj, month, obj, target);
+
+                    // Update data
+                    obj[month][0] = adjustedSales;
+                }
+
+                if (toDateMonth.toLowerCase() === month.toLowerCase() && obj["year"] === toDateYear) {
+                    const adjustedSalesToDate = this.getAdjustedtargets(toDateObj, month, obj, target);
+                    obj[month][0] = adjustedSalesToDate;
+                }
+            }
+        }
+        return data;
+
+    }
+
+
+    getAdjustedtargets(dateObj, month, obj, targets) {
+        // Get the number of days in the month
+        const daysInMonth = new Date(dateObj.getFullYear(), new Date(Date.parse(month + ' 1,' + obj.year)).getMonth() + 1, 0).getDate();
+
+        // Calculate the ratio for the month
+        const ratio = dateObj.getMonth() === new Date(Date.parse(month + ' 1,' + obj.year)).getMonth() ? ((daysInMonth - dateObj.getDate() + 1) / daysInMonth) : 1;
+
+        // Apply ratio and round the value
+        const adjustedTargets = Math.round(targets * ratio);
+        return adjustedTargets;
+    }
+
 
 }
