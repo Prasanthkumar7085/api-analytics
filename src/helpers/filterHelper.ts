@@ -249,6 +249,25 @@ export class FilterHelper {
         return queryString;
     }
 
+
+    listFacilitis(query) {
+        let filter = [];
+
+        const { sales_reps } = query;
+
+        if (sales_reps) {
+            filter.push(`sales_rep_id IN (${sales_reps})`);
+        }
+
+        let queryString;
+        if (filter.length > 0) {
+            queryString = filter.join("AND ");
+        }
+
+        return queryString;
+    }
+
+
     overviewFilter(query) {
         let filter = [];
         const {
