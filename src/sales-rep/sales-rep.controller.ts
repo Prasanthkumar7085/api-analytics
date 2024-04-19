@@ -8,6 +8,7 @@ import { SyncHelpers } from 'src/helpers/syncHelper';
 import { EmailServiceProvider } from 'src/notifications/emailServiceProvider';
 import { SalesRepService } from './sales-rep.service';
 import axios from 'axios';
+import { Configuration } from 'src/config/config.service';
 
 
 @Controller({
@@ -22,6 +23,7 @@ export class SalesRepController {
 		private readonly sortHelper: SortHelper,
 		private readonly salesRepHelper: SalesRepHelper,
 		private readonly emailServiceProvider: EmailServiceProvider,
+		private readonly configuration: Configuration
 
 
 	) { }
@@ -646,7 +648,9 @@ export class SalesRepController {
 			to_date.setDate(to_date.getDate() + 7);
 
 
-			const apiUrl = `${process.env.API_URL}/v1.0/sales-reps/target-summary/${salesReps[0].id}?from_date=${from_date.toISOString()}&to_date=${to_date.toISOString()}`;
+			const apiUrl = `${this.configuration.getConfig().api_url}/v1.0/sales-reps/target-summary/${salesReps[0].id}?from_date=${from_date.toISOString()}&to_date=${to_date.toISOString()}`;
+
+			console.log(apiUrl);
 
 			await axios.get(apiUrl);
 

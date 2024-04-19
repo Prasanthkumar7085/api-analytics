@@ -41,7 +41,11 @@ export class Configuration {
             labsquire_from_mail: this.configService.get<string>('LABSQUIRE_FROM_EMAIL'),
         };
 
-        return { lis_dlw_db_url, lab_id, ls_api_key, lis_mgh_db_url, jwt, kaka_email_service };
+        const api_url = this.configService.get<string>('API_URL');
+
+
+
+        return { lis_dlw_db_url, lab_id, ls_api_key, lis_mgh_db_url, jwt, kaka_email_service, api_url };
     }
 
 }
