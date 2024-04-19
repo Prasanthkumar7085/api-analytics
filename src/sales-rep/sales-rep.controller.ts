@@ -648,9 +648,10 @@ export class SalesRepController {
 			const to_date = new Date(currentDate);
 			to_date.setDate(to_date.getDate() + 7);
 
-
 			for (const salesRep of salesReps) {
-				const apiUrl = `${process.env.API_URL}/${salesRep.id}?from_date=${from_date.toISOString()}&to_date=${to_date.toISOString()}`;
+				const apiUrl = `${this.configuration.getConfig().api_url}/v1.0/sales-reps/target-summary/${salesRep.id}?from_date=${from_date.toISOString()}&to_date=${to_date.toISOString()}`;
+				console.log("apiUrl", apiUrl);
+
 				await axios.get(apiUrl);
 			}
 
