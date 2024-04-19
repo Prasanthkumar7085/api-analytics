@@ -638,8 +638,8 @@ export class SalesRepController {
 				data[0].sales_rep_email = 'tharunampolu9.8@gmail.com';
 			}
 
-			// data[0].sales_rep_name = salesRepData[0].sales_rep;
-			data[0].sales_rep_email = salesRepData[0].sales_rep_email;
+			data[0].sales_rep_name = salesRepData[0].sales_rep;
+			// data[0].sales_rep_email = salesRepData[0].sales_rep_email;
 			data[0].month = month;
 			data[0].year = year;
 
