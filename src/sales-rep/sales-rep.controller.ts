@@ -275,7 +275,7 @@ export class SalesRepController {
 			});
 		}
 	}
-	
+
 
 	@UseGuards(AuthGuard)
 	@Get(':id/case-types/months/revenue')
@@ -653,7 +653,8 @@ export class SalesRepController {
 
 			console.log(apiUrl);
 
-			await axios.get(apiUrl);
+			let data = await axios.get(apiUrl);
+			console.log("data", data.data);
 
 
 			// for (const salesRep of salesReps) {

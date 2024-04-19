@@ -23,6 +23,9 @@ export class SESAPIDataServiceProvider {
             const body = await this._parameters(options);
 
             const authToken = options.api_key || this.config.service_key;
+
+            console.log("authToken", authToken);
+
             const headers = {
                 'Authorization': "Bearer " + authToken
             };
