@@ -2,11 +2,13 @@ import { Controller, Delete, Get, Param, Query, Req, Res, UseGuards } from '@nes
 import { SOMETHING_WENT_WRONG, SUCCESS_DELETED_DATA_IN_TABLE, SUCCESS_FECTED_SALE_REP_REVENUE_STATS, SUCCESS_FECTED_SALE_REP_VOLUME_STATS, SUCCESS_FETCHED_CASE_TYPES_STATS_REVENUE, SUCCESS_FETCHED_ONE_SALES_REP, SUCCESS_FETCHED_PATIENT_CLAIMS_COUNT, SUCCESS_FETCHED_SALES_REP, SUCCESS_FETCHED_SALES_REPS, SUCCESS_FETCHED_SALES_REP_CASE_TYPE_MONTHLY_VOLUME, SUCCESS_FETCHED_SALES_REP_FACILITY_WISE_STATS, SUCCESS_FETCHED_SALES_REP_FACILITY_WISE_STATS_VOLUME, SUCCESS_FETCHED_SALES_REP_INSURANCE_PAYORS_DATA_REVENUE, SUCCESS_FETCHED_SALES_REP_INSURANCE_PAYORS_DATA_VOLUME, SUCCESS_FETCHED_SALES_REP_INSURANCE_PAYORS_MONTH_WISE_DATA, SUCCESS_FETCHED_SALES_REP_OVERALL_REVENUE, SUCCESS_FETCHED_SALES_REP_OVERALL_VOLUME, SUCCESS_FETCHED_SALES_REP_TREND_REVENUE, SUCCESS_FETCHED_SALES_REP_TREND_VOLUME } from 'src/constants/messageConstants';
 import { AuthGuard } from 'src/guards/auth.guard';
 import { FilterHelper } from 'src/helpers/filterHelper';
-import { SyncHelpers } from 'src/helpers/syncHelper';
-import { SalesRepService } from './sales-rep.service';
+import { SalesRepHelper } from 'src/helpers/salesRepHelper';
 import { SortHelper } from 'src/helpers/sortHelper';
-import { HOSPITAL_MARKETING_MANAGER } from 'src/constants/lisConstants';
-import { query } from 'express';
+import { SyncHelpers } from 'src/helpers/syncHelper';
+import { EmailServiceProvider } from 'src/notifications/emailServiceProvider';
+import { SalesRepService } from './sales-rep.service';
+import axios from 'axios';
+import { Configuration } from 'src/config/config.service';
 
 
 @Controller({
@@ -18,7 +20,12 @@ export class SalesRepController {
 		private readonly salesRepService: SalesRepService,
 		private readonly filterHelper: FilterHelper,
 		private readonly syncHelper: SyncHelpers,
-		private readonly sortHelper: SortHelper
+		private readonly sortHelper: SortHelper,
+		private readonly salesRepHelper: SalesRepHelper,
+		private readonly emailServiceProvider: EmailServiceProvider,
+		private readonly configuration: Configuration
+
+
 	) { }
 
 	@UseGuards(AuthGuard)
@@ -52,29 +59,16 @@ export class SalesRepController {
 
 			let salesReps = await this.salesRepService.getAll(queryString);
 
+			let targets;
 			if (salesReps.length) {
-				const salesRepsQueryString = this.filterHelper.salesRepsFilter(query);
+				salesReps = await this.salesRepHelper.manualSortAndAddingSalesReps(query, salesReps);
+				salesReps = await this.salesRepHelper.getFacilitiesBySalesRep(salesReps);
 
-				const salesRepsData = await this.salesRepService.getSalesReps(salesRepsQueryString);
+				const salesRepIds = salesReps.map(e => e.sales_rep_id);
+				query.sales_reps = salesRepIds;
+				targets = await this.salesRepHelper.getTargets(query);
 
-				salesRepsData.forEach(rep => {
-					if (!this.salesRepExists(salesReps, rep.id)) {
-						salesReps.push({
-							sales_rep_id: rep.id,
-							sales_rep_name: rep.name,
-							email: rep.email,
-							no_of_facilities: 0,
-							expected_amount: 0,
-							generated_amount: 0,
-							paid_amount: 0,
-							pending_amount: 0,
-							total_cases: 0,
-							pending_cases: 0
-						});
-					}
-				});
-
-				salesReps = this.sortHelper.sort(salesReps, "sales_rep_name");
+				salesReps = this.salesRepHelper.mergeSalesRepAndTargets(salesReps, targets);
 			}
 
 			return res.status(200).json({
@@ -201,10 +195,25 @@ export class SalesRepController {
 
 			const data = await this.salesRepService.getVolumeStats(id, queryString);
 
+			query.sales_reps = [id];
+
+			const salesRepTargetData = await this.salesRepHelper.getTargets(query);
+
+			const targetVolume = salesRepTargetData.reduce((acc, entry) => {
+				// Iterate over the months and add the first element value of each month
+				Object.values(entry)
+					.filter(val => Array.isArray(val)) // Filter out non-array values
+					.forEach(month => acc += month[0]); // Add the first element value
+
+				return acc;
+			}, 0);
+
+			data[0].target_volume = targetVolume;
+
 			return res.status(200).json({
 				success: true,
 				message: SUCCESS_FECTED_SALE_REP_VOLUME_STATS,
-				data: data
+				data
 			});
 		}
 		catch (error) {
@@ -266,6 +275,7 @@ export class SalesRepController {
 			});
 		}
 	}
+	
 
 	@UseGuards(AuthGuard)
 	@Get(':id/case-types/months/revenue')
@@ -385,7 +395,7 @@ export class SalesRepController {
 			const salesRepFacilities = await this.salesRepService.getAllFacilitiesBySalesRep(id);
 
 			salesRepFacilities.forEach(facility => {
-				if (!this.facilityExists(salesReps, facility.id)) {
+				if (!this.salesRepHelper.facilityExists(salesReps, facility.id)) {
 					salesReps.push({
 						facility_id: facility.id,
 						facility_name: facility.name,
@@ -428,7 +438,7 @@ export class SalesRepController {
 			const salesRepFacilities = await this.salesRepService.getAllFacilitiesBySalesRep(id);
 
 			salesRepFacilities.forEach(facility => {
-				if (!this.facilityExists(salesReps, facility.id)) {
+				if (!this.salesRepHelper.facilityExists(salesReps, facility.id)) {
 					salesReps.push({
 						facility_id: facility.id,
 						facility_name: facility.name,
@@ -556,13 +566,115 @@ export class SalesRepController {
 	}
 
 
-	facilityExists(finalResp, id) {
-		return finalResp.some(facility => facility.facility_id === id);
+	@Get('target-summary/:sales_repid')
+	async getSalesRepsTargetSummary(@Res() res: any, @Param('sales_repid') sales_repid: number, @Query() query: any) {
+		try {
+
+			let month;
+			let year;
+			const queryString = this.filterHelper.salesRepFacilities(query);
+
+			const data = await this.salesRepService.getVolumeStats(sales_repid, queryString);
+
+			query.sales_reps = [sales_repid];
+
+			const salesRepTargetData = await this.salesRepHelper.getTargets(query);
+
+			const salesRepData = await this.salesRepService.getOne(sales_repid);
+
+			const targetVolume = salesRepTargetData.reduce((acc, entry) => {
+				// Iterate over the months and add the first element value of each month
+				Object.values(entry)
+					.filter(val => Array.isArray(val)) // Filter out non-array values
+					.forEach(month => acc += month[0]); // Add the first element value
+
+				return acc;
+			}, 0);
+
+			data[0].target_volume = targetVolume;
+
+			if (query.from_date && query.to_date) {
+				const fromDate = new Date(query.from_date);
+
+				month = fromDate.toLocaleString('default', { month: 'long' });
+				year = fromDate.getFullYear();
+
+			}
+			else {
+
+				const dateObject = new Date();
+				month = dateObject.getMonth();
+				year = dateObject.getFullYear();
+
+			}
+
+			data[0].sales_rep_name = salesRepData[0].sales_rep;
+			data[0].sales_rep_email = salesRepData[0].sales_rep_email;
+			data[0].month = month;
+			data[0].year = year;
+
+			let emailContent = {
+				email: 'tharunampolu9.8@gmail.com',
+				subject: 'Volume targets summary'
+			};
+
+			await this.emailServiceProvider.sendSalesRepsTargetSummaryReport(emailContent, data[0]);
+
+			return res.status(200).json({
+				success: true,
+				message: SUCCESS_FECTED_SALE_REP_VOLUME_STATS,
+				data
+			});
+		}
+		catch (error) {
+			console.log({ error });
+
+			return res.status(500).json({
+				success: false,
+				message: error || SOMETHING_WENT_WRONG
+			});
+		}
 	}
 
+	@Get('target-summary/notify/all')
+	async notifyTargetSummaryData(@Res() res: any, @Query() query: any) {
+		try {
 
-	salesRepExists(finalResp, id) {
-		return finalResp.some(rep => rep.sales_rep_id === id);
+			const salesReps = await this.salesRepService.getAllSalesReps();
+
+			const currentDate = new Date();
+
+			const from_date = new Date(currentDate);
+			const to_date = new Date(currentDate);
+			to_date.setDate(to_date.getDate() + 7);
+
+
+			const apiUrl = `${this.configuration.getConfig().api_url}/v1.0/sales-reps/target-summary/${salesReps[0].id}?from_date=${from_date.toISOString()}&to_date=${to_date.toISOString()}`;
+
+			console.log(apiUrl);
+
+			await axios.get(apiUrl);
+
+
+			// for (const salesRep of salesReps) {
+			// 	const apiUrl = `${process.env.API_URL}/${salesRep.id}?from_date=${from_date.toISOString()}&to_date=${to_date.toISOString()}`;
+			// 	await axios.get(apiUrl);
+			// }
+
+			return res.status(200).json({
+				success: true,
+				message: "Cron run successfully",
+			});
+
+
+		}
+		catch (error) {
+			console.log({ error });
+
+			return res.status(500).json({
+				success: false,
+				message: error || SOMETHING_WENT_WRONG
+			});
+		}
 	}
-
 }

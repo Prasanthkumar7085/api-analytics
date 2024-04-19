@@ -6,6 +6,7 @@ import patientClaims from "./patientClaims";
 import caseTypes from "./caseTypes";
 import mgh from "./mghMarketers";
 import dlw from "./dlwMarketers";
+import salesRepsTargets from "./salesRepsTargets";
 
 // roles.seed("Roles");
 
@@ -21,6 +22,8 @@ import dlw from "./dlwMarketers";
 
 // mgh.seed();
 
-dlw.seed();
+// salesRepsTargets.seed('sales-targets');
+
+// dlw.seed();
 
 

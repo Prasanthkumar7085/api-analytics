@@ -249,6 +249,25 @@ export class FilterHelper {
         return queryString;
     }
 
+
+    listFacilitis(query) {
+        let filter = [];
+
+        const { sales_reps } = query;
+
+        if (sales_reps) {
+            filter.push(`sales_rep_id IN (${sales_reps})`);
+        }
+
+        let queryString;
+        if (filter.length > 0) {
+            queryString = filter.join("AND ");
+        }
+
+        return queryString;
+    }
+
+
     overviewFilter(query) {
         let filter = [];
         const {
@@ -312,4 +331,33 @@ export class FilterHelper {
         return queryString;
     }
 
+    salesRepsTargets(query) {
+        let filter = [];
+        const {
+            sales_reps: salesReps,
+            from_date: fromDate,
+            to_date: toDate
+        } = query;
+
+        if (salesReps) {
+            filter.push(`sales_rep_id IN (${salesReps})`);
+        }
+
+        if (fromDate && toDate) {
+            const from = new Date(fromDate);
+            const to = new Date(toDate);
+
+            // Getting years without using for loops
+            const yearRange = Array.from({ length: to.getFullYear() - from.getFullYear() + 1 }, (_, index) => from.getFullYear() + index);
+
+            filter.push(`year IN (${yearRange})`);
+        }
+
+        let queryString;
+        if (filter.length > 0) {
+            queryString = filter.join("AND ");
+        }
+
+        return queryString;
+    }
 }

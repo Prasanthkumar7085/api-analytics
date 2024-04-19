@@ -35,7 +35,17 @@ export class Configuration {
             patient_portal_token_refresh_life: 60000,
         };
 
-        return { lis_dlw_db_url, lab_id, ls_api_key, lis_mgh_db_url, jwt };
+        const kaka_email_service = {
+            service_key: this.configService.get<string>('KAKA_EMAIL_SERVICE_KEY'),
+            api_base_url: this.configService.get<string>('KAKA_EMAIL_SERVICE_API_URL'),
+            labsquire_from_mail: this.configService.get<string>('LABSQUIRE_FROM_EMAIL'),
+        };
+
+        const api_url = this.configService.get<string>('API_URL');
+
+
+
+        return { lis_dlw_db_url, lab_id, ls_api_key, lis_mgh_db_url, jwt, kaka_email_service, api_url };
     }
 
 }
