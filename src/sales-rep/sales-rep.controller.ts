@@ -268,6 +268,7 @@ export class SalesRepController {
 			});
 		}
 	}
+	
 
 	@UseGuards(AuthGuard)
 	@Get(':id/case-types/months/revenue')

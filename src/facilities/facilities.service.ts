@@ -13,8 +13,17 @@ export class FacilitiesService {
     }
 
 
-    async getAllFacilitiesWithSalesRep() {
-        return await db.select().from(facilities).leftJoin(sales_reps, eq(facilities.salesRepId, sales_reps.id));
+    async getAllFacilitiesWithSalesRep(queryString) {
+        const rawQuery = sql`
+        SELECT f.id AS facility_id, f.name AS facility_name, sr.id AS sales_rep_id, sr.name AS sales_rep_name, sr.ref_id AS sales_rep_ref_id, sr.reporting_to AS sales_rep_reporting_to, sr.role_id AS sales_rep_role_id, sr.email AS sales_rep_email
+        FROM facilities f
+        LEFT JOIN sales_reps sr ON f.sales_rep_id = sr.id
+        WHERE f.sales_rep_id IN (5, 8, 7, 6, 19, 2, 3, 4, 9, 10)
+    `;
+
+        const data = await db.execute(rawQuery);
+
+        return data.rows;
     }
 
 
