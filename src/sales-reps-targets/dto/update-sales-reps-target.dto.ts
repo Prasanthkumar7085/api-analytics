@@ -1,4 +1,10 @@
-import { PartialType } from '@nestjs/mapped-types';
-import { CreateSalesRepsTargetDto } from './create-sales-reps-target.dto';
+import { IsNotEmpty } from 'class-validator';
 
-export class UpdateSalesRepsTargetDto extends PartialType(CreateSalesRepsTargetDto) {}
+export class UpdateSalesRepTargetsDto {
+
+    @IsNotEmpty({ message: 'Targets data is required' })
+    targets_data: number[];
+    
+    @IsNotEmpty({ message: 'Month is required' })
+    month: string;
+}

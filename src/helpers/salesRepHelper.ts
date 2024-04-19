@@ -1,9 +1,20 @@
 import { Injectable } from "@nestjs/common";
 import * as fs from 'fs';
+import { SalesRepService } from "src/sales-rep/sales-rep.service";
+import { FilterHelper } from "./filterHelper";
+import { SortHelper } from "./sortHelper";
+import { SalesRepsTargetsService } from "src/sales-reps-targets/sales-reps-targets.service";
 
 
 @Injectable()
 export class SalesRepHelper {
+    constructor(
+        private readonly salesRepService: SalesRepService,
+        private readonly filterHelper: FilterHelper,
+        private readonly sortHelper: SortHelper,
+        private readonly salesRepsTargetsService: SalesRepsTargetsService,
+
+    ) { }
 
     getsingleRepVolumeFacilityWise(marketerId, fromDate, toDate) {
         const volumeResponse = fs.readFileSync('./VolumeStatsData.json', "utf-8");
@@ -123,66 +134,66 @@ export class SalesRepHelper {
 
     async getRevenueStatsData(id: string, startDate: Date, endDate: Date) {
 
-        const RevenueStatsData = fs.readFileSync('RevenueStatsData.json', "utf-8")
-        const finalRevenueResp = JSON.parse(RevenueStatsData)
+        const RevenueStatsData = fs.readFileSync('RevenueStatsData.json', "utf-8");
+        const finalRevenueResp = JSON.parse(RevenueStatsData);
 
         let total_amount = 0;
         let paid_amount = 0;
         let pending_amount = 0;
 
         for (let i = 0; i < finalRevenueResp.length; i++) {
-            const date = new Date(finalRevenueResp[i].date)
+            const date = new Date(finalRevenueResp[i].date);
 
             if (startDate && endDate) {
                 if (startDate < endDate) {
 
-                    const start_date = new Date(startDate)
-                    const end_date = new Date(endDate)
+                    const start_date = new Date(startDate);
+                    const end_date = new Date(endDate);
 
                     if (date >= start_date && date <= end_date) {
                         if (finalRevenueResp[i].marketer_id == id) {
 
                             total_amount += finalRevenueResp[i].total_amount,
-                                paid_amount += finalRevenueResp[i].paid_amount
-                            pending_amount += finalRevenueResp[i].pending_amount
+                                paid_amount += finalRevenueResp[i].paid_amount;
+                            pending_amount += finalRevenueResp[i].pending_amount;
                         }
                     }
                 }
             } else {
                 total_amount += finalRevenueResp[i].total_amount,
-                    paid_amount += finalRevenueResp[i].paid_amount
-                pending_amount += finalRevenueResp[i].pending_amount
+                    paid_amount += finalRevenueResp[i].paid_amount;
+                pending_amount += finalRevenueResp[i].pending_amount;
             }
 
         }
-        return ({ total_amount: total_amount, paid_amount: paid_amount, pending_amount: pending_amount })
+        return ({ total_amount: total_amount, paid_amount: paid_amount, pending_amount: pending_amount });
     }
 
 
 
     async getVolumeStatsData(id: string, start_date: Date, end_date: Date) {
-        const VolumeStatsData = fs.readFileSync('VolumeStatsData.json', "utf-8")
-        const finalVolumeResp = JSON.parse(VolumeStatsData)
+        const VolumeStatsData = fs.readFileSync('VolumeStatsData.json', "utf-8");
+        const finalVolumeResp = JSON.parse(VolumeStatsData);
 
         let total_cases = 0;
         let completed_cases = 0;
         let pending_cases = 0;
 
         for (let i = 0; i < finalVolumeResp.length; i++) {
-            const date = new Date(finalVolumeResp[i].date)
+            const date = new Date(finalVolumeResp[i].date);
             if (start_date && end_date) {
-                const startDate = new Date(start_date)
-                const endDate = new Date(end_date)
+                const startDate = new Date(start_date);
+                const endDate = new Date(end_date);
                 if (startDate < endDate) {
 
-                    const start_date = new Date(startDate)
-                    const end_date = new Date(endDate)
+                    const start_date = new Date(startDate);
+                    const end_date = new Date(endDate);
                     if (date >= start_date && date <= end_date) {
 
                         if (finalVolumeResp[i].marketer_id == id) {
                             total_cases += finalVolumeResp[i].total_cases,
                                 completed_cases += finalVolumeResp[i].completed_cases,
-                                pending_cases += finalVolumeResp[i].pending_cases
+                                pending_cases += finalVolumeResp[i].pending_cases;
 
                         }
                     }
@@ -190,10 +201,10 @@ export class SalesRepHelper {
             } else {
                 total_cases += finalVolumeResp[i].total_cases,
                     completed_cases += finalVolumeResp[i].completed_cases,
-                    pending_cases += finalVolumeResp[i].pending_cases
+                    pending_cases += finalVolumeResp[i].pending_cases;
             }
         }
-        return ({ total_cases: total_cases, completed_cases: completed_cases, pending_cases: pending_cases })
+        return ({ total_cases: total_cases, completed_cases: completed_cases, pending_cases: pending_cases });
     }
 
 
@@ -203,7 +214,7 @@ export class SalesRepHelper {
         const finalVolumeResp = JSON.parse(VolumeStatsData);
 
         let totalCounts = {};
-        let count = 0
+        let count = 0;
 
         const startDate = new Date(start);
         const endDate = new Date(end);
@@ -256,44 +267,44 @@ export class SalesRepHelper {
     }
 
     async getOverviewRevenueStatsData(start_date: Date, end_date: Date) {
-        const RevenueStatsData = fs.readFileSync('RevenueStatsData.json', "utf-8")
-        const finalRevenueResp = JSON.parse(RevenueStatsData)
+        const RevenueStatsData = fs.readFileSync('RevenueStatsData.json', "utf-8");
+        const finalRevenueResp = JSON.parse(RevenueStatsData);
 
         let total_amount = 0;
         let paid_amount = 0;
         let pending_amount = 0;
 
         for (let i = 0; i < finalRevenueResp.length; i++) {
-            const date = new Date(finalRevenueResp[i].date)
+            const date = new Date(finalRevenueResp[i].date);
             if (start_date && end_date) {
                 if (start_date < end_date) {
 
                     if (date >= start_date && date <= end_date) {
                         total_amount = total_amount + finalRevenueResp[i].total_amount,
-                            paid_amount = paid_amount + finalRevenueResp[i].paid_amount
-                        pending_amount = pending_amount + finalRevenueResp[i].pending_amount
+                            paid_amount = paid_amount + finalRevenueResp[i].paid_amount;
+                        pending_amount = pending_amount + finalRevenueResp[i].pending_amount;
                     }
                 }
             } else {
                 total_amount = total_amount + finalRevenueResp[i].total_amount,
-                    paid_amount = paid_amount + finalRevenueResp[i].paid_amount
-                pending_amount = pending_amount + finalRevenueResp[i].pending_amount
+                    paid_amount = paid_amount + finalRevenueResp[i].paid_amount;
+                pending_amount = pending_amount + finalRevenueResp[i].pending_amount;
             }
 
         }
-        return ({ total_amount: total_amount, paid_amount: paid_amount, pending_amount: pending_amount })
+        return ({ total_amount: total_amount, paid_amount: paid_amount, pending_amount: pending_amount });
     }
 
     async getOverViewVolumeStatsData(start_date: Date, end_date: Date) {
-        const VolumeStatsData = fs.readFileSync('VolumeStatsData.json', "utf-8")
-        const finalVolumeResp = JSON.parse(VolumeStatsData)
+        const VolumeStatsData = fs.readFileSync('VolumeStatsData.json', "utf-8");
+        const finalVolumeResp = JSON.parse(VolumeStatsData);
 
         let total_cases = 0;
         let completed_cases = 0;
         let pending_cases = 0;
 
         for (let i = 0; i < finalVolumeResp.length; i++) {
-            const date = new Date(finalVolumeResp[i].date)
+            const date = new Date(finalVolumeResp[i].date);
 
             if (start_date && end_date) {
                 if (start_date < end_date) {
@@ -301,26 +312,26 @@ export class SalesRepHelper {
                     if (date >= start_date && date <= end_date) {
                         total_cases = total_cases + finalVolumeResp[i].total_cases,
                             completed_cases = completed_cases + finalVolumeResp[i].completed_cases,
-                            pending_cases = pending_cases + finalVolumeResp[i].pending_cases
+                            pending_cases = pending_cases + finalVolumeResp[i].pending_cases;
                     }
                 }
             } else {
                 total_cases = total_cases + finalVolumeResp[i].total_cases,
                     completed_cases = completed_cases + finalVolumeResp[i].completed_cases,
-                    pending_cases = pending_cases + finalVolumeResp[i].pending_cases
+                    pending_cases = pending_cases + finalVolumeResp[i].pending_cases;
             }
 
         }
-        return ({ total_cases: total_cases, completed_cases: completed_cases, pending_cases: pending_cases })
+        return ({ total_cases: total_cases, completed_cases: completed_cases, pending_cases: pending_cases });
     }
 
     async getRevenueGraph(from_date: Date, to_date: Date) {
-        const RevenueStatsData = fs.readFileSync('RevenueStatsData.json', "utf-8")
-        const finalRevenueResp = JSON.parse(RevenueStatsData)
+        const RevenueStatsData = fs.readFileSync('RevenueStatsData.json', "utf-8");
+        const finalRevenueResp = JSON.parse(RevenueStatsData);
 
-        let total_counts = {}
-        const startDate = new Date(from_date)
-        const endDate = new Date(to_date)
+        let total_counts = {};
+        const startDate = new Date(from_date);
+        const endDate = new Date(to_date);
 
         if (startDate && endDate) {
             while (startDate <= endDate) {
@@ -336,13 +347,13 @@ export class SalesRepHelper {
 
                 let date = new Date(item.date);
                 if (date >= from_date && date <= to_date) {
-                    const monthYear = date.toLocaleString('default', { month: 'long', year: 'numeric' })
+                    const monthYear = date.toLocaleString('default', { month: 'long', year: 'numeric' });
                     item.case_type_wise_counts.forEach(caseType => {
                         const { total_amount, paid_amount } = caseType;
 
-                        total_counts[monthYear]['total_revenue_billed'] += total_amount
-                        total_counts[monthYear]['total_revenue_collected'] += paid_amount
-                    })
+                        total_counts[monthYear]['total_revenue_billed'] += total_amount;
+                        total_counts[monthYear]['total_revenue_collected'] += paid_amount;
+                    });
                 }
             }
         } else {
@@ -356,20 +367,20 @@ export class SalesRepHelper {
             for (const item of finalRevenueResp) {
 
                 let date = new Date(item.date);
-                const monthYear = date.toLocaleString('default', { month: 'long', year: 'numeric' })
+                const monthYear = date.toLocaleString('default', { month: 'long', year: 'numeric' });
                 item.case_type_wise_counts.forEach(caseType => {
                     const { total_amount, paid_amount } = caseType;
 
-                    total_counts[monthYear]['total_revenue_billed'] += total_amount
-                    total_counts[monthYear]['total_revenue_collected'] += paid_amount
-                })
+                    total_counts[monthYear]['total_revenue_billed'] += total_amount;
+                    total_counts[monthYear]['total_revenue_collected'] += paid_amount;
+                });
 
             }
 
 
         }
 
-        return total_counts
+        return total_counts;
     }
 
     async findAll() {
@@ -378,7 +389,7 @@ export class SalesRepHelper {
 
         const finalVolumeResp = JSON.parse(volumeResponse);
 
-        return finalVolumeResp
+        return finalVolumeResp;
     }
 
 
@@ -392,10 +403,10 @@ export class SalesRepHelper {
 
         for (let i = 0; i < finalVolumeResp.length; i++) {
             if (finalVolumeResp[i].marketer_id == id) {
-                let date = finalVolumeResp[i].date
+                let date = finalVolumeResp[i].date;
                 if (date >= start_date && date <= end_date) {
 
-                    total += finalVolumeResp[i].total_cases
+                    total += finalVolumeResp[i].total_cases;
 
                     finalVolumeResp[i].case_type_wise_counts.forEach(caseType => {
                         const { case_type, pending, completed } = caseType;
@@ -406,7 +417,7 @@ export class SalesRepHelper {
             }
 
         }
-        return { totalCounts, total }
+        return { totalCounts, total };
     }
 
 
@@ -428,16 +439,16 @@ export class SalesRepHelper {
 
 
 
-                    total_amount += item.total_amount
+                    total_amount += item.total_amount;
 
                     item.case_type_wise_counts.forEach(caseType => {
                         const { case_type, total_amount } = caseType;
-                        totalCaseTypeAmount[case_type] = (totalCaseTypeAmount[case_type] || 0) + total_amount
-                    })
+                        totalCaseTypeAmount[case_type] = (totalCaseTypeAmount[case_type] || 0) + total_amount;
+                    });
                 }
             }
         }
-        return { totalCaseTypeAmount, total_amount }
+        return { totalCaseTypeAmount, total_amount };
         // throw new NotFoundException('Revenue data not found for the specified marketer ID');
     }
 
@@ -448,9 +459,9 @@ export class SalesRepHelper {
         const revenue = JSON.parse(revenueResponse);
 
 
-        let total_counts = {}
-        const startDate = new Date(start_date)
-        const endDate = new Date(end_date)
+        let total_counts = {};
+        const startDate = new Date(start_date);
+        const endDate = new Date(end_date);
 
         while (startDate <= endDate) {
             const monthYear = startDate.toLocaleString('default', { month: 'long', year: 'numeric' });
@@ -487,17 +498,17 @@ export class SalesRepHelper {
                 let date = new Date(item.date);
 
                 if (date >= start_date && date <= end_date) {
-                    const monthYear = date.toLocaleString('default', { month: 'long', year: 'numeric' })
+                    const monthYear = date.toLocaleString('default', { month: 'long', year: 'numeric' });
                     item.case_type_wise_counts.forEach(caseType => {
                         const { case_type, total_amount } = caseType;
 
-                        total_counts[monthYear]['case_type_wise'][case_type] = (total_counts[monthYear]['case_type_wise'][case_type] || 0) + total_amount
-                        total_counts[monthYear]['total_revenue'] += total_amount
-                    })
+                        total_counts[monthYear]['case_type_wise'][case_type] = (total_counts[monthYear]['case_type_wise'][case_type] || 0) + total_amount;
+                        total_counts[monthYear]['total_revenue'] += total_amount;
+                    });
                 }
             }
         }
-        return total_counts
+        return total_counts;
     }
 
 
@@ -509,28 +520,27 @@ export class SalesRepHelper {
         let total: number = 0;
 
         for (const item of finalVolumeResp) {
-            let date = item.date
+            let date = item.date;
             if (from_date && to_date) {
                 if (date >= from_date && date <= to_date) {
 
-                    total += item.total_cases
+                    total += item.total_cases;
 
                     item.case_type_wise_counts.forEach(caseType => {
                         const { case_type, pending, completed } = caseType;
-                        totalCounts[case_type] = (totalCounts[case_type] || 0) + pending + completed
+                        totalCounts[case_type] = (totalCounts[case_type] || 0) + pending + completed;
                     });
                 }
             } else {
-                console.log(234);
-                total += item.total_cases
+                total += item.total_cases;
 
                 item.case_type_wise_counts.forEach(caseType => {
                     const { case_type, pending, completed } = caseType;
-                    totalCounts[case_type] = (totalCounts[case_type] || 0) + pending + completed
+                    totalCounts[case_type] = (totalCounts[case_type] || 0) + pending + completed;
                 });
             }
         }
-        return { totalCounts, total }
+        return { totalCounts, total };
     }
 
 
@@ -547,23 +557,23 @@ export class SalesRepHelper {
         for (const item of revenue) {
 
             if (from_date && to_date) {
-                total_amount += item.total_amount
+                total_amount += item.total_amount;
 
                 item.case_type_wise_counts.forEach(caseType => {
                     const { case_type, total_amount } = caseType;
-                    totalCaseTypeAmount[case_type] = (totalCaseTypeAmount[case_type] || 0) + total_amount
-                })
+                    totalCaseTypeAmount[case_type] = (totalCaseTypeAmount[case_type] || 0) + total_amount;
+                });
             } else {
-                total_amount += item.total_amount
+                total_amount += item.total_amount;
 
                 item.case_type_wise_counts.forEach(caseType => {
                     const { case_type, total_amount } = caseType;
-                    totalCaseTypeAmount[case_type] = (totalCaseTypeAmount[case_type] || 0) + total_amount
-                })
+                    totalCaseTypeAmount[case_type] = (totalCaseTypeAmount[case_type] || 0) + total_amount;
+                });
             }
 
         }
-        return { totalCaseTypeAmount, total_amount }
+        return { totalCaseTypeAmount, total_amount };
 
 
     }
@@ -572,9 +582,9 @@ export class SalesRepHelper {
         const revenueResponse = fs.readFileSync('./RevenueStatsData.json', "utf-8");
         const revenue = JSON.parse(revenueResponse);
 
-        let total_counts = {}
-        const startDate = new Date(from_date)
-        const endDate = new Date(to_date)
+        let total_counts = {};
+        const startDate = new Date(from_date);
+        const endDate = new Date(to_date);
 
         while (startDate <= endDate) {
             const monthYear = startDate.toLocaleString('default', { month: 'long', year: 'numeric' });
@@ -591,13 +601,13 @@ export class SalesRepHelper {
                 let date = new Date(item.date);
 
                 if (date >= from_date && date <= to_date) {
-                    const monthYear = date.toLocaleString('default', { month: 'long', year: 'numeric' })
+                    const monthYear = date.toLocaleString('default', { month: 'long', year: 'numeric' });
 
-                    total_counts[monthYear]['total_revenue'] += item.total_amount
+                    total_counts[monthYear]['total_revenue'] += item.total_amount;
                 }
             }
         }
-        return total_counts
+        return total_counts;
     }
 
     async getSalesTrendsVolumeData(id, start, end) {
@@ -621,10 +631,261 @@ export class SalesRepHelper {
 
                 if (date >= start && date <= end) {
                     const monthYear = date.toLocaleString('default', { month: 'long', year: 'numeric' });
-                    totalCounts[monthYear]['count'] += finalVolumeResp[i].total_cases
+                    totalCounts[monthYear]['count'] += finalVolumeResp[i].total_cases;
                 }
             }
         }
         return totalCounts;
     }
+
+
+    facilityExists(finalResp, id) {
+        return finalResp.some(facility => facility.facility_id === id);
+    }
+
+
+    salesRepExists(finalResp, id) {
+        return finalResp.some(rep => rep.sales_rep_id === id);
+    }
+
+
+    async manualSortAndAddingSalesReps(query, salesReps) {
+        const salesRepsQueryString = this.filterHelper.salesRepsFilter(query);
+
+        const salesRepsData = await this.salesRepService.getSalesReps(salesRepsQueryString);
+
+        salesRepsData.forEach(rep => {
+            if (!this.salesRepExists(salesReps, rep.id)) {
+                salesReps.push({
+                    sales_rep_id: rep.id,
+                    sales_rep_name: rep.name,
+                    email: rep.email,
+                    active_facilities: 0,
+                    expected_amount: 0,
+                    generated_amount: 0,
+                    paid_amount: 0,
+                    pending_amount: 0,
+                    total_cases: 0,
+                    pending_cases: 0
+                });
+            }
+        });
+
+        salesReps = this.sortHelper.sort(salesReps, "sales_rep_name");
+
+        return salesReps;
+    }
+
+
+    async getFacilitiesBySalesRep(salesReps) {
+        const salesRepIds = salesReps.map(e => e.sales_rep_id);
+
+        const facilities = await this.salesRepService.getAllFacilitiesCountBySalesRep(salesRepIds);
+
+        for (const rep of salesReps) {
+            const facility: any = facilities.find(fac => fac.sales_rep_id === rep.sales_rep_id);
+            if (facility) {
+                rep.total_facilities = parseInt(facility.total_facilities);
+            } else {
+                rep.total_facilities = 0; // If no facilities found, set to 0 or handle as needed
+            }
+        }
+
+        return salesReps;
+
+    }
+
+
+    async getTargets(query) {
+        const queryString = this.filterHelper.salesRepsTargets(query);
+
+        let targets: any = await this.salesRepsTargetsService.getSalesRepTargets(queryString);
+
+        const fromDate = query.from_date;
+        const toDate = query.to_date;
+
+        if (fromDate && toDate) {
+            targets = this.getFilteredTargets(targets, fromDate, toDate);
+
+            targets = this.calculateTargetsRatio(targets, fromDate, toDate);
+        }
+        return targets;
+    }
+
+
+
+
+    getFilteredTargets(targets, fromDate, toDate) {
+        const monthsAndYears = this.getMonthsAndYears(fromDate, toDate);
+
+        let result = [];
+
+        // Iterate through each target
+        targets.forEach(target => {
+            // Check if the target's year matches with any year in monthsAndYears
+            const matchedYear = monthsAndYears.find(yearObj => yearObj.year === target.year);
+            if (matchedYear) {
+                // Construct the response object
+                const responseObj = {
+                    sales_rep_id: target.sales_rep_id,
+                    year: target.year
+                };
+                // Filter the monthsAndYears array to include only months for the current year
+                const monthsForYear = monthsAndYears.filter(yearObj => yearObj.year === target.year);
+                // Iterate through the filtered monthsAndYears array and extract the data
+                monthsForYear.forEach(monthYear => {
+                    const monthKey = monthYear.month.toLowerCase();
+                    if (target.hasOwnProperty(monthKey)) {
+                        responseObj[monthKey] = target[monthKey];
+                    }
+                });
+                // Push the response object to the result array
+                result.push(responseObj);
+            }
+        });
+
+        return result;
+
+    }
+
+
+    getMonthsAndYears(fromDate, toDate) {
+        const from = new Date(fromDate);
+        const to = new Date(toDate);
+
+        const monthsAndYears = [];
+        let currentMonth = from;
+
+        while (currentMonth <= to) {
+            const year = currentMonth.getFullYear();
+            const monthName = currentMonth.toLocaleString('default', { month: 'short' }); // Get month name
+            monthsAndYears.push({ year, month: monthName });
+
+            // Move to the next month
+            currentMonth.setMonth(currentMonth.getMonth() + 1);
+        }
+
+        return monthsAndYears;
+    }
+
+
+    mergeSalesRepAndTargets(salesReps, targets) {
+        const groupedData = targets.reduce((acc, item) => {
+            const { sales_rep_id, ...rest } = item;
+            if (!acc[sales_rep_id]) {
+                acc[sales_rep_id] = { sales_rep_id, ...rest };
+            } else {
+                Object.keys(rest).forEach(key => {
+                    if (Array.isArray(acc[sales_rep_id][key])) {
+                        acc[sales_rep_id][key] = acc[sales_rep_id][key].map((val, index) => val + rest[key][index]);
+                    }
+                });
+            }
+            return acc;
+        }, {});
+
+        // Convert groupedData object to array
+        const result = Object.values(groupedData).map(({ id, year, ...rest }) => rest);
+
+        const mergedResult = result.map(item => {
+            const total = Object.values(item)
+                .filter(val => Array.isArray(val)) // Filter out arrays
+                .reduce((acc, curr) => {
+                    return acc.map((num, i) => num + curr[i]); // Sum corresponding elements
+                });
+
+            const respData: any = {
+                sales_rep_id: item.sales_rep_id,
+                target_volume: total[0],
+                target_facilities: total[1],
+                target_achived_volume: total[2],
+                target_achived_facilites: total[3]
+            };
+
+            if (respData.target_achived_volume >= respData.target_volume) {
+                respData.target_reached = true;
+            } else {
+                respData.target_reached = false;
+            }
+
+            return respData;
+        });
+
+        // merge the salesRep with target
+        const finalResponse = salesReps.map(salesRep => {
+            const target = mergedResult.find(target => target.sales_rep_id === salesRep.sales_rep_id);
+            if (target) {
+                salesRep.target_volume = target.target_volume;
+                salesRep.target_facilities = target.target_facilities;
+                salesRep.target_reached = target.target_reached;
+            }
+
+            if (salesRep.total_cases >= salesRep.target_volume) {
+                salesRep.target_reached = true;
+            } else {
+                salesRep.target_reached = false;
+            }
+
+            return salesRep;
+        });
+
+        return finalResponse;
+    }
+
+
+    calculateTargetsRatio(data, fromDate, toDate) {
+        // Convert from_date and to_date to Date objects
+        const fromDateObj = new Date(fromDate);
+        const toDateObj = new Date(toDate);
+
+        const fromDateMonth = fromDateObj.toLocaleString('en-US', { month: 'short' });
+        const fromDateYear = fromDateObj.getFullYear();
+
+        const toDateMonth = toDateObj.toLocaleString('en-US', { month: 'short' });
+        const toDateYear = toDateObj.getFullYear();
+
+        // Loop through each object in the data array
+        for (let i = 0; i < data.length; i++) {
+            const obj = data[i];
+            // Loop through each month in the object
+            for (const month in obj) {
+                // Skip sales_rep_id and year properties
+                if (month === 'sales_rep_id' || month === 'year') {
+                    continue;
+                }
+
+                const target = obj[month][0];
+
+                if (fromDateMonth.toLowerCase() === month.toLowerCase() && obj["year"] === fromDateYear) {
+                    // Get the sales value for the month
+                    const adjustedSales = this.getAdjustedtargets(fromDateObj, month, obj, target);
+
+                    // Update data
+                    obj[month][0] = adjustedSales;
+                }
+
+                if (toDateMonth.toLowerCase() === month.toLowerCase() && obj["year"] === toDateYear) {
+                    const adjustedSalesToDate = this.getAdjustedtargets(toDateObj, month, obj, target);
+                    obj[month][0] = adjustedSalesToDate;
+                }
+            }
+        }
+        return data;
+
+    }
+
+
+    getAdjustedtargets(dateObj, month, obj, targets) {
+        // Get the number of days in the month
+        const daysInMonth = new Date(dateObj.getFullYear(), new Date(Date.parse(month + ' 1,' + obj.year)).getMonth() + 1, 0).getDate();
+
+        // Calculate the ratio for the month
+        const ratio = dateObj.getMonth() === new Date(Date.parse(month + ' 1,' + obj.year)).getMonth() ? ((daysInMonth - dateObj.getDate() + 1) / daysInMonth) : 1;
+
+        // Apply ratio and round the value
+        const adjustedTargets = Math.round(targets * ratio);
+        return adjustedTargets;
+    }
+
+
 }
