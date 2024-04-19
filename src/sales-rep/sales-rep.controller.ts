@@ -5,7 +5,10 @@ import { FilterHelper } from 'src/helpers/filterHelper';
 import { SalesRepHelper } from 'src/helpers/salesRepHelper';
 import { SortHelper } from 'src/helpers/sortHelper';
 import { SyncHelpers } from 'src/helpers/syncHelper';
+import { EmailServiceProvider } from 'src/notifications/emailServiceProvider';
 import { SalesRepService } from './sales-rep.service';
+import axios from 'axios';
+
 
 @Controller({
 	version: '1.0',
@@ -18,6 +21,8 @@ export class SalesRepController {
 		private readonly syncHelper: SyncHelpers,
 		private readonly sortHelper: SortHelper,
 		private readonly salesRepHelper: SalesRepHelper,
+		private readonly emailServiceProvider: EmailServiceProvider,
+
 
 	) { }
 
@@ -58,7 +63,7 @@ export class SalesRepController {
 				salesReps = await this.salesRepHelper.getFacilitiesBySalesRep(salesReps);
 
 				const salesRepIds = salesReps.map(e => e.sales_rep_id);
-				query.sales_reps = salesRepIds;	
+				query.sales_reps = salesRepIds;
 				targets = await this.salesRepHelper.getTargets(query);
 
 				salesReps = this.salesRepHelper.mergeSalesRepAndTargets(salesReps, targets);
@@ -546,6 +551,116 @@ export class SalesRepController {
 				message: SUCCESS_FETCHED_SALES_REP_INSURANCE_PAYORS_MONTH_WISE_DATA,
 				data: data
 			});
+		}
+		catch (error) {
+			console.log({ error });
+
+			return res.status(500).json({
+				success: false,
+				message: error || SOMETHING_WENT_WRONG
+			});
+		}
+	}
+
+
+	@Get('target-summary/:sales_repid')
+	async getSalesRepsTargetSummary(@Res() res: any, @Param('sales_repid') sales_repid: number, @Query() query: any) {
+		try {
+
+			let month;
+			let year;
+			const queryString = this.filterHelper.salesRepFacilities(query);
+
+			const data = await this.salesRepService.getVolumeStats(sales_repid, queryString);
+
+			query.sales_reps = [sales_repid];
+
+			const salesRepTargetData = await this.salesRepHelper.getTargets(query);
+
+			const salesRepData = await this.salesRepService.getOne(sales_repid);
+
+			const targetVolume = salesRepTargetData.reduce((acc, entry) => {
+				// Iterate over the months and add the first element value of each month
+				Object.values(entry)
+					.filter(val => Array.isArray(val)) // Filter out non-array values
+					.forEach(month => acc += month[0]); // Add the first element value
+
+				return acc;
+			}, 0);
+
+			data[0].target_volume = targetVolume;
+
+			if (query.from_date && query.to_date) {
+				const fromDate = new Date(query.from_date);
+
+				month = fromDate.toLocaleString('default', { month: 'long' });
+				year = fromDate.getFullYear();
+
+			}
+			else {
+
+				const dateObject = new Date();
+				month = dateObject.getMonth();
+				year = dateObject.getFullYear();
+
+			}
+
+			data[0].sales_rep_name = salesRepData[0].sales_rep;
+			data[0].sales_rep_email = salesRepData[0].sales_rep_email;
+			data[0].month = month;
+			data[0].year = year;
+
+			let emailContent = {
+				email: 'tharunampolu9.8@gmail.com',
+				subject: 'Volume targets summary'
+			};
+
+			await this.emailServiceProvider.sendSalesRepsTargetSummaryReport(emailContent, data[0]);
+
+			return res.status(200).json({
+				success: true,
+				message: SUCCESS_FECTED_SALE_REP_VOLUME_STATS,
+				data
+			});
+		}
+		catch (error) {
+			console.log({ error });
+
+			return res.status(500).json({
+				success: false,
+				message: error || SOMETHING_WENT_WRONG
+			});
+		}
+	}
+
+	@Get('target-summary/notify/all')
+	async notifyTargetSummaryData(@Res() res: any, @Query() query: any) {
+		try {
+
+			const salesReps = await this.salesRepService.getAllSalesReps();
+
+			const currentDate = new Date();
+
+			const from_date = new Date(currentDate);
+			const to_date = new Date(currentDate);
+			to_date.setDate(to_date.getDate() + 7);
+
+
+			const apiUrl = `${process.env.API_URL}/${salesReps[0].id}?from_date=${from_date.toISOString()}&to_date=${to_date.toISOString()}`;
+			await axios.get(apiUrl);
+
+
+			// for (const salesRep of salesReps) {
+			// 	const apiUrl = `${process.env.API_URL}/${salesRep.id}?from_date=${from_date.toISOString()}&to_date=${to_date.toISOString()}`;
+			// 	await axios.get(apiUrl);
+			// }
+
+			return res.status(200).json({
+				success: true,
+				message: "Cron run successfully",
+			});
+
+
 		}
 		catch (error) {
 			console.log({ error });

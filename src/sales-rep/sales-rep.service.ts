@@ -48,7 +48,8 @@ export class SalesRepService {
 		let query = sql`
 			SELECT 
 				sr.name AS sales_rep,
-				m.name AS manager 
+				m.name AS manager,
+				sr.email as sales_rep_email 
 			FROM sales_reps sr
 			JOIN sales_reps m 
 				ON sr.reporting_to = m.id
@@ -523,5 +524,7 @@ export class SalesRepService {
 		const data = await db.execute(sql`SELECT count(*) AS total_facilities, sales_rep_id FROM facilities WHERE sales_rep_id IN ${ids} GROUP BY sales_rep_id;`);
 		return data.rows;
 	}
+
+
 }
 

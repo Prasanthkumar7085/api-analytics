@@ -102,7 +102,7 @@ export const salesRepsTargetsTemplate = `
                             <%= target_volume %>
                         </td>
                         <td style="overflow:hidden;padding:5px;vertical-align:bottom;border:1px solid #999999;">
-                            <%= target_volume_reached %>
+                            <%= total_cases %>
                         </td>
                     </tr>
                 </tbody>

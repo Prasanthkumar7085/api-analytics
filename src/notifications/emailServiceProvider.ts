@@ -3,7 +3,6 @@ import * as ejs from 'ejs';
 import { salesRepsTargetsTemplate } from "src/views/email-templates/sales-reps-targets";
 import { SESAPIDataServiceProvider } from "./sesAPIDataServiceProvider";
 
-
 @Injectable()
 export class EmailServiceProvider {
     constructor(
