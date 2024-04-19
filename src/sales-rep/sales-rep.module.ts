@@ -22,11 +22,15 @@ import { SortHelper } from 'src/helpers/sortHelper';
 import { MghDbConnections } from 'src/helpers/mghDbconnection';
 import { SalesRepHelper } from 'src/helpers/salesRepHelper';
 import { SalesRepsTargetsService } from 'src/sales-reps-targets/sales-reps-targets.service';
+import { EmailServiceProvider } from 'src/notifications/emailServiceProvider';
+import { SESAPIDataServiceProvider } from 'src/notifications/sesAPIDataServiceProvider';
+import { Configuration } from 'src/config/config.service';
+import { ConfigService } from '@nestjs/config';
 
 @Module({
   controllers: [SalesRepController],
   providers: [SalesRepService, FilterHelper, JwtService, LisService, SyncHelpers, CaseTypesService, FacilitiesService, InsurancesService,
-    SyncService, LabsService, MghSyncService, SortHelper, MghDbConnections, SalesRepHelper, SalesRepsTargetsService],
+    SyncService, LabsService, MghSyncService, SortHelper, MghDbConnections, SalesRepHelper, SalesRepsTargetsService, EmailServiceProvider, SESAPIDataServiceProvider, Configuration, ConfigService],
   imports: [
     MongooseModule.forRoot(process.env.LIS_DLW_DB_URL + '&authSource=admin'),
     MongooseModule.forFeature([
