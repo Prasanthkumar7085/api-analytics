@@ -609,32 +609,31 @@ export class SalesRepController {
 			}
 
 
-			if (sales_repid === 1)
-			{
-				data[0].sales_rep_email = 'tharunampolu9.8@gmail.com'
+			if (sales_repid === 1) {
+				data[0].sales_rep_email = 'tharunampolu9.8@gmail.com';
 			}
-			if (sales_repid === 2) {
+			else if (sales_repid === 2) {
 				data[0].sales_rep_email = 's170369rguktsklm.ac.in';
 			}
-			if (sales_repid === 3) {
+			else if (sales_repid === 3) {
 				data[0].sales_rep_email = 'viratme100@gmail.com';
 			}
-			if (sales_repid === 4) {
+			else if (sales_repid === 4) {
 				data[0].sales_rep_email = 'prashanthmorcha@gmail.com';
 			}
-			if (sales_repid === 5) {
+			else if (sales_repid === 5) {
 				data[0].sales_rep_email = 'prasadkollimala@gmail.com';
 			}
-			if (sales_repid === 6) {
+			else if (sales_repid === 6) {
 				data[0].sales_rep_email = 's170369rguktsklm.ac.in';
 			}
-			if (sales_repid === 7) {
+			else if (sales_repid === 7) {
 				data[0].sales_rep_email = 's170369rguktsklm.ac.in';
 			}
-			if (sales_repid === 8) {
+			else if (sales_repid === 8) {
 				data[0].sales_rep_email = 'prasadkollimala@gmail.com';
 			}
-			if (sales_repid === 9) {
+			else if (sales_repid === 9) {
 				data[0].sales_rep_email = 'tharunampolu9.8@gmail.com';
 			}
 
@@ -642,6 +641,8 @@ export class SalesRepController {
 			// data[0].sales_rep_email = salesRepData[0].sales_rep_email;
 			data[0].month = month;
 			data[0].year = year;
+
+			console.log("data", sales_repid, data);
 
 			let emailContent = {
 				email: data[0].sales_rep_email,
