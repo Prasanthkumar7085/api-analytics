@@ -61,19 +61,35 @@ export class SalesRepsTargetsService {
   }
 
   async updateSalesRepsTargets(id: number, salesRepTargetDto: UpdateSalesRepTargetsDto) {
-
-    const { month, targets_data } = salesRepTargetDto;
-
-    const targetsDataJson = JSON.stringify(targets_data);
+    
+    const { covid, covid_flu ,clinical, gastro, nail, pgx, rpp, tox, ua, uti, wound, card, cgx, diabetes, pad ,pul} = salesRepTargetDto;
 
     const rawQuery = sql`
         UPDATE sales_reps_monthly_targets
-        SET ${sql.raw(month)} =  ${targetsDataJson}::jsonb
+        SET 
+            covid = ${covid},
+            covid_flu = ${covid_flu},
+            clinical = ${clinical},
+            gastro = ${gastro},
+            nail = ${nail},
+            pgx = ${pgx},
+            rpp = ${rpp},
+            tox = ${tox},
+            ua = ${ua},
+            uti = ${uti},
+            wound = ${wound},
+            card = ${card},
+            cgx = ${cgx},
+            diabetes = ${diabetes},
+            pad = ${pad},
+            pul = ${pul}
+
         WHERE id = ${id}
     `;
 
     return await db.execute(rawQuery);
   }
+
 
 
   async getAllSalesRepsTargetsData() {
@@ -83,7 +99,7 @@ export class SalesRepsTargetsService {
 
   async getSalesRepTargets(queryString) {
     const rawQuery = sql`
-		select * from sales_reps_monthly_targets
+		select * from sales_reps_targets
 		${queryString ? sql`WHERE ${sql.raw(queryString)}` : sql``}
 		`;
     const data = await db.execute(rawQuery);

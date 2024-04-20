@@ -1,14 +1,13 @@
 import { Body, Controller, Get, Param, Patch, Post, Query, Req, Res } from '@nestjs/common';
 import { salesRepsTargets } from 'sales-reps-targets';
-import { SALES_REPS_TARGET_DATA_ADDED_SUCCESS, SALES_REPS_TARGET_DATA_NOT_FOUND, SALES_REPS_TARGET_DATA_SUMMARY_EMAIL_SENT_SUCCESS, SALES_REPS_TARGET_DATA_UPDATED_SUCCESS, SOMETHING_WENT_WRONG, SUCCESS_FETCHED_SALES_REPS_TARGET_DATA } from 'src/constants/messageConstants';
-import { SalesRepsTargetsService } from './sales-reps-targets.service';
-import { UpdateSalesRepTargetsDto } from './dto/update-sales-reps-target.dto';
-import { SalesRepService } from 'src/sales-rep/sales-rep.service';
-import { EmailServiceProvider } from 'src/notifications/emailServiceProvider';
+import { SALES_REPS_TARGET_DATA_ADDED_SUCCESS, SALES_REPS_TARGET_DATA_NOT_FOUND, SALES_REPS_TARGET_DATA_UPDATED_SUCCESS, SOMETHING_WENT_WRONG, SUCCESS_FETCHED_SALES_REPS_TARGET_DATA } from 'src/constants/messageConstants';
 import { FilterHelper } from 'src/helpers/filterHelper';
+import { EmailServiceProvider } from 'src/notifications/emailServiceProvider';
+import { SalesRepService } from 'src/sales-rep/sales-rep.service';
+import { UpdateSalesRepTargetsDto } from './dto/update-sales-reps-target.dto';
+import { SalesRepsTargetsService } from './sales-reps-targets.service';
 
 
-import { faker } from '@faker-js/faker';
 
 @Controller(
   {
@@ -116,6 +115,8 @@ export class SalesRepsTargetsController {
       });
     }
     catch (error) {
+      console.log(error);
+
       return res.status(500).json({
         success: false,
         message: error || SOMETHING_WENT_WRONG
