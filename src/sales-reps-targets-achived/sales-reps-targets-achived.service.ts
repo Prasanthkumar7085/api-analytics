@@ -39,15 +39,51 @@ export class SalesRepsTargetsAchivedService {
     return data.rows;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} salesRepsTargetsAchived`;
+  async findAchivedTargets(filterArray) {
+    const placeholders = filterArray.map(({ sales_rep_id, month }) => `(sales_rep_id = ${sales_rep_id} AND month = '${month}')`).join(' OR ');
+
+    const rawQuery = sql`
+        SELECT * from sales_reps_monthly_achieves 
+        WHERE ${sql.raw(placeholders)};
+        `;
+
+    const data = await db.execute(rawQuery);
+
+    return data.rows;
   }
 
-  update(id: number) {
-    return `This action updates a #${id} salesRepsTargetsAchived`;
-  }
+  async updateTargetAchieves(queryString) {
 
-  remove(id: number) {
-    return `This action removes a #${id} salesRepsTargetsAchived`;
+    const rawQuery = sql`
+        UPDATE sales_reps_monthly_achieves AS t
+        SET
+          sales_rep_id = u.salesRepId,
+          start_date = u.startDate,
+          end_date = u.endDate,
+          month = u.month,
+          covid_a = u.covidA,
+          covid_flu_a = u.covidFluA,
+          clinical_a = u.clinicalA,
+          nail_a = u.nailA,
+          pgx_a = u.pgxA,
+          rpp_a = u.rppA,
+          tox_a = u.toxA,
+          ua_a = u.uaA,
+          uti_a = u.utiA,
+          wound_a = u.woundA,
+          cgx_a = u.cgxA,
+          diabetes_a = u.diabetesA,
+          pad_a = u.padA,
+          pul_a = u.pulA,
+          gastro_a = u.gastroA,
+          card_a = u.cardA
+        FROM(
+          VALUES
+
+        ${sql.raw(queryString)}
+        ) as u(salesRepId, startDate, endDate, month, covidA, covidFluA, clinicalA, nailA, pgxA, rppA, toxA, uaA, utiA, woundA, cgxA, diabetesA, padA, pulA, gastroA, cardA)
+        WHERE t.sales_rep_id = u.salesRepId AND t.month = u.month`;
+
+    return db.execute(rawQuery);
   }
 }

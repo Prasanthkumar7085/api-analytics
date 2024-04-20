@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { CaseTypesService } from "src/case-types/case-types.service";
-import { ARCHIVED, CASE_TYPE_MAPPING } from "src/constants/lisConstants";
+import { ARCHIVED, CASE_TYPE_MAPPING, keyMapping } from "src/constants/lisConstants";
 import { FacilitiesService } from "src/facilities/facilities.service";
 import { InsurancesService } from "src/insurances/insurances.service";
 import { LabsService } from "src/labs/labs.service";
@@ -8,6 +8,7 @@ import { LisService } from "src/lis/lis.service";
 import { MghSyncService } from "src/mgh-sync/mgh-sync.service";
 import { SalesRepService } from "src/sales-rep/sales-rep.service";
 import { SyncService } from "src/sync/sync.service";
+import { SalesRepsTargetsAchivedService } from 'src/sales-reps-targets-achived/sales-reps-targets-achived.service';
 
 
 @Injectable()
@@ -21,7 +22,8 @@ export class SyncHelpers {
         private readonly SyncService: SyncService,
         private readonly salesRepsService: SalesRepService,
         private readonly labsService: LabsService,
-        private readonly mghLisService: MghSyncService
+        private readonly mghLisService: MghSyncService,
+        private readonly salesRepsTargetsAchivedService: SalesRepsTargetsAchivedService
 
     ) { }
 
@@ -1139,5 +1141,109 @@ export class SyncHelpers {
         });
 
         return result;
+    }
+
+
+    async getExistedAndNotExistedTargetsAchived(result) {
+        const repsAndMonthsData = result.map((e) => ({
+            sales_rep_id: e.salesRepId,
+            month: e.month
+        }));
+
+        const matchedData = await this.salesRepsTargetsAchivedService.findAchivedTargets(repsAndMonthsData);
+
+        let existed = [];
+        let notExisted = [];
+        if (matchedData.length) {
+            const matchedIdsAndMonths = matchedData.map(({ sales_rep_id, month }) => ({
+                salesRepId: sales_rep_id,
+                month
+            }));
+
+            // Filter the results array
+            existed = result.filter(result =>
+                matchedIdsAndMonths.find(({ salesRepId, month }) =>
+                    result.salesRepId === salesRepId && result.month === month
+                )
+            );
+
+            // need to add the existed key valies in existedData
+            existed.forEach(existItem => {
+                const matchedItem = matchedData.find(({ sales_rep_id, month }) =>
+                    existItem.salesRepId === sales_rep_id && existItem.month === month
+                );
+                if (matchedItem) {
+                    const convertedData = {};
+                    for (let key in matchedItem) {
+                        if (key !== 'sales_rep_id' && key !== 'start_date' && key !== 'end_date' && key !== 'month') {
+                            const newKey = keyMapping[key] || key;
+                            convertedData[newKey] = matchedItem[key];
+                        }
+                    }
+
+                    // Update properties of existItem with convertedData values
+                    for (let key in convertedData) {
+                        if (existItem.hasOwnProperty(key)) {
+                            existItem[key] = existItem[key] + convertedData[key];
+                        }
+                    }
+
+                }
+            });
+
+            notExisted = result.filter(result =>
+                !matchedIdsAndMonths.find(({ salesRepId, month }) =>
+                    result.salesRepId === salesRepId && result.month === month
+                )
+            );
+        } else {
+            notExisted = [...result];
+        }
+
+        return { existed, notExisted };
+    }
+
+
+    async insertOrUpdateTargetsAchived(existed, notExisted) {
+
+        if (notExisted.length) {
+            console.log(123);
+            await this.salesRepsTargetsAchivedService.insert(notExisted);
+        }
+
+        if (existed.length) {
+            console.log(1234);
+            const convertedData = existed.map(entry => {
+
+                const startDate = entry.startDate ? new Date(entry.startDate).toISOString() : "";
+                const endDate = entry.endDate ? new Date(entry.endDate).toISOString() : "";
+                const month = entry.month ? entry.month : null;
+                const covidA = entry.covidA || 0;
+                const covidFluA = entry.covidFluA || 0;
+                const clinicalA = entry.clinicalA || 0;
+                const nailA = entry.nailA || 0;
+                const pgxA = entry.pgxA || 0;
+                const rppA = entry.rppA || 0;
+                const toxA = entry.toxA || 0;
+                const uaA = entry.uaA || 0;
+                const utiA = entry.utiA || 0;
+                const woundA = entry.woundA || 0;
+                const cgxA = entry.cgxA || 0;
+                const diabetesA = entry.diabetesA || 0;
+                const padA = entry.padA || 0;
+                const pulA = entry.pulA || 0;
+                const gastroA = entry.gastroA || 0;
+                const cardA = entry.cardA || 0;
+
+
+                const formattedQueryEntry = `(${entry.salesRepId}, '${startDate}'::timestamp, '${endDate}'::timestamp, '${month}', ${covidA}, ${covidFluA}, ${clinicalA}, ${nailA}, ${pgxA}, ${rppA}, ${toxA}, ${uaA}, ${utiA}, ${woundA}, ${cgxA}, ${diabetesA}, ${padA}, ${pulA}, ${gastroA}, ${cardA})`;
+
+                return formattedQueryEntry;
+            });
+
+            const finalString = convertedData.join(', ');
+
+            this.salesRepsTargetsAchivedService.updateTargetAchieves(finalString);
+        }
     }
 }

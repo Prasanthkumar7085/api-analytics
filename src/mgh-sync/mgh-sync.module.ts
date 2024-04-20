@@ -16,10 +16,11 @@ import { insurancePayorsSchema } from 'src/schemas/insurancPayors';
 import { testPanelsDataSchema } from 'src/schemas/testPanelSchema';
 import { HospitalSchema } from 'src/schemas/hospitalSchema';
 import { labDataSchema } from 'src/schemas/lab';
+import { SalesRepsTargetsAchivedService } from 'src/sales-reps-targets-achived/sales-reps-targets-achived.service';
 
 @Module({
   controllers: [MghSyncController],
-  providers: [MghSyncService, LabsService, SyncHelpers, LisService, CaseTypesService, FacilitiesService, InsurancesService, SyncService, SalesRepService],
+  providers: [MghSyncService, LabsService, SyncHelpers, LisService, CaseTypesService, FacilitiesService, InsurancesService, SyncService, SalesRepService, SalesRepsTargetsAchivedService],
   imports: [
     MongooseModule.forFeature([
       { name: 'User', schema: UserSchema },

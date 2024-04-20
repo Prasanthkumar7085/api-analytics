@@ -19,6 +19,7 @@ import {
 	SUCCESS_SYNC_LABS,
 	SUCCESS_SYNC_PATIENT_CLAIMS,
 	SUCCUSS_INSERTED_MARKETING_MANAGERS, SUCCUSS_INSERTED_SALES_REPS,
+	TARGETS_ACHIVED_NOT_FOUND,
 	TARGETS_ACHIVED_SYNCED_SUCCESS
 } from 'src/constants/messageConstants';
 import { FacilitiesService } from 'src/facilities/facilities.service';
@@ -27,7 +28,6 @@ import { InsurancesService } from "src/insurances/insurances.service";
 import { LisService } from 'src/lis/lis.service';
 import { SalesRepService } from 'src/sales-rep/sales-rep.service';
 import { SyncService } from './sync.service';
-import { SalesRepsTargetsAchivedService } from 'src/sales-reps-targets-achived/sales-reps-targets-achived.service';
 
 @Controller({
 	version: '1.0',
@@ -43,8 +43,7 @@ export class SyncController {
 		private readonly caseTypesService: CaseTypesService,
 		private readonly insurancesService: InsurancesService,
 		private readonly salesRepService: SalesRepService,
-		private readonly facilitiesService: FacilitiesService,
-		private readonly salesRepsTargetsAchivedService: SalesRepsTargetsAchivedService
+		private readonly facilitiesService: FacilitiesService
 	) { }
 
 	@Get('patient-claims')
@@ -450,7 +449,22 @@ export class SyncController {
 	async syncTargetsAchived(@Res() res: any) {
 		try {
 
-			let claimsData: any = await this.SyncService.getCaseTypesVolume();
+			const currentDate = new Date();
+
+			const year = currentDate.getFullYear();
+			const month = String(currentDate.getMonth() + 1).padStart(2, '0'); // Adding 1 because getMonth() returns zero-based month index
+			const day = String(currentDate.getDate()).padStart(2, '0');
+
+			const formattedDate = `${year}-${month}-${day}`;
+
+			let claimsData: any = await this.SyncService.getCaseTypesVolume(formattedDate)
+
+			if (claimsData.length === 0) {
+				return res.status(200).json({
+					success: true,
+					message: TARGETS_ACHIVED_NOT_FOUND
+				});
+			}
 
 			// get the start date and end date by using month
 			claimsData = claimsData.map(item => {
@@ -458,16 +472,19 @@ export class SyncController {
 				return { ...item, start_date, end_date };
 			});
 
+
 			claimsData = this.syncHelpers.targetsAchivedGrouping(claimsData);
 
 			const result = this.syncHelpers.modifyTargetsAchived(claimsData);
 
-			const insertedData = await this.salesRepsTargetsAchivedService.insert(result);
+			const { existed, notExisted } = await this.syncHelpers.getExistedAndNotExistedTargetsAchived(result);
+
+			this.syncHelpers.insertOrUpdateTargetsAchived(existed, notExisted);
 
 			return res.status(200).json({
 				success: true,
 				message: TARGETS_ACHIVED_SYNCED_SUCCESS,
-				insertedData
+				existed, notExisted
 			});
 		} catch (err) {
 			console.log({ err });
