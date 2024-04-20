@@ -43,8 +43,7 @@ export class SalesRepsTargetsService {
             sales_reps s ON srt.sales_rep_id = s.id
          ${queryString ? sql`WHERE ${sql.raw(queryString)}` : sql``}
         ORDER BY
-				    s.name,
-            srt.start_date
+            srt.start_date DESC
 
     `;
 
