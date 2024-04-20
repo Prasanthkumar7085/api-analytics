@@ -21,7 +21,6 @@ export class SalesRepsTargetsController {
 
   ) { }
 
-  @UseGuards(AuthGuard)
   @Get()
   async getAll(
     @Res() res: any,
@@ -85,7 +84,6 @@ export class SalesRepsTargetsController {
     }
   }
 
-  @UseGuards(AuthGuard)
   @Patch(':id')
   async update(
     @Res() res: any,
