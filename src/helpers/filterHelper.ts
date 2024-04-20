@@ -360,4 +360,41 @@ export class FilterHelper {
 
         return queryString;
     }
+
+
+    salesRepsMonthlyTargets(query) {
+        let filter = [];
+        const {
+            sales_rep: salesRep,
+            from_date: fromDate,
+            to_date: toDate
+        } = query;
+
+        if (salesRep) {
+            filter.push(`sales_rep_id = ${salesRep}`);
+        }
+
+        if (fromDate && toDate) {
+            const from = new Date(fromDate);
+            const to = new Date(toDate);
+
+            const fromMonthYear = `${('0' + (from.getMonth() + 1)).slice(-2)}-${from.getFullYear()}`;
+            const toMonthYear = `${('0' + (to.getMonth() + 1)).slice(-2)}-${to.getFullYear()}`;
+
+            // Using Set to get unique values
+            const monthRangeSet = new Set([fromMonthYear, toMonthYear]);
+
+            // Converting Set back to array
+            const monthRange = Array.from(monthRangeSet).map(month => `'${month}'`);
+
+            filter.push(`month IN (${monthRange.join(", ")})`);
+        }
+
+        let queryString;
+        if (filter.length > 0) {
+            queryString = filter.join(" AND ");
+        }
+
+        return queryString;
+    }
 }

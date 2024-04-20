@@ -81,6 +81,36 @@ export class SalesRepsTargetsService {
   }
 
 
+  async getAllTargets(queryString) {
+    const rawQuery = sql`
+          SELECT 
+              month,
+              CAST(SUM(covid) AS INTEGER) AS COVID,
+              CAST(SUM(covid_flu) AS INTEGER) AS COVID_FLU,
+              CAST(SUM(clinical) AS INTEGER) AS CLINICAL_CHEMISTRY,
+              CAST(SUM(gastro) AS INTEGER) AS GASTRO,
+              CAST(SUM(nail) AS INTEGER) AS NAIL,
+              CAST(SUM(pgx) AS INTEGER) AS PGX_TEST,
+              CAST(SUM(rpp) AS INTEGER) AS RESPIRATORY_PANEL,
+              CAST(SUM(tox) AS INTEGER) AS TOXICOLOGY,
+              CAST(SUM(ua) AS INTEGER) AS URINALYSIS,
+              CAST(SUM(uti) AS INTEGER) AS UTI_PANEL,
+              CAST(SUM(wound) AS INTEGER) AS WOUND,
+              CAST(SUM(card) AS INTEGER) AS CARDIAC,
+              CAST(SUM(cgx) AS INTEGER) AS CGX_PANEL,
+              CAST(SUM(diabetes) AS INTEGER) AS DIABETES,
+              CAST(SUM(pad) AS INTEGER) AS PAD_ALZHEIMERS,
+              CAST(SUM(pul) AS INTEGER) AS PULMONARY_PANEL
+          FROM sales_reps_monthly_targets
+          ${queryString ? sql`WHERE ${sql.raw(queryString)}` : sql``}
+          GROUP BY month;
+        `;
+    const data = await db.execute(rawQuery);
+
+    return data.rows;
+  }
+
+
 }
 
 
