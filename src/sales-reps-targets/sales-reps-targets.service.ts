@@ -24,6 +24,8 @@ export class SalesRepsTargetsService {
             srt.gastro,
             srt.nail,
             srt.pgx,
+            srt.rpp,
+            srt.ua,
             srt.tox,
             srt.uti,
             srt.wound,
@@ -60,8 +62,8 @@ export class SalesRepsTargetsService {
   }
 
   async updateSalesRepsTargets(id: number, salesRepTargetDto: UpdateSalesRepTargetsDto) {
-    
-    const { covid, covid_flu ,clinical, gastro, nail, pgx, rpp, tox, ua, uti, wound, card, cgx, diabetes, pad ,pul} = salesRepTargetDto;
+
+    const { covid, covid_flu, clinical, gastro, nail, pgx, rpp, tox, ua, uti, wound, card, cgx, diabetes, pad, pul } = salesRepTargetDto;
 
     const rawQuery = sql`
         UPDATE sales_reps_monthly_targets
@@ -105,6 +107,10 @@ export class SalesRepsTargetsService {
     const data = await db.execute(rawQuery);
 
     return data.rows;
+  }
+
+  async insertSalesRepsTargets(saleRepsTargetData) {
+    return await db.insert(sales_reps_monthly_targets).values(saleRepsTargetData).returning();
   }
 
 
