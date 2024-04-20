@@ -1,5 +1,5 @@
 
-import { index, integer, pgTable, serial, date, varchar } from 'drizzle-orm/pg-core';
+import { index, integer, pgTable, serial, date, varchar, timestamp } from 'drizzle-orm/pg-core';
 import { sales_reps } from './salesReps';
 
 
@@ -27,6 +27,8 @@ export const sales_reps_monthly_targets = pgTable('sales_reps_monthly_targets', 
     pul: integer('pul').default(0),
     total: integer('total').default(0),
     newFacilities: integer('new_facilities').default(0),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
 }, (table: any) => {
     return {
         salesRepsMonthlyTargetsSalesRepIdIdx: index("sales_reps_monthly_targets_sales_rep_id").on(table.salesRepId),

@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { sales_reps_targets } from 'src/drizzle/schemas/salesRepsTargets';
+import { sales_reps_monthly_targets } from 'src/drizzle/schemas/salesRepsMonthlyTargets';
 import { db } from '../seeders/db';
 import { patient_claims } from 'src/drizzle/schemas/patientClaims';
 import { sql, eq } from 'drizzle-orm';
@@ -8,33 +9,43 @@ import { UpdateSalesRepTargetsDto } from './dto/update-sales-reps-target.dto';
 @Injectable()
 export class SalesRepsTargetsService {
 
-  async getAllSalesRepsTargets(year: number) {
+  async getAllSalesRepsTargets(queryString) {
     let query = sql`
         SELECT 
             srt.id,
             s.name AS sales_rep_name,
             srt.sales_rep_id,
-            srt.year,
-            srt.jan,
-            srt.feb,
-            srt.mar,
-            srt.apr,
-            srt.may,
-            srt.jun,
-            srt.jul,
-            srt.aug,
-            srt.sept,
-            srt.oct,
-            srt.nov,
-            srt.dec
+            srt.start_date,
+            srt.end_date,
+            srt.month,
+            srt.covid,
+            srt.covid_flu,
+            srt.clinical,
+            srt.gastro,
+            srt.nail,
+            srt.pgx,
+            srt.tox,
+            srt.uti,
+            srt.wound,
+            srt.card,
+            srt.cgx,
+            srt.diabetes,
+            srt.pad,
+            srt.pul,
+            srt.total,
+            srt.new_facilities,
+            srt.created_at,
+            srt.updated_at
+
         FROM 
-            sales_reps_targets srt
+            sales_reps_monthly_targets srt
         JOIN 
             sales_reps s ON srt.sales_rep_id = s.id
-        WHERE
-            srt.year = ${year}
+         ${queryString ? sql`WHERE ${sql.raw(queryString)}` : sql``}
         ORDER BY
-				    s.name
+				    s.name,
+            srt.start_date
+
     `;
 
     const data = await db.execute(query);
@@ -44,8 +55,8 @@ export class SalesRepsTargetsService {
 
   async getOneSalesRepTargetDataById(id: number) {
     return await db.select()
-      .from(sales_reps_targets)
-      .where(eq(sales_reps_targets.id, id))
+      .from(sales_reps_monthly_targets)
+      .where(eq(sales_reps_monthly_targets.id, id))
       .execute();
   }
 
@@ -56,7 +67,7 @@ export class SalesRepsTargetsService {
     const targetsDataJson = JSON.stringify(targets_data);
 
     const rawQuery = sql`
-        UPDATE sales_reps_targets
+        UPDATE sales_reps_monthly_targets
         SET ${sql.raw(month)} =  ${targetsDataJson}::jsonb
         WHERE id = ${id}
     `;
@@ -66,13 +77,13 @@ export class SalesRepsTargetsService {
 
 
   async getAllSalesRepsTargetsData() {
-    return await db.select().from(sales_reps_targets).orderBy(sales_reps_targets.id);
+    return await db.select().from(sales_reps_monthly_targets).orderBy(sales_reps_targets.id);
   }
 
 
   async getSalesRepTargets(queryString) {
     const rawQuery = sql`
-		select * from sales_reps_targets
+		select * from sales_reps_monthly_targets
 		${queryString ? sql`WHERE ${sql.raw(queryString)}` : sql``}
 		`;
     const data = await db.execute(rawQuery);

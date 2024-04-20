@@ -353,6 +353,13 @@ export class FilterHelper {
             filter.push(`year IN (${yearRange})`);
         }
 
+        if (query.month) {
+
+            filter.push(`month='${query.month}'`);
+
+        }
+
+
         let queryString;
         if (filter.length > 0) {
             queryString = filter.join("AND ");

@@ -1,0 +1,2 @@
+ALTER TABLE "sales_reps_monthly_targets" ADD COLUMN "created_at" timestamp DEFAULT now() NOT NULL;--> statement-breakpoint
+ALTER TABLE "sales_reps_monthly_targets" ADD COLUMN "updated_at" timestamp DEFAULT now() NOT NULL;
