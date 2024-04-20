@@ -48,4 +48,32 @@ export class SyncService {
   async removePatientClaims(accesionids) {
     return await db.execute(sql`DELETE FROM patient_claims WHERE accession_id IN ${accesionids}`);
   }
+
+  async getCaseTypesVolume() {
+
+		// This query calculates the total no.of cases, grouped by month and case-type for a specific sales representative.
+		let query = sql`
+            SELECT 
+                p.sales_rep_id,
+                p.facility_id,
+                p.case_type_id,
+                UPPER(c.name) AS case_type,
+                TO_CHAR(p.service_date, 'Mon YYYY') AS month,
+                CAST(COUNT(DISTINCT p.facility_id) AS INTEGER) AS facility_count,  -- Aggregate the counts of unique facility_id
+				        CAST(COUNT(*) AS INTEGER) AS total_cases
+            FROM patient_claims p
+            JOIN case_types c 
+                ON p.case_type_id = c.id
+			      GROUP BY 
+                p.sales_rep_id,
+			      	  TO_CHAR(service_date, 'Mon YYYY'), 
+			      	  p.case_type_id, 
+			      	  case_type,
+                p.facility_id;
+            `;
+
+		const data = await db.execute(query);
+
+		return data.rows;
+	}
 }

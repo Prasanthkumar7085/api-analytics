@@ -17,6 +17,7 @@ import { SyncModule } from './sync/sync.module';
 import { MghSyncModule } from './mgh-sync/mgh-sync.module';
 import { LabsModule } from './labs/labs.module';
 import { SalesRepsTargetsModule } from './sales-reps-targets/sales-reps-targets.module';
+import { SalesRepsTargetsAchivedModule } from './sales-reps-targets-achived/sales-reps-targets-achived.module';
 
 
 @Module({
@@ -24,7 +25,7 @@ import { SalesRepsTargetsModule } from './sales-reps-targets/sales-reps-targets.
     ConfigModule.forRoot({
       load: [configuration],
     }),
-    LisModule, RevenueStatsModule, DrizzleModule, SalesRepModule, FacilitiesModule, CaseTypesModule, OverviewModule, InsurancesModule, SyncModule, MghSyncModule, LabsModule, SalesRepsTargetsModule],
+    LisModule, RevenueStatsModule, DrizzleModule, SalesRepModule, FacilitiesModule, CaseTypesModule, OverviewModule, InsurancesModule, SyncModule, MghSyncModule, LabsModule, SalesRepsTargetsModule, SalesRepsTargetsAchivedModule],
   controllers: [AppController],
   providers: [AppService],
 })

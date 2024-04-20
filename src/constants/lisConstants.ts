@@ -158,3 +158,22 @@ export const MARKETER = "MARKETER";
 export const LAB_ADMIN = "LAB_ADMIN";
 
 export const SALES_DIRECTOR = "SALES_DIRECTOR";
+
+export const CASE_TYPE_MAPPING = {
+    "COVID": "covidA",
+    "COVID_FLU": "covidFluA",
+    "CLINICAL_CHEMISTRY": "clinicalA",
+    "GASTRO": "gastroA",
+    "NAIL": "nailA",
+    "PGX_TEST": "pgxA",
+    "RESPIRATORY_PATHOGEN_PANEL": "rppA",
+    "TOXICOLOGY": "toxA",
+    "URINALYSIS": "uaA",
+    "UTI": "utiA",
+    "WOUND": "woundA",
+    "CARDIAC": "cardA",
+    "CGX_PANEL": "cgxA",
+    "DIABETES": "diabetesA",
+    "PAD_ALZHEIMERS": "padA",
+    "PULMONARY_PANEL": "pulA"
+};

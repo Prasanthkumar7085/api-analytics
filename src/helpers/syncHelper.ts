@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { CaseTypesService } from "src/case-types/case-types.service";
-import { ARCHIVED } from "src/constants/lisConstants";
+import { ARCHIVED, CASE_TYPE_MAPPING } from "src/constants/lisConstants";
 import { FacilitiesService } from "src/facilities/facilities.service";
 import { InsurancesService } from "src/insurances/insurances.service";
 import { LabsService } from "src/labs/labs.service";
@@ -1068,5 +1068,76 @@ export class SyncHelpers {
         } catch (err) {
             throw err;
         }
+    }
+
+
+    parseMonth(monthString) {
+        const [month, year] = monthString.split(' ');
+        const monthIndex = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].indexOf(month);
+        const startDate = new Date(year, monthIndex, 1);
+        const endDate = new Date(year, monthIndex + 1, 0); // Last day of the month
+
+        // Format dates as YYYY-MM-DD
+        const formattedStartDate = `${startDate.getFullYear()}-${('0' + (startDate.getMonth() + 1)).slice(-2)}-01`;
+        const formattedEndDate = `${endDate.getFullYear()}-${('0' + (endDate.getMonth() + 1)).slice(-2)}-${('0' + endDate.getDate()).slice(-2)}`;
+
+        return { start_date: formattedStartDate, end_date: formattedEndDate };
+    }
+
+
+    targetsAchivedGrouping(data) {
+        const groupedData = data.reduce((acc, curr) => {
+            const key = `${curr.sales_rep_id}_${curr.start_date}_${curr.end_date}`;
+            if (!acc[key]) {
+                acc[key] = {
+                    salesRepId: curr.sales_rep_id,
+                    startDate: curr.start_date,
+                    endDate: curr.end_date,
+                    month: this.formateMonth(curr.month),
+                    cases: []
+                };
+            }
+            acc[key].cases.push({
+                case_type: curr.case_type,
+                facility_count: curr.facility_count,
+                total_cases: curr.total_cases
+            });
+            return acc;
+        }, {});
+
+        const result = Object.values(groupedData);
+
+        return result;
+    }
+
+
+    formateMonth(monthString) {
+        const [month, year] = monthString.split(' ');
+        const monthIndex = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].indexOf(month);
+        const formattedMonth = ('0' + (monthIndex + 1)).slice(-2);
+        return `${formattedMonth}-${year}`;
+    }
+
+
+    modifyTargetsAchived(claimsData) {
+        const result = claimsData.map(item => {
+
+            const casesObject = {};
+            let totalA = 0; // Initialize totalA to 0
+            let newFacilitiesA = 0;
+
+            item.cases.forEach(({ case_type, total_cases, facility_count }) => {
+                const key = CASE_TYPE_MAPPING[case_type];
+                if (key) {
+                    casesObject[key] = total_cases;
+                    totalA += total_cases; // Add total_cases to totalA
+                    newFacilitiesA += facility_count;
+                }
+            });
+            delete item.cases;
+            return { ...item, ...casesObject, totalA, newFacilitiesA };
+        });
+
+        return result;
     }
 }
