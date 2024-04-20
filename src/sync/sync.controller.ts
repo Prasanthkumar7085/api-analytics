@@ -1,20 +1,33 @@
-import { Controller, Get, NotFoundException, Post, Res } from '@nestjs/common';
-import { SyncService } from './sync.service';
-import { LisService } from 'src/lis/lis.service';
-import {
-	PATIENT_CLAIMS_NOT_FOUND, REMOVED_ARCHIVED_CLAIMS, SUCCESS_SYNC_PATIENT_CLAIMS, CASE_TYPES_NOT_FOUND_IN_LIS_DATABASE, INSURANCE_PAYORS_NOT_FOUND_IN_LIS_DATABASE, CASE_TYPES_NOT_FOUND, INSURANCE_PAYORS_NOT_FOUND, SOMETHING_WENT_WRONG, SUCCESS_SYNCED_CASE_TYPES, SUCCESS_SYNCED_INSURANCE_PAYORS,
-	 FACILITIES_NOT_FOUND, SALES_REPS_NOT_FOUND, SUCCUSS_INSERTED_MARKETING_MANAGERS, SUCCUSS_INSERTED_SALES_REPS, SUCCESS_INSERTED_FACILICES, LIS_FACILITIES_NOT_FOUND,
-	SUCCESS_SYNC_LABS,
-	LABS_NOT_FOUND
-} from 'src/constants/messageConstants';
-import { SyncHelpers } from 'src/helpers/syncHelper';
+import { Controller, Get, Res } from '@nestjs/common';
 import * as fs from 'fs';
-import { Configuration } from 'src/config/config.service';
-import { InsurancesService } from "src/insurances/insurances.service";
 import { CaseTypesService } from 'src/case-types/case-types.service';
-import { SalesRepService } from 'src/sales-rep/sales-rep.service';
-import { FacilitiesService } from 'src/facilities/facilities.service';
+import { Configuration } from 'src/config/config.service';
 import { HOSPITAL_MARKETING_MANAGER, MARKETER } from 'src/constants/lisConstants';
+import {
+	CASE_TYPES_NOT_FOUND,
+	CASE_TYPES_NOT_FOUND_IN_LIS_DATABASE,
+	FACILITIES_NOT_FOUND,
+	INSURANCE_PAYORS_NOT_FOUND,
+	INSURANCE_PAYORS_NOT_FOUND_IN_LIS_DATABASE,
+	LABS_NOT_FOUND,
+	LIS_FACILITIES_NOT_FOUND,
+	PATIENT_CLAIMS_NOT_FOUND, REMOVED_ARCHIVED_CLAIMS,
+	SALES_REPS_NOT_FOUND,
+	SOMETHING_WENT_WRONG,
+	SUCCESS_INSERTED_FACILICES,
+	SUCCESS_SYNCED_CASE_TYPES, SUCCESS_SYNCED_INSURANCE_PAYORS,
+	SUCCESS_SYNC_LABS,
+	SUCCESS_SYNC_PATIENT_CLAIMS,
+	SUCCUSS_INSERTED_MARKETING_MANAGERS, SUCCUSS_INSERTED_SALES_REPS,
+	TARGETS_ACHIVED_SYNCED_SUCCESS
+} from 'src/constants/messageConstants';
+import { FacilitiesService } from 'src/facilities/facilities.service';
+import { SyncHelpers } from 'src/helpers/syncHelper';
+import { InsurancesService } from "src/insurances/insurances.service";
+import { LisService } from 'src/lis/lis.service';
+import { SalesRepService } from 'src/sales-rep/sales-rep.service';
+import { SyncService } from './sync.service';
+import { SalesRepsTargetsAchivedService } from 'src/sales-reps-targets-achived/sales-reps-targets-achived.service';
 
 @Controller({
 	version: '1.0',
@@ -31,6 +44,7 @@ export class SyncController {
 		private readonly insurancesService: InsurancesService,
 		private readonly salesRepService: SalesRepService,
 		private readonly facilitiesService: FacilitiesService,
+		private readonly salesRepsTargetsAchivedService: SalesRepsTargetsAchivedService
 	) { }
 
 	@Get('patient-claims')
@@ -424,6 +438,39 @@ export class SyncController {
 			});
 		} catch (err) {
 			console.log(err);
+			return res.status(500).json({
+				success: false,
+				message: err || SOMETHING_WENT_WRONG
+			});
+		}
+	}
+
+
+	@Get("targets-achived")
+	async syncTargetsAchived(@Res() res: any) {
+		try {
+
+			let claimsData: any = await this.SyncService.getCaseTypesVolume();
+
+			// get the start date and end date by using month
+			claimsData = claimsData.map(item => {
+				const { start_date, end_date } = this.syncHelpers.parseMonth(item.month);
+				return { ...item, start_date, end_date };
+			});
+
+			claimsData = this.syncHelpers.targetsAchivedGrouping(claimsData);
+
+			const result = this.syncHelpers.modifyTargetsAchived(claimsData);
+
+			const insertedData = await this.salesRepsTargetsAchivedService.insert(result);
+
+			return res.status(200).json({
+				success: true,
+				message: TARGETS_ACHIVED_SYNCED_SUCCESS,
+				insertedData
+			});
+		} catch (err) {
+			console.log({ err });
 			return res.status(500).json({
 				success: false,
 				message: err || SOMETHING_WENT_WRONG
