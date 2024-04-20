@@ -80,9 +80,10 @@ export class SalesRepsTargetsService {
   }
 
 
+
   async getSalesRepTargets(queryString) {
     const rawQuery = sql`
-		select * from sales_reps_monthly_targets
+		select * from sales_reps_targets
 		${queryString ? sql`WHERE ${sql.raw(queryString)}` : sql``}
 		`;
     const data = await db.execute(rawQuery);
