@@ -20,11 +20,12 @@ import { labDataSchema } from 'src/schemas/lab';
 import { MghSyncService } from 'src/mgh-sync/mgh-sync.service';
 import { SortHelper } from 'src/helpers/sortHelper';
 import { MghDbConnections } from 'src/helpers/mghDbconnection';
+import { SalesRepsTargetsAchivedService } from 'src/sales-reps-targets-achived/sales-reps-targets-achived.service';
 
 @Module({
   controllers: [FacilitiesController],
   providers: [FacilitiesService, FilterHelper, JwtService, LisService, SalesRepService, SyncHelpers,
-    CaseTypesService, InsurancesService, SyncService, LabsService, MghSyncService, SortHelper, MghDbConnections],
+    CaseTypesService, InsurancesService, SyncService, LabsService, MghSyncService, SortHelper, MghDbConnections, SalesRepsTargetsAchivedService],
   imports: [
     MongooseModule.forRoot(process.env.LIS_DLW_DB_URL + '&authSource=admin'),
     MongooseModule.forFeature([

@@ -26,11 +26,14 @@ import { EmailServiceProvider } from 'src/notifications/emailServiceProvider';
 import { SESAPIDataServiceProvider } from 'src/notifications/sesAPIDataServiceProvider';
 import { Configuration } from 'src/config/config.service';
 import { ConfigService } from '@nestjs/config';
+import { SalesRepsTargetsAchivedService } from 'src/sales-reps-targets-achived/sales-reps-targets-achived.service';
 
 @Module({
   controllers: [SalesRepController],
   providers: [SalesRepService, FilterHelper, JwtService, LisService, SyncHelpers, CaseTypesService, FacilitiesService, InsurancesService,
-    SyncService, LabsService, MghSyncService, SortHelper, MghDbConnections, SalesRepHelper, SalesRepsTargetsService, EmailServiceProvider, SESAPIDataServiceProvider, Configuration, ConfigService],
+    SyncService, LabsService, MghSyncService, SortHelper, MghDbConnections, SalesRepHelper, SalesRepsTargetsService, EmailServiceProvider, SESAPIDataServiceProvider, Configuration, ConfigService,
+    SalesRepsTargetsAchivedService
+  ],
   imports: [
     MongooseModule.forRoot(process.env.LIS_DLW_DB_URL + '&authSource=admin'),
     MongooseModule.forFeature([

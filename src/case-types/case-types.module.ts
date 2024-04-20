@@ -19,11 +19,12 @@ import { LabsService } from 'src/labs/labs.service';
 import { labDataSchema } from 'src/schemas/lab';
 import { MghSyncService } from 'src/mgh-sync/mgh-sync.service';
 import { MghDbConnections } from 'src/helpers/mghDbconnection';
+import { SalesRepsTargetsAchivedService } from 'src/sales-reps-targets-achived/sales-reps-targets-achived.service';
 
 @Module({
   controllers: [CaseTypesController],
   providers: [CaseTypesService, FilterHelper, JwtService, LisService, SalesRepService, SyncHelpers, 
-    InsurancesService, FacilitiesService, SyncService, LabsService, MghSyncService, MghDbConnections],
+    InsurancesService, FacilitiesService, SyncService, LabsService, MghSyncService, MghDbConnections, SalesRepsTargetsAchivedService],
   imports: [
     MongooseModule.forFeature([
       { name: 'User', schema: UserSchema },
