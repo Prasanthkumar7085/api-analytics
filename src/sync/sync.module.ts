@@ -19,11 +19,12 @@ import { FacilitiesService } from 'src/facilities/facilities.service';
 import { LabsService } from 'src/labs/labs.service';
 import { labDataSchema } from 'src/schemas/lab';
 import { MghSyncService } from 'src/mgh-sync/mgh-sync.service';
+import { SalesRepsTargetsService } from 'src/sales-reps-targets/sales-reps-targets.service';
 
 @Module({
   controllers: [SyncController],
   providers: [SyncService, LisService, SyncHelpers, Configuration, ConfigService,
-    InsurancesService, FacilitiesService, CaseTypesService, SalesRepService, LabsService, MghSyncService],
+    InsurancesService, FacilitiesService, CaseTypesService, SalesRepService, LabsService, MghSyncService, SalesRepsTargetsService],
   imports: [
     MongooseModule.forRoot(process.env.LIS_DLW_DB_URL + '&authSource=admin'),
     MongooseModule.forFeature([

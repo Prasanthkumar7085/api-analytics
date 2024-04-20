@@ -1069,4 +1069,50 @@ export class SyncHelpers {
             throw err;
         }
     }
+
+
+    modifySalesRepTargetData(salesRepsTargetData) {
+        const modifiedData = salesRepsTargetData.map(item => ({
+            salesRepId: item.sales_rep_id,
+            startDate: this.formatDate(new Date(item.start_date)),
+            endDate: this.formatDate(new Date(item.end_date)),
+            month: this.formateMonth(new Date(item.start_date)),
+            covid: item.covid,
+            covidFlu: item.covid_flu,
+            clinical: item.clinical,
+            gastro: item.gastro,
+            nail: item.nail,
+            pgx: item.pgx,
+            rpp: item.rpp,
+            tox: item.tox,
+            ua: item.ua,
+            uti: item.uti,
+            wound: item.wound,
+            card: item.card,
+            cgx: item.cgx,
+            diabetes: item.diabetes,
+            pad: item.pad,
+            pul: item.pul,
+            total: item.total,
+            newFacilities: item.new_facilities
+        }));
+
+        return modifiedData;
+    }
+
+    formatDate(date) {
+
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
+    formateMonth(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        return `${month}-${year}`;
+    }
+
 }
+
