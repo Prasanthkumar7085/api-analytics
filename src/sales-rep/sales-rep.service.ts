@@ -329,6 +329,36 @@ export class SalesRepService {
 	}
 
 
+	async getFacilitiesVolumeMonthWise(id: number, queryString: string) {
+
+		// This query calculates the revenue data grouped by insurances for a specific sales representative.
+		let query = sql`
+            SELECT 
+                f.id AS facility_id,
+                f.name AS facility_name,
+				TO_CHAR(p.service_date, 'Mon YYYY') AS month,
+                CAST(COUNT(*) AS INTEGER) AS total_cases,
+				CAST(COUNT(*) FILTER(WHERE p.reports_finalized = TRUE) AS INTEGER) AS completed_cases,
+				CAST(COUNT(*) FILTER (WHERE p.reports_finalized = FALSE) AS INTEGER) AS pending_cases
+            FROM patient_claims p
+            JOIN facilities f 
+                ON p.facility_id = f.id
+			WHERE p.sales_rep_id = ${id}
+			${queryString ? sql`AND ${sql.raw(queryString)}` : sql``}
+			GROUP BY
+				TO_CHAR(p.service_date, 'Mon YYYY'),
+				f.id,
+				f.name	
+			ORDER BY
+				f.name
+        `;
+
+		const data = await db.execute(query);
+
+		return data.rows;
+	}
+
+
 	async getRevenueTrends(id: number, queryString: string) {
 
 		// This query calculates the paid_amount grouped by month for a specific sales representative.

@@ -471,6 +471,71 @@ export class SalesRepController {
 		}
 	}
 
+
+	@UseGuards(AuthGuard)
+	@Get(':id/facilities/volume-month-wise')
+	async getFacilitiesVolumeMonthWise(@Res() res: any, @Param('id') id: number, @Query() query: any) {
+		try {
+
+			const queryString = this.filterHelper.salesRepFacilities(query);
+
+			let salesReps: any = await this.salesRepService.getFacilitiesVolumeMonthWise(id, queryString);
+
+			const salesRepFacilities = await this.salesRepService.getAllFacilitiesBySalesRep(id);
+
+			// step 1: need to add the not existed facilities woth default values
+			salesRepFacilities.forEach(facility => {
+				if (!this.salesRepHelper.facilityExists(salesReps, facility.id)) {
+					salesReps.push({
+						facility_id: facility.id,
+						facility_name: facility.name,
+						total_cases: 0,
+						completed_cases: 0,
+						pending_cases: 0
+					});
+				}
+			});
+
+			const uniqueMonths = [...new Set(salesReps.map(rep => rep.month))];
+			
+			// Step 2: Iterate over each facility in salesReps and each unique month
+			salesReps.forEach(rep => {
+				uniqueMonths.forEach(month => {
+					// Check if the combination of facility and month exists
+					const exists = salesReps.some(r => r.facility_id === rep.facility_id && r.month === month);
+					if (!exists) {
+						// Add default object for missing combination
+						salesReps.push({
+							facility_id: rep.facility_id,
+							facility_name: rep.facility_name,
+							month: month,
+							total_cases: 0,
+							completed_cases: 0,
+							pending_cases: 0
+						});
+					}
+				});
+			});
+
+			salesReps = this.sortHelper.sort(salesReps, "facility_name");
+
+			return res.status(200).json({
+				success: true,
+				message: SUCCESS_FETCHED_SALES_REP_FACILITY_WISE_STATS_VOLUME,
+				data: salesReps
+			});
+		}
+		catch (error) {
+			console.log({ error });
+
+			return res.status(500).json({
+				success: false,
+				message: error || SOMETHING_WENT_WRONG
+			});
+		}
+	}
+
+
 	@UseGuards(AuthGuard)
 	@Get(':id/trends/revenue')
 	async getRevenueTrends(@Res() res: any, @Param('id') id: number, @Query() query: any) {
