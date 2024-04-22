@@ -1,5 +1,5 @@
 import { Controller, Delete, Get, Param, Query, Req, Res, UseGuards } from '@nestjs/common';
-import { EMAIL_CRON_STARTED_SUCCESS, SOMETHING_WENT_WRONG, SUCCESS_DELETED_DATA_IN_TABLE, SUCCESS_FECTED_SALE_REP_REVENUE_STATS, SUCCESS_FECTED_SALE_REP_VOLUME_STATS, SUCCESS_FETCHED_CASE_TYPES_STATS_REVENUE, SUCCESS_FETCHED_ONE_SALES_REP, SUCCESS_FETCHED_PATIENT_CLAIMS_COUNT, SUCCESS_FETCHED_SALES_REP, SUCCESS_FETCHED_SALES_REPS, SUCCESS_FETCHED_SALES_REP_CASE_TYPE_MONTHLY_VOLUME, SUCCESS_FETCHED_SALES_REP_FACILITY_WISE_STATS, SUCCESS_FETCHED_SALES_REP_FACILITY_WISE_STATS_VOLUME, SUCCESS_FETCHED_SALES_REP_INSURANCE_PAYORS_DATA_REVENUE, SUCCESS_FETCHED_SALES_REP_INSURANCE_PAYORS_DATA_VOLUME, SUCCESS_FETCHED_SALES_REP_INSURANCE_PAYORS_MONTH_WISE_DATA, SUCCESS_FETCHED_SALES_REP_OVERALL_REVENUE, SUCCESS_FETCHED_SALES_REP_OVERALL_VOLUME, SUCCESS_FETCHED_SALES_REP_TREND_REVENUE, SUCCESS_FETCHED_SALES_REP_TREND_VOLUME } from 'src/constants/messageConstants';
+import { EMAIL_CRON_STARTED_SUCCESS, SOMETHING_WENT_WRONG, SUCCESS_DELETED_DATA_IN_TABLE, SUCCESS_FECTED_SALE_REP_REVENUE_STATS, SUCCESS_FECTED_SALE_REP_VOLUME_STATS, SUCCESS_FETCHED_CASE_TYPES_STATS_REVENUE, SUCCESS_FETCHED_ONE_SALES_REP, SUCCESS_FETCHED_PATIENT_CLAIMS_COUNT, SUCCESS_FETCHED_SALES_REP, SUCCESS_FETCHED_SALES_REPS, SUCCESS_FETCHED_SALES_REP_CASE_TYPE_MONTHLY_VOLUME, SUCCESS_FETCHED_SALES_REP_FACILITY_WISE_STATS, SUCCESS_FETCHED_SALES_REP_FACILITY_WISE_STATS_VOLUME, SUCCESS_FETCHED_SALES_REP_INSURANCE_PAYORS_DATA_REVENUE, SUCCESS_FETCHED_SALES_REP_INSURANCE_PAYORS_DATA_VOLUME, SUCCESS_FETCHED_SALES_REP_INSURANCE_PAYORS_MONTH_WISE_DATA, SUCCESS_FETCHED_SALES_REP_OVERALL_REVENUE, SUCCESS_FETCHED_SALES_REP_OVERALL_VOLUME, SUCCESS_FETCHED_SALES_REP_TREND_REVENUE, SUCCESS_FETCHED_SALES_REP_TREND_VOLUME, SUCCESS_VOLUME_TREND } from 'src/constants/messageConstants';
 import { AuthGuard } from 'src/guards/auth.guard';
 import { FilterHelper } from 'src/helpers/filterHelper';
 import { SalesRepHelper } from 'src/helpers/salesRepHelper';
@@ -9,6 +9,8 @@ import { EmailServiceProvider } from 'src/notifications/emailServiceProvider';
 import { SalesRepService } from './sales-rep.service';
 import axios from 'axios';
 import { Configuration } from 'src/config/config.service';
+import { SalesRepsTargetsAchivedService } from 'src/sales-reps-targets-achived/sales-reps-targets-achived.service';
+import { SalesRepsTargetsService } from 'src/sales-reps-targets/sales-reps-targets.service';
 
 
 @Controller({
@@ -23,7 +25,9 @@ export class SalesRepController {
 		private readonly sortHelper: SortHelper,
 		private readonly salesRepHelper: SalesRepHelper,
 		private readonly emailServiceProvider: EmailServiceProvider,
-		private readonly configuration: Configuration
+		private readonly configuration: Configuration,
+		private readonly salesRepsTargetsAchivedService: SalesRepsTargetsAchivedService,
+		private readonly salesRepsTargetsService: SalesRepsTargetsService
 
 
 	) { }
@@ -516,6 +520,46 @@ export class SalesRepController {
 			});
 		}
 	}
+
+
+	@UseGuards(AuthGuard)
+	@Get(":id/trends/volume-targets")
+	async getSingleSalesRepTrendsVolume(@Res() res: any, @Param() param: any, @Query() query: any) {
+		try {
+
+			const id = param.id;
+
+			const queryString = this.filterHelper.salesRepsMonthlyTargets(query);
+
+			const [achivedData, targetedData] = await Promise.all([
+				this.salesRepsTargetsAchivedService.getSingleSalesRepTargetVolume(id, queryString),
+				this.salesRepsTargetsService.getSingleSalesRepTargetVolume(id, queryString)
+			]);
+
+			const achievedMap = new Map(achivedData.map(item => [item.month, item]));
+
+			// Merge achievedData and targetedData based on month
+			const mergedData = targetedData.map(item => ({
+				month: item.month,
+				total_volume: (achievedMap.get(item.month) || { total_volume: 0 }).total_volume,
+				total_target: item.total_target
+			}));
+
+			return res.status(200).json({
+				success: true,
+				message: SUCCESS_VOLUME_TREND,
+				mergedData
+			});
+		} catch (err) {
+			console.log({ err });
+			return res.status(500).json({
+				success: false,
+				message: err || SOMETHING_WENT_WRONG
+			});
+		}
+	}
+
+
 	@UseGuards(AuthGuard)
 	@Delete('delete')
 	async dropTable(@Res() res: any) {
