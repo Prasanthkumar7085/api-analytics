@@ -290,7 +290,7 @@ export class SalesRepController {
 
 			const [patientClaimsData, targetedData] = await Promise.all([
 				this.salesRepService.getOverAllCaseTypesVolume(id, queryString),
-				this.salesRepsTargetsService.getTargetsStats(id)
+				this.salesRepsTargetsService.getTargetsStatsForSingleRep(id)
 			]);
 
 			const mergedDataArray = this.salesRepHelper.mergeSalesRepCaseTypeWiseVolumeAndTargets(targetedData, patientClaimsData);

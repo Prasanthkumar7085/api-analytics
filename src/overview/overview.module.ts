@@ -14,9 +14,12 @@ import { SalesRepService } from 'src/sales-rep/sales-rep.service';
 import { labDataSchema } from 'src/schemas/lab';
 import { MghDbConnections } from 'src/helpers/mghDbconnection';
 import { MghSyncService } from 'src/mgh-sync/mgh-sync.service';
+import { SalesRepsTargetsService } from 'src/sales-reps-targets/sales-reps-targets.service';
+import { SalesRepHelper } from 'src/helpers/salesRepHelper';
+import { SortHelper } from 'src/helpers/sortHelper';
 @Module({
   controllers: [OverviewController],
-  providers: [OverviewService, FilterHelper, JwtService, LisService, SalesRepService, MghDbConnections, MghSyncService],
+  providers: [OverviewService, FilterHelper, JwtService, LisService, SalesRepService, MghDbConnections, MghSyncService, SalesRepsTargetsService, SalesRepHelper, SortHelper],
   imports: [
     MongooseModule.forFeature([
       { name: 'User', schema: UserSchema },
