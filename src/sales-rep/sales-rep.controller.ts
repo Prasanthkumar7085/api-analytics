@@ -519,6 +519,8 @@ export class SalesRepController {
 
 			salesReps = this.sortHelper.sort(salesReps, "facility_name");
 
+			salesReps = salesReps.filter(rep => rep.month);
+
 			return res.status(200).json({
 				success: true,
 				message: SUCCESS_FETCHED_SALES_REP_FACILITY_WISE_STATS_VOLUME,
@@ -568,22 +570,20 @@ export class SalesRepController {
 				uniqueMonths.forEach(month => {
 					// Check if the combination of facility and month exists
 					const exists = salesReps.some(r => r.facility_id === rep.facility_id && r.month === month);
-					if (!exists) {
-						// Add default object for missing combination
-						salesReps.push({
-							facility_id: rep.facility_id,
-							facility_name: rep.facility_name,
-							month: month,
-							generated_amount: 0,
-							paid_amount: 0,
-							pending_amount: 0,
-							total_cases: 0
-						});
+					if (!exists && !rep.month) {
+						// Update the existing object with the month if it doesn't have it already
+						rep.month = month;
+						rep.generated_amount = 0;
+						rep.paid_amount = 0;
+						rep.pending_amount = 0;
+						rep.total_cases = 0;
 					}
 				});
 			});
 
 			salesReps = this.sortHelper.sort(salesReps, "facility_name");
+
+			salesReps = salesReps.filter(rep => rep.month);
 
 			return res.status(200).json({
 				success: true,
