@@ -282,6 +282,37 @@ export class SalesRepController {
 
 
 	@UseGuards(AuthGuard)
+	@Get(':id/case-types-volume-targets')
+	async getOverallCaseTypesVolumeTargets(@Res() res: any, @Param('id') id: number, @Query() query: any) {
+		try {
+
+			const queryString = this.filterHelper.salesRepFacilities(query);
+
+			const [patientClaimsData, targetedData] = await Promise.all([
+				this.salesRepService.getOverAllCaseTypesVolume(id, queryString),
+				this.salesRepsTargetsService.getTargetsStats(id)
+			]);
+
+			const mergedDataArray = this.salesRepHelper.mergeSalesRepCaseTypeWiseVolumeAndTargets(targetedData, patientClaimsData);
+
+			return res.status(200).json({
+				success: true,
+				message: SUCCESS_FETCHED_SALES_REP_OVERALL_VOLUME,
+				data: mergedDataArray
+			});
+		}
+		catch (error) {
+			console.log({ error });
+
+			return res.status(500).json({
+				success: false,
+				message: error || SOMETHING_WENT_WRONG
+			});
+		}
+	}
+
+
+	@UseGuards(AuthGuard)
 	@Get(':id/case-types/months/revenue')
 	async getCaseTypesRevenue(@Res() res: any, @Param('id') id: number, @Query() query: any) {
 		try {
@@ -517,9 +548,9 @@ export class SalesRepController {
 				});
 			});
 
-			salesReps = this.sortHelper.sort(salesReps, "facility_name");
-
 			salesReps = salesReps.filter(rep => rep.month);
+
+			salesReps = this.sortHelper.sortOnMonth(salesReps);
 
 			return res.status(200).json({
 				success: true,
@@ -670,11 +701,13 @@ export class SalesRepController {
 			const achievedMap = new Map(achivedData.map(item => [item.month, item]));
 
 			// Merge achievedData and targetedData based on month
-			const mergedData = targetedData.map(item => ({
+			let mergedData = targetedData.map(item => ({
 				month: item.month,
 				total_volume: (achievedMap.get(item.month) || { total_volume: 0 }).total_volume,
 				total_target: item.total_target
 			}));
+
+			mergedData = this.sortHelper.sortOnMonth(mergedData);
 
 			return res.status(200).json({
 				success: true,
