@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { CaseTypesService } from "src/case-types/case-types.service";
-import { ARCHIVED } from "src/constants/lisConstants";
+import { ARCHIVED, CASE_TYPE_MAPPING, keyMapping } from "src/constants/lisConstants";
 import { FacilitiesService } from "src/facilities/facilities.service";
 import { InsurancesService } from "src/insurances/insurances.service";
 import { LabsService } from "src/labs/labs.service";
@@ -8,6 +8,7 @@ import { LisService } from "src/lis/lis.service";
 import { MghSyncService } from "src/mgh-sync/mgh-sync.service";
 import { SalesRepService } from "src/sales-rep/sales-rep.service";
 import { SyncService } from "src/sync/sync.service";
+import { SalesRepsTargetsAchivedService } from 'src/sales-reps-targets-achived/sales-reps-targets-achived.service';
 
 
 @Injectable()
@@ -21,7 +22,8 @@ export class SyncHelpers {
         private readonly SyncService: SyncService,
         private readonly salesRepsService: SalesRepService,
         private readonly labsService: LabsService,
-        private readonly mghLisService: MghSyncService
+        private readonly mghLisService: MghSyncService,
+        private readonly salesRepsTargetsAchivedService: SalesRepsTargetsAchivedService
 
     ) { }
 
@@ -303,6 +305,7 @@ export class SyncHelpers {
         const notExistedData = seperatedArray.notExistedArray;
 
         if (existedData.length > 0) {
+            console.log({ existedData: existedData.length });
 
             for (let i = 0; i < existedData.length; i += batchSize) {
                 const batch = existedData.slice(i, i + batchSize);
@@ -333,6 +336,7 @@ export class SyncHelpers {
         }
 
         if (notExistedData.length > 0) {
+            console.log({ notExistedData: notExistedData.length });
 
             for (let i = 0; i < notExistedData.length; i += batchSize) {
                 console.log({ Inserted: i });
@@ -1069,4 +1073,223 @@ export class SyncHelpers {
             throw err;
         }
     }
+
+
+    parseMonth(monthString) {
+        const [month, year] = monthString.split(' ');
+        const monthIndex = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].indexOf(month);
+        const startDate = new Date(year, monthIndex, 1);
+        const endDate = new Date(year, monthIndex + 1, 0); // Last day of the month
+
+        // Format dates as YYYY-MM-DD
+        const formattedStartDate = `${startDate.getFullYear()}-${('0' + (startDate.getMonth() + 1)).slice(-2)}-01`;
+        const formattedEndDate = `${endDate.getFullYear()}-${('0' + (endDate.getMonth() + 1)).slice(-2)}-${('0' + endDate.getDate()).slice(-2)}`;
+
+        return { start_date: formattedStartDate, end_date: formattedEndDate };
+    }
+
+
+    targetsAchivedGrouping(data) {
+        const groupedData = data.reduce((acc, curr) => {
+            const key = `${curr.sales_rep_id}_${curr.start_date}_${curr.end_date}`;
+            if (!acc[key]) {
+                acc[key] = {
+                    salesRepId: curr.sales_rep_id,
+                    startDate: curr.start_date,
+                    endDate: curr.end_date,
+                    month: this.formateMonth(curr.month),
+                    cases: []
+                };
+            }
+            acc[key].cases.push({
+                case_type: curr.case_type,
+                facility_count: curr.facility_count,
+                total_cases: curr.total_cases
+            });
+            return acc;
+        }, {});
+
+        const result = Object.values(groupedData);
+
+        return result;
+    }
+
+
+    formateMonth(monthString) {
+        const [month, year] = monthString.split(' ');
+        const monthIndex = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].indexOf(month);
+        const formattedMonth = ('0' + (monthIndex + 1)).slice(-2);
+        return `${formattedMonth}-${year}`;
+    }
+
+
+    modifyTargetsAchived(claimsData) {
+        const result = claimsData.map(item => {
+
+            const casesObject = {};
+            let totalA = 0; // Initialize totalA to 0
+            let newFacilitiesA = 0;
+
+            item.cases.forEach(({ case_type, total_cases, facility_count }) => {
+                const key = CASE_TYPE_MAPPING[case_type];
+                if (key) {
+                    casesObject[key] = total_cases;
+                    totalA += total_cases; // Add total_cases to totalA
+                    newFacilitiesA += facility_count;
+                }
+            });
+            delete item.cases;
+            return { ...item, ...casesObject, totalA, newFacilitiesA };
+        });
+
+        return result;
+    }
+
+
+    async getExistedAndNotExistedTargetsAchived(result) {
+        const repsAndMonthsData = result.map((e) => ({
+            sales_rep_id: e.salesRepId,
+            month: e.month
+        }));
+
+        const matchedData = await this.salesRepsTargetsAchivedService.findAchivedTargets(repsAndMonthsData);
+
+        let existed = [];
+        let notExisted = [];
+        if (matchedData.length) {
+            const matchedIdsAndMonths = matchedData.map(({ sales_rep_id, month }) => ({
+                salesRepId: sales_rep_id,
+                month
+            }));
+
+            // Filter the results array
+            existed = result.filter(result =>
+                matchedIdsAndMonths.find(({ salesRepId, month }) =>
+                    result.salesRepId === salesRepId && result.month === month
+                )
+            );
+
+            // need to add the existed key valies in existedData
+            existed.forEach(existItem => {
+                const matchedItem = matchedData.find(({ sales_rep_id, month }) =>
+                    existItem.salesRepId === sales_rep_id && existItem.month === month
+                );
+                if (matchedItem) {
+                    const convertedData = {};
+                    for (let key in matchedItem) {
+                        if (key !== 'sales_rep_id' && key !== 'start_date' && key !== 'end_date' && key !== 'month') {
+                            const newKey = keyMapping[key] || key;
+                            convertedData[newKey] = matchedItem[key];
+                        }
+                    }
+
+                    // Update properties of existItem with convertedData values
+                    for (let key in convertedData) {
+                        if (existItem.hasOwnProperty(key)) {
+                            existItem[key] = existItem[key] + convertedData[key];
+                        }
+                    }
+
+                }
+            });
+
+            notExisted = result.filter(result =>
+                !matchedIdsAndMonths.find(({ salesRepId, month }) =>
+                    result.salesRepId === salesRepId && result.month === month
+                )
+            );
+        } else {
+            notExisted = [...result];
+        }
+
+        return { existed, notExisted };
+    }
+
+
+    async insertOrUpdateTargetsAchived(existed, notExisted) {
+
+        if (notExisted.length) {
+            console.log({ notExisted: notExisted.length });
+            await this.salesRepsTargetsAchivedService.insert(notExisted);
+        }
+
+        if (existed.length) {
+            console.log({ existed: existed.length });
+            const convertedData = existed.map(entry => {
+
+                const startDate = entry.startDate ? new Date(entry.startDate).toISOString() : "";
+                const endDate = entry.endDate ? new Date(entry.endDate).toISOString() : "";
+                const month = entry.month ? entry.month : null;
+                const covidA = entry.covidA || 0;
+                const covidFluA = entry.covidFluA || 0;
+                const clinicalA = entry.clinicalA || 0;
+                const nailA = entry.nailA || 0;
+                const pgxA = entry.pgxA || 0;
+                const rppA = entry.rppA || 0;
+                const toxA = entry.toxA || 0;
+                const uaA = entry.uaA || 0;
+                const utiA = entry.utiA || 0;
+                const woundA = entry.woundA || 0;
+                const cgxA = entry.cgxA || 0;
+                const diabetesA = entry.diabetesA || 0;
+                const padA = entry.padA || 0;
+                const pulA = entry.pulA || 0;
+                const gastroA = entry.gastroA || 0;
+                const cardA = entry.cardA || 0;
+
+
+                const formattedQueryEntry = `(${entry.salesRepId}, '${startDate}'::timestamp, '${endDate}'::timestamp, '${month}', ${covidA}, ${covidFluA}, ${clinicalA}, ${nailA}, ${pgxA}, ${rppA}, ${toxA}, ${uaA}, ${utiA}, ${woundA}, ${cgxA}, ${diabetesA}, ${padA}, ${pulA}, ${gastroA}, ${cardA})`;
+
+                return formattedQueryEntry;
+            });
+
+            const finalString = convertedData.join(', ');
+
+            this.salesRepsTargetsAchivedService.updateTargetAchieves(finalString);
+        }
+    }
+    modifySalesRepTargetData(salesRepsTargetData) {
+        const modifiedData = salesRepsTargetData.map(item => ({
+            salesRepId: item.sales_rep_id,
+            startDate: this.formatDate(new Date(item.start_date)),
+            endDate: this.formatDate(new Date(item.end_date)),
+            month: this.convertMonth(new Date(item.start_date)),
+            covid: item.covid,
+            covidFlu: item.covid_flu,
+            clinical: item.clinical,
+            gastro: item.gastro,
+            nail: item.nail,
+            pgx: item.pgx,
+            rpp: item.rpp,
+            tox: item.tox,
+            ua: item.ua,
+            uti: item.uti,
+            wound: item.wound,
+            card: item.card,
+            cgx: item.cgx,
+            diabetes: item.diabetes,
+            pad: item.pad,
+            pul: item.pul,
+            total: item.total,
+            newFacilities: item.new_facilities
+        }));
+
+        return modifiedData;
+    }
+
+    formatDate(date) {
+
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
+    convertMonth(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        return `${month}-${year}`;
+    }
+
 }
+

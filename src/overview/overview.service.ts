@@ -138,5 +138,4 @@ export class OverviewService {
 
         return data.rows;
     }
-
 }

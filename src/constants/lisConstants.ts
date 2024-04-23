@@ -158,3 +158,46 @@ export const MARKETER = "MARKETER";
 export const LAB_ADMIN = "LAB_ADMIN";
 
 export const SALES_DIRECTOR = "SALES_DIRECTOR";
+
+export const CASE_TYPE_MAPPING = {
+    "COVID": "covidA",
+    "COVID_FLU": "covidFluA",
+    "CLINICAL_CHEMISTRY": "clinicalA",
+    "GASTRO": "gastroA",
+    "NAIL": "nailA",
+    "PGX_TEST": "pgxA",
+    "RESPIRATORY_PATHOGEN_PANEL": "rppA",
+    "TOXICOLOGY": "toxA",
+    "URINALYSIS": "uaA",
+    "UTI": "utiA",
+    "WOUND": "woundA",
+    "CARDIAC": "cardA",
+    "CGX_PANEL": "cgxA",
+    "DIABETES": "diabetesA",
+    "PAD_ALZHEIMERS": "padA",
+    "PULMONARY_PANEL": "pulA"
+};
+
+export const keyMapping = {
+    sales_rep_id: 'salesRepId',
+    start_date: 'startDate',
+    end_date: 'endDate',
+    covid_a: 'covidA',
+    covid_flu_a: 'covidFluA',
+    clinical_a: 'clinicalA',
+    gastro_a: 'gastroA',
+    nail_a: 'nailA',
+    pgx_a: 'pgxA',
+    rpp_a: 'rppA',
+    tox_a: 'toxA',
+    ua_a: 'uaA',
+    uti_a: 'utiA',
+    wound_a: 'woundA',
+    card_a: 'cardA',
+    cgx_a: 'cgxA',
+    diabetes_a: 'diabetesA',
+    pad_a: 'padA',
+    pul_a: 'pulA',
+    total_a: 'totalA',
+    new_facilities_a: 'newFacilitiesA'
+};
