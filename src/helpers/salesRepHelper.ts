@@ -961,7 +961,7 @@ export class SalesRepHelper {
     }
 
     async getSalesRepsTargets(query){
-        const queryString = this.filterHelper.salesRepsTargets(query);
+        const queryString = this.filterHelper.salesRepsMonthlyTargets(query);
 
         let targets: any = await this.salesRepsTargetsService.getTotalTargets(queryString);
 
