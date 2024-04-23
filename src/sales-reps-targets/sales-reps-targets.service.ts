@@ -63,7 +63,7 @@ export class SalesRepsTargetsService {
 
     async updateSalesRepsTargets(id: number, salesRepTargetDto: UpdateSalesRepTargetsDto) {
 
-        const { covid, covid_flu, clinical, gastro, nail, pgx, rpp, tox, ua, uti, wound, card, cgx, diabetes, pad, pul } = salesRepTargetDto;
+        const { covid, covid_flu, clinical, gastro, nail, pgx, rpp, tox, ua, uti, wound, card, cgx, diabetes, pad, pul, new_facilities } = salesRepTargetDto;
 
         const rawQuery = sql`
         UPDATE sales_reps_monthly_targets
@@ -83,7 +83,8 @@ export class SalesRepsTargetsService {
             cgx = ${cgx},
             diabetes = ${diabetes},
             pad = ${pad},
-            pul = ${pul}
+            pul = ${pul},
+            new_facilities = ${new_facilities}
 
         WHERE id = ${id}
     `;
