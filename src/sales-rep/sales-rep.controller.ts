@@ -1,5 +1,5 @@
 import { Controller, Delete, Get, Param, Query, Req, Res, UseGuards } from '@nestjs/common';
-import { SOMETHING_WENT_WRONG, SUCCESS_DELETED_DATA_IN_TABLE, SUCCESS_FECTED_SALE_REP_REVENUE_STATS, SUCCESS_FECTED_SALE_REP_VOLUME_STATS, SUCCESS_FETCHED_CASE_TYPES_STATS_REVENUE, SUCCESS_FETCHED_ONE_SALES_REP, SUCCESS_FETCHED_PATIENT_CLAIMS_COUNT, SUCCESS_FETCHED_SALES_REP, SUCCESS_FETCHED_SALES_REPS, SUCCESS_FETCHED_SALES_REP_CASE_TYPE_MONTHLY_VOLUME, SUCCESS_FETCHED_SALES_REP_FACILITY_WISE_STATS, SUCCESS_FETCHED_SALES_REP_FACILITY_WISE_STATS_VOLUME, SUCCESS_FETCHED_SALES_REP_INSURANCE_PAYORS_DATA_REVENUE, SUCCESS_FETCHED_SALES_REP_INSURANCE_PAYORS_DATA_VOLUME, SUCCESS_FETCHED_SALES_REP_INSURANCE_PAYORS_MONTH_WISE_DATA, SUCCESS_FETCHED_SALES_REP_OVERALL_REVENUE, SUCCESS_FETCHED_SALES_REP_OVERALL_VOLUME, SUCCESS_FETCHED_SALES_REP_TREND_REVENUE, SUCCESS_FETCHED_SALES_REP_TREND_VOLUME } from 'src/constants/messageConstants';
+import { EMAIL_CRON_STARTED_SUCCESS, SOMETHING_WENT_WRONG, SUCCESS_DELETED_DATA_IN_TABLE, SUCCESS_FECTED_SALE_REP_REVENUE_STATS, SUCCESS_FECTED_SALE_REP_VOLUME_STATS, SUCCESS_FETCHED_CASE_TYPES_STATS_REVENUE, SUCCESS_FETCHED_ONE_SALES_REP, SUCCESS_FETCHED_PATIENT_CLAIMS_COUNT, SUCCESS_FETCHED_SALES_REP, SUCCESS_FETCHED_SALES_REPS, SUCCESS_FETCHED_SALES_REP_CASE_TYPE_MONTHLY_VOLUME, SUCCESS_FETCHED_SALES_REP_FACILITY_WISE_STATS, SUCCESS_FETCHED_SALES_REP_FACILITY_WISE_STATS_VOLUME, SUCCESS_FETCHED_SALES_REP_INSURANCE_PAYORS_DATA_REVENUE, SUCCESS_FETCHED_SALES_REP_INSURANCE_PAYORS_DATA_VOLUME, SUCCESS_FETCHED_SALES_REP_INSURANCE_PAYORS_MONTH_WISE_DATA, SUCCESS_FETCHED_SALES_REP_OVERALL_REVENUE, SUCCESS_FETCHED_SALES_REP_OVERALL_VOLUME, SUCCESS_FETCHED_SALES_REP_TREND_REVENUE, SUCCESS_FETCHED_SALES_REP_TREND_VOLUME, SUCCESS_VOLUME_TREND } from 'src/constants/messageConstants';
 import { AuthGuard } from 'src/guards/auth.guard';
 import { FilterHelper } from 'src/helpers/filterHelper';
 import { SalesRepHelper } from 'src/helpers/salesRepHelper';
@@ -9,6 +9,8 @@ import { EmailServiceProvider } from 'src/notifications/emailServiceProvider';
 import { SalesRepService } from './sales-rep.service';
 import axios from 'axios';
 import { Configuration } from 'src/config/config.service';
+import { SalesRepsTargetsAchivedService } from 'src/sales-reps-targets-achived/sales-reps-targets-achived.service';
+import { SalesRepsTargetsService } from 'src/sales-reps-targets/sales-reps-targets.service';
 
 
 @Controller({
@@ -23,7 +25,9 @@ export class SalesRepController {
 		private readonly sortHelper: SortHelper,
 		private readonly salesRepHelper: SalesRepHelper,
 		private readonly emailServiceProvider: EmailServiceProvider,
-		private readonly configuration: Configuration
+		private readonly configuration: Configuration,
+		private readonly salesRepsTargetsAchivedService: SalesRepsTargetsAchivedService,
+		private readonly salesRepsTargetsService: SalesRepsTargetsService
 
 
 	) { }
@@ -66,7 +70,8 @@ export class SalesRepController {
 
 				const salesRepIds = salesReps.map(e => e.sales_rep_id);
 				query.sales_reps = salesRepIds;
-				targets = await this.salesRepHelper.getTargets(query);
+
+				targets = await this.salesRepHelper.getSalesRepsTargets(query);
 
 				salesReps = this.salesRepHelper.mergeSalesRepAndTargets(salesReps, targets);
 			}
@@ -193,27 +198,18 @@ export class SalesRepController {
 
 			const queryString = this.filterHelper.salesRepFacilities(query);
 
-			const data = await this.salesRepService.getVolumeStats(id, queryString);
+			const statsData = await this.salesRepService.getVolumeStats(id, queryString);
 
 			query.sales_reps = [id];
 
-			const salesRepTargetData = await this.salesRepHelper.getTargets(query);
+			const salesRepTargetData = await this.salesRepHelper.getSalesRepsTargets(query);
 
-			const targetVolume = salesRepTargetData.reduce((acc, entry) => {
-				// Iterate over the months and add the first element value of each month
-				Object.values(entry)
-					.filter(val => Array.isArray(val)) // Filter out non-array values
-					.forEach(month => acc += month[0]); // Add the first element value
-
-				return acc;
-			}, 0);
-
-			data[0].target_volume = targetVolume;
+			statsData[0].target_volume = salesRepTargetData[0].total_targets || 0;
 
 			return res.status(200).json({
 				success: true,
 				message: SUCCESS_FECTED_SALE_REP_VOLUME_STATS,
-				data
+				data: statsData
 			});
 		}
 		catch (error) {
@@ -277,6 +273,39 @@ export class SalesRepController {
 	}
 	
 
+
+	@UseGuards(AuthGuard)
+	@Get(':id/case-types-volume-targets')
+	async getOverallCaseTypesVolumeTargets(@Res() res: any, @Param('id') id: number, @Query() query: any) {
+		try {
+
+			const queryString = this.filterHelper.salesRepFacilities(query);
+			const targetsQueryString = await this.filterHelper.singleSalesRepMonthlyTargets(query);
+
+			const [patientClaimsData, targetedData] = await Promise.all([
+				this.salesRepService.getOverAllCaseTypesVolume(id, queryString),
+				this.salesRepsTargetsService.getTargetsStatsForSingleRep(id, targetsQueryString)
+			]);
+
+			const mergedDataArray = this.salesRepHelper.mergeSalesRepCaseTypeWiseVolumeAndTargets(targetedData, patientClaimsData);
+
+			return res.status(200).json({
+				success: true,
+				message: SUCCESS_FETCHED_SALES_REP_OVERALL_VOLUME,
+				data: mergedDataArray
+			});
+		}
+		catch (error) {
+			console.log({ error });
+
+			return res.status(500).json({
+				success: false,
+				message: error || SOMETHING_WENT_WRONG
+			});
+		}
+	}
+
+
 	@UseGuards(AuthGuard)
 	@Get(':id/case-types/months/revenue')
 	async getCaseTypesRevenue(@Res() res: any, @Param('id') id: number, @Query() query: any) {
@@ -331,6 +360,43 @@ export class SalesRepController {
 			});
 		}
 	}
+
+
+	@UseGuards(AuthGuard)
+	@Get(':id/case-types/months/volume-targets')
+	async getCaseTypesVolumeMonthlyTargets(@Res() res: any, @Param('id') id: number, @Query() query: any) {
+		try {
+
+			const queryString = this.filterHelper.salesRepFacilities(query);
+			const targetsQueryString = await this.filterHelper.singleSalesRepMonthlyTargets(query);
+
+
+			const [salesReps, targetsData] = await Promise.all([
+				this.salesRepService.getCaseTypesVolume(id, queryString),
+				this.salesRepsTargetsService.getAllTargetsForSalesRep(id, targetsQueryString)
+			]);
+
+			const transformedData = this.salesRepHelper.transformCaseTypeTargetsMonthWiseVolume(targetsData);
+
+			// Merge targetsData with salesRepsData and calculate total_targets
+			const mergedData = this.salesRepHelper.mergeCaseTypeMonthlyVolumeAndTargets(salesReps, transformedData);
+
+			return res.status(200).json({
+				success: true,
+				message: SUCCESS_FETCHED_SALES_REP_CASE_TYPE_MONTHLY_VOLUME,
+				data: mergedData
+			});
+		}
+		catch (error) {
+			console.log({ error });
+
+			return res.status(500).json({
+				success: false,
+				message: error || SOMETHING_WENT_WRONG
+			});
+		}
+	}
+
 
 	@UseGuards(AuthGuard)
 	@Get(':id/insurance-payors/revenue')
@@ -467,6 +533,137 @@ export class SalesRepController {
 		}
 	}
 
+
+	@UseGuards(AuthGuard)
+	@Get(':id/facilities/volume-month-wise')
+	async getFacilitiesVolumeMonthWise(@Res() res: any, @Param('id') id: number, @Query() query: any) {
+		try {
+
+			const queryString = this.filterHelper.salesRepFacilities(query);
+
+			let salesReps: any = await this.salesRepService.getFacilitiesVolumeMonthWise(id, queryString);
+
+			const salesRepFacilities = await this.salesRepService.getAllFacilitiesBySalesRep(id);
+
+			// step 1: need to add the not existed facilities woth default values
+			salesRepFacilities.forEach(facility => {
+				if (!this.salesRepHelper.facilityExists(salesReps, facility.id)) {
+					salesReps.push({
+						facility_id: facility.id,
+						facility_name: facility.name,
+						total_cases: 0,
+						completed_cases: 0,
+						pending_cases: 0
+					});
+				}
+			});
+
+			const uniqueMonths = [...new Set(salesReps.map(rep => rep.month))];
+
+			// Step 2: Iterate over each facility in salesReps and each unique month
+			salesReps.forEach(rep => {
+				uniqueMonths.forEach(month => {
+					// Check if the combination of facility and month exists
+					const exists = salesReps.some(r => r.facility_id === rep.facility_id && r.month === month);
+					if (!exists) {
+						// Add default object for missing combination
+						salesReps.push({
+							facility_id: rep.facility_id,
+							facility_name: rep.facility_name,
+							month: month,
+							total_cases: 0,
+							completed_cases: 0,
+							pending_cases: 0
+						});
+					}
+				});
+			});
+
+			salesReps = salesReps.filter(rep => rep.month);
+
+			salesReps = this.sortHelper.sortOnMonth(salesReps);
+
+			return res.status(200).json({
+				success: true,
+				message: SUCCESS_FETCHED_SALES_REP_FACILITY_WISE_STATS_VOLUME,
+				data: salesReps
+			});
+		}
+		catch (error) {
+			console.log({ error });
+
+			return res.status(500).json({
+				success: false,
+				message: error || SOMETHING_WENT_WRONG
+			});
+		}
+	}
+
+
+	@UseGuards(AuthGuard)
+	@Get(':id/facilities/revenue-month-wise')
+	async getFacilitiesRevenueMonthWise(@Res() res: any, @Param('id') id: number, @Query() query: any) {
+		try {
+
+			const queryString = this.filterHelper.salesRepFacilities(query);
+
+			let salesReps: any = await this.salesRepService.getFacilitiesRevenueMonthWise(id, queryString);
+
+			const salesRepFacilities = await this.salesRepService.getAllFacilitiesBySalesRep(id);
+
+			salesRepFacilities.forEach(facility => {
+				if (!this.salesRepHelper.facilityExists(salesReps, facility.id)) {
+					salesReps.push({
+						facility_id: facility.id,
+						facility_name: facility.name,
+						generated_amount: 0,
+						paid_amount: 0,
+						pending_amount: 0,
+						total_cases: 0
+					});
+				}
+			});
+
+
+			const uniqueMonths = [...new Set(salesReps.map(rep => rep.month))];
+
+			// Step 2: Iterate over each facility in salesReps and each unique month
+			salesReps.forEach(rep => {
+				uniqueMonths.forEach(month => {
+					// Check if the combination of facility and month exists
+					const exists = salesReps.some(r => r.facility_id === rep.facility_id && r.month === month);
+					if (!exists && !rep.month) {
+						// Update the existing object with the month if it doesn't have it already
+						rep.month = month;
+						rep.generated_amount = 0;
+						rep.paid_amount = 0;
+						rep.pending_amount = 0;
+						rep.total_cases = 0;
+					}
+				});
+			});
+
+			salesReps = this.sortHelper.sort(salesReps, "facility_name");
+
+			salesReps = salesReps.filter(rep => rep.month);
+
+			return res.status(200).json({
+				success: true,
+				message: SUCCESS_FETCHED_SALES_REP_FACILITY_WISE_STATS,
+				data: salesReps
+			});
+		}
+		catch (error) {
+			console.log({ error });
+
+			return res.status(500).json({
+				success: false,
+				message: error || SOMETHING_WENT_WRONG
+			});
+		}
+	}
+
+
 	@UseGuards(AuthGuard)
 	@Get(':id/trends/revenue')
 	async getRevenueTrends(@Res() res: any, @Param('id') id: number, @Query() query: any) {
@@ -516,6 +713,48 @@ export class SalesRepController {
 			});
 		}
 	}
+
+
+	@UseGuards(AuthGuard)
+	@Get(":id/trends/volume-targets")
+	async getSingleSalesRepTrendsVolume(@Res() res: any, @Param() param: any, @Query() query: any) {
+		try {
+
+			const id = param.id;
+
+			const queryString = this.filterHelper.singleSalesRepMonthlyTargets(query);
+
+			const [achivedData, targetedData] = await Promise.all([
+				this.salesRepsTargetsAchivedService.getSingleSalesRepTargetVolume(id, queryString),
+				this.salesRepsTargetsService.getSingleSalesRepTargetVolume(id, queryString)
+			]);
+
+			const achievedMap = new Map(achivedData.map(item => [item.month, item]));
+
+			// Merge achievedData and targetedData based on month
+			let mergedData = targetedData.map(item => ({
+				month: item.month,
+				total_volume: (achievedMap.get(item.month) || { total_volume: 0 }).total_volume,
+				total_target: item.total_target
+			}));
+
+			mergedData = this.sortHelper.sortOnMonth(mergedData);
+
+			return res.status(200).json({
+				success: true,
+				message: SUCCESS_VOLUME_TREND,
+				mergedData
+			});
+		} catch (err) {
+			console.log({ err });
+			return res.status(500).json({
+				success: false,
+				message: err || SOMETHING_WENT_WRONG
+			});
+		}
+	}
+
+
 	@UseGuards(AuthGuard)
 	@Delete('delete')
 	async dropTable(@Res() res: any) {
@@ -613,8 +852,12 @@ export class SalesRepController {
 			data[0].month = month;
 			data[0].year = year;
 
+			if (!data[0].sales_rep_email) {
+				throw new Error("Sales rep email is empty");
+			}
+
 			let emailContent = {
-				email: 'tharunampolu9.8@gmail.com',
+				email: data[0].sales_rep_email,
 				subject: 'Volume targets summary'
 			};
 
@@ -648,22 +891,15 @@ export class SalesRepController {
 			const to_date = new Date(currentDate);
 			to_date.setDate(to_date.getDate() + 7);
 
+			for (const salesRep of salesReps) {
+				const apiUrl = `${this.configuration.getConfig().api_url}/v1.0/sales-reps/target-summary/${salesRep.id}?from_date=${from_date.toISOString()}&to_date=${to_date.toISOString()}`;
 
-			const apiUrl = `${this.configuration.getConfig().api_url}/v1.0/sales-reps/target-summary/${salesReps[0].id}?from_date=${from_date.toISOString()}&to_date=${to_date.toISOString()}`;
-
-			console.log(apiUrl);
-
-			await axios.get(apiUrl);
-
-
-			// for (const salesRep of salesReps) {
-			// 	const apiUrl = `${process.env.API_URL}/${salesRep.id}?from_date=${from_date.toISOString()}&to_date=${to_date.toISOString()}`;
-			// 	await axios.get(apiUrl);
-			// }
+				await axios.get(apiUrl);
+			}
 
 			return res.status(200).json({
 				success: true,
-				message: "Cron run successfully",
+				message: EMAIL_CRON_STARTED_SUCCESS,
 			});
 
 

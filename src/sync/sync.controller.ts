@@ -1,21 +1,36 @@
-import { Controller, Get, NotFoundException, Post, Res } from '@nestjs/common';
-import { SyncService } from './sync.service';
-import { LisService } from 'src/lis/lis.service';
-import {
-	PATIENT_CLAIMS_NOT_FOUND, REMOVED_ARCHIVED_CLAIMS, SUCCESS_SYNC_PATIENT_CLAIMS, CASE_TYPES_NOT_FOUND_IN_LIS_DATABASE, INSURANCE_PAYORS_NOT_FOUND_IN_LIS_DATABASE, CASE_TYPES_NOT_FOUND, INSURANCE_PAYORS_NOT_FOUND, SOMETHING_WENT_WRONG, SUCCESS_SYNCED_CASE_TYPES, SUCCESS_SYNCED_INSURANCE_PAYORS,
-	 FACILITIES_NOT_FOUND, SALES_REPS_NOT_FOUND, SUCCUSS_INSERTED_MARKETING_MANAGERS, SUCCUSS_INSERTED_SALES_REPS, SUCCESS_INSERTED_FACILICES, LIS_FACILITIES_NOT_FOUND,
-	SUCCESS_SYNC_LABS,
-	LABS_NOT_FOUND
-} from 'src/constants/messageConstants';
-import { SyncHelpers } from 'src/helpers/syncHelper';
+import { Controller, Get, Res } from '@nestjs/common';
 import * as fs from 'fs';
-import { Configuration } from 'src/config/config.service';
-import { InsurancesService } from "src/insurances/insurances.service";
 import { CaseTypesService } from 'src/case-types/case-types.service';
-import { SalesRepService } from 'src/sales-rep/sales-rep.service';
-import { FacilitiesService } from 'src/facilities/facilities.service';
+import { Configuration } from 'src/config/config.service';
 import { HOSPITAL_MARKETING_MANAGER, MARKETER } from 'src/constants/lisConstants';
+import {
+	CASE_TYPES_NOT_FOUND,
+	CASE_TYPES_NOT_FOUND_IN_LIS_DATABASE,
+	FACILITIES_NOT_FOUND,
+	INSURANCE_PAYORS_NOT_FOUND,
+	INSURANCE_PAYORS_NOT_FOUND_IN_LIS_DATABASE,
+	LABS_NOT_FOUND,
+	LIS_FACILITIES_NOT_FOUND,
+	PATIENT_CLAIMS_NOT_FOUND, REMOVED_ARCHIVED_CLAIMS,
+	SALES_REPS_NOT_FOUND,
+	SOMETHING_WENT_WRONG,
+	SUCCESS_INSERTED_FACILICES,
+	SUCCESS_SYNCED_CASE_TYPES, SUCCESS_SYNCED_INSURANCE_PAYORS,
+	SUCCESS_SYNC_LABS,
+	SUCCESS_SYNC_PATIENT_CLAIMS,
+	SUCCESS_SYNC_SALES_REPS_MONTHLY_TARGETS,
+	SUCCUSS_INSERTED_MARKETING_MANAGERS, SUCCUSS_INSERTED_SALES_REPS,
+	TARGETS_ACHIVED_NOT_FOUND,
+	TARGETS_ACHIVED_SYNCED_SUCCESS
+} from 'src/constants/messageConstants';
+import { FacilitiesService } from 'src/facilities/facilities.service';
+import { SyncHelpers } from 'src/helpers/syncHelper';
+import { InsurancesService } from "src/insurances/insurances.service";
+import { LisService } from 'src/lis/lis.service';
+import { SalesRepService } from 'src/sales-rep/sales-rep.service';
+import { SyncService } from './sync.service';
 
+import { SalesRepsTargetsService } from 'src/sales-reps-targets/sales-reps-targets.service';
 @Controller({
 	version: '1.0',
 	path: 'sync'
@@ -31,6 +46,7 @@ export class SyncController {
 		private readonly insurancesService: InsurancesService,
 		private readonly salesRepService: SalesRepService,
 		private readonly facilitiesService: FacilitiesService,
+		private readonly salesrepTargetService: SalesRepsTargetsService
 	) { }
 
 	@Get('patient-claims')
@@ -430,4 +446,124 @@ export class SyncController {
 			});
 		}
 	}
+
+
+	@Get("targets-achived")
+	async syncTargetsAchived(@Res() res: any) {
+		try {
+
+			const currentDate = new Date();
+
+			const year = currentDate.getFullYear();
+			const month = String(currentDate.getMonth() + 1).padStart(2, '0'); // Adding 1 because getMonth() returns zero-based month index
+			const day = String(currentDate.getDate()).padStart(2, '0');
+
+			const formattedDate = `${year}-${month}-${day}`;
+
+			let claimsData: any = await this.SyncService.getCaseTypesVolume(formattedDate);
+
+			if (claimsData.length === 0) {
+				return res.status(200).json({
+					success: true,
+					message: TARGETS_ACHIVED_NOT_FOUND
+				});
+			}
+
+			// get the start date and end date by using month
+			claimsData = claimsData.map(item => {
+				const { start_date, end_date } = this.syncHelpers.parseMonth(item.month);
+				return { ...item, start_date, end_date };
+			});
+
+
+			claimsData = this.syncHelpers.targetsAchivedGrouping(claimsData);
+
+			const result = this.syncHelpers.modifyTargetsAchived(claimsData);
+
+			const { existed, notExisted } = await this.syncHelpers.getExistedAndNotExistedTargetsAchived(result);
+
+			this.syncHelpers.insertOrUpdateTargetsAchived(existed, notExisted);
+
+			return res.status(200).json({
+				success: true,
+				message: TARGETS_ACHIVED_SYNCED_SUCCESS,
+				existed, notExisted
+			});
+		} catch (err) {
+			console.log({ err });
+		}
+	}
+
+	@Get("sales-reps-targets")
+	async syncSalesRepsTargets(@Res() res: any) {
+		try {
+
+			let modifiedData;
+
+			const currentDate = new Date();
+
+			let currentMonth = await formateMonth(currentDate);
+
+			const lastMonth = await getLastMonth(currentDate);
+
+			let query = `month='${currentMonth}'`;
+
+			let salesRepsTargetData = await this.salesrepTargetService.getAllSalesRepsTargets(query);
+
+			if (!salesRepsTargetData.length) {
+
+				query = `month='${lastMonth}'`;
+
+				salesRepsTargetData = await this.salesrepTargetService.getAllSalesRepsTargets(query);
+
+				modifiedData = this.syncHelpers.modifySalesRepTargetData(salesRepsTargetData);
+
+				this.salesrepTargetService.insertSalesRepsTargets(modifiedData);
+			}
+
+			return res.status(200).json({
+				success: true,
+				message: SUCCESS_SYNC_SALES_REPS_MONTHLY_TARGETS,
+				modifiedData
+			});
+
+		} catch (err) {
+			console.log(err);
+			return res.status(500).json({
+				success: false,
+				message: err || SOMETHING_WENT_WRONG
+			});
+		}
+	}
+
+
+}
+
+async function formateMonth(date) {
+	const year = date.getFullYear();
+	const month = String(date.getMonth() + 1).padStart(2, '0');
+	return `${month}-${year}`;
+}
+
+
+async function getLastMonth(date: Date) {
+	const year = date.getFullYear();
+	let month = date.getMonth() + 1; // Get current month
+
+	console.log(month);
+
+	let yearOffset = 0;
+
+	// If the current month is January, subtract one year and set the month to December
+	if (month === 1) {
+		month = 12;
+		yearOffset = -1;
+	} else {
+		month -= 1; // Subtract one from the current month
+	}
+
+	const formattedMonth = String(month).padStart(2, '0');
+	const lastMonth = `${formattedMonth}-${year + yearOffset}`;
+
+	return lastMonth;
 }
