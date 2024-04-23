@@ -50,4 +50,8 @@ export class UpdateSalesRepTargetsDto {
     @IsNotEmpty({ message: 'Pul volume is required' })
     pul: number;
 
+    @IsNotEmpty({ message: 'Facilities volume is required' })
+    new_facilities: number;
+
+
 }
