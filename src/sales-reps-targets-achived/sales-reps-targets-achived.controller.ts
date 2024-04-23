@@ -13,39 +13,6 @@ import { FilterHelper } from 'src/helpers/filterHelper';
 })
 export class SalesRepsTargetsAchivedController {
   constructor(
-    private readonly salesRepsTargetsAchivedService: SalesRepsTargetsAchivedService,
-    private readonly targetsAchivedHelper: TargetsAchivedHelper,
-    private readonly salesRepsTargetsService: SalesRepsTargetsService,
-    private readonly filterHelper: FilterHelper
+    private readonly salesRepsTargetsAchivedService: SalesRepsTargetsAchivedService
   ) { }
-
-
-  @UseGuards(AuthGuard)
-  @Get()
-  async getSalesRepsMonthlyAchives(@Res() res: any, @Query() query: any) {
-    try {
-
-      const queryString = await this.filterHelper.salesRepsMonthlyTargets(query);
-
-      const [achivedData, targetedData] = await Promise.all([
-        this.salesRepsTargetsAchivedService.findAll(queryString),
-        this.salesRepsTargetsService.getAllTargets(queryString)
-      ]);
-
-      const result = this.targetsAchivedHelper.mergeResults(targetedData, achivedData);
-
-      return res.status(200).json({
-        success: true,
-        message: SALES_REP_MONTHLY_ACHIVES_SUCCESS,
-        data: result
-        // achivedData, targetedData
-      });
-    } catch (err) {
-      console.log({ err });
-      return res.status(500).json({
-        succes: false,
-        message: err || SOMETHING_WENT_WRONG
-      });
-    }
-  }
 }

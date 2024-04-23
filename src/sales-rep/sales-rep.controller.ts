@@ -367,6 +367,42 @@ export class SalesRepController {
 		}
 	}
 
+
+	@UseGuards(AuthGuard)
+	@Get(':id/case-types/months/volume-targets')
+	async getCaseTypesVolumeMonthlyTargets(@Res() res: any, @Param('id') id: number, @Query() query: any) {
+		try {
+
+			const queryString = this.filterHelper.salesRepFacilities(query);
+			const targetsQueryString = await this.filterHelper.salesRepsMonthlyTargets(query);
+
+			const [salesReps, targetsData] = await Promise.all([
+				this.salesRepService.getCaseTypesVolume(id, queryString),
+				this.salesRepsTargetsService.getAllTargetsForSalesRep(id, targetsQueryString)
+			]);
+
+			const transformedData = this.salesRepHelper.transformCaseTypeTargetsMonthWiseVolume(targetsData);
+
+			// Merge targetsData with salesRepsData and calculate total_targets
+			const mergedData = this.salesRepHelper.mergeCaseTypeMonthlyVolumeAndTargets(salesReps, transformedData);
+
+			return res.status(200).json({
+				success: true,
+				message: SUCCESS_FETCHED_SALES_REP_CASE_TYPE_MONTHLY_VOLUME,
+				data: mergedData
+			});
+		}
+		catch (error) {
+			console.log({ error });
+
+			return res.status(500).json({
+				success: false,
+				message: error || SOMETHING_WENT_WRONG
+			});
+		}
+	}
+
+
 	@UseGuards(AuthGuard)
 	@Get(':id/insurance-payors/revenue')
 	async getInsurancePayersRevenue(@Res() res: any, @Param('id') id: number, @Query() query: any) {

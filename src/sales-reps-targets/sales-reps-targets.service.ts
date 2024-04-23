@@ -114,7 +114,7 @@ export class SalesRepsTargetsService {
   }
 
 
-  async getAllTargets(queryString) {
+  async getAllTargetsForSalesRep(id, queryString) {
     const rawQuery = sql`
           SELECT 
               month,
@@ -135,7 +135,8 @@ export class SalesRepsTargetsService {
               CAST(SUM(pad) AS INTEGER) AS PAD_ALZHEIMERS,
               CAST(SUM(pul) AS INTEGER) AS PULMONARY_PANEL
           FROM sales_reps_monthly_targets
-          ${queryString ? sql`WHERE ${sql.raw(queryString)}` : sql``}
+          WHERE sales_rep_id = ${id}
+          ${queryString ? sql`AND ${sql.raw(queryString)}` : sql``}
           GROUP BY month;
         `;
     const data = await db.execute(rawQuery);
@@ -216,7 +217,7 @@ export class SalesRepsTargetsService {
         FROM sales_reps_monthly_targets
         UNION ALL
         SELECT 
-            'UTI' AS case_type_name,
+            'UTI PANEL' AS case_type_name,
             CAST(SUM(CASE WHEN sales_rep_id = ${id} THEN uti ELSE 0 END) AS INTEGER) AS total_targets
         FROM sales_reps_monthly_targets
         UNION ALL
