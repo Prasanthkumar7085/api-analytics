@@ -79,8 +79,7 @@ export class SalesRepController {
 			return res.status(200).json({
 				success: true,
 				message: SUCCESS_FETCHED_SALES_REP,
-				// data: targets,
-				salesReps
+				data: salesReps
 			});
 		}
 		catch (error) {

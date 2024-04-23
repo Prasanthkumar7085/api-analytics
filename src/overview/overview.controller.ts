@@ -56,12 +56,21 @@ export class OverviewController {
             // this filter is used to make the string to date filter
             const queryString = await this.filterHelper.overviewFilter(query);
 
-            const data = await this.overviewService.getVolumeStats(queryString);
+            const statsData = await this.overviewService.getVolumeStats(queryString);
+
+            const salesRepTargetData = await this.salesRepHelper.getSalesRepsTargets(query);
+
+            let totalCounts = 0;
+            salesRepTargetData.forEach(target => {
+                totalCounts += target.total_targets;
+            });
+
+            statsData[0].target_volume = totalCounts;
 
             return res.status(200).json({
                 success: true,
                 message: SUCCESS_FETCHED_OVERVIEW_STATS_VOLUME,
-                data: data
+                data: statsData
             });
         }
         catch (error) {
