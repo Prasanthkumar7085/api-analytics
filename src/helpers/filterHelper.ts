@@ -373,12 +373,17 @@ export class FilterHelper {
         let filter = [];
         const {
             sales_rep: salesRep,
+            sales_reps: salesReps,
             from_date: fromDate,
             to_date: toDate
         } = query;
 
         if (salesRep) {
             filter.push(`sales_rep_id = ${salesRep}`);
+        }
+
+        if (salesReps) {
+            filter.push(`sales_rep_id IN (${salesReps})`);
         }
 
         if (fromDate && toDate) {

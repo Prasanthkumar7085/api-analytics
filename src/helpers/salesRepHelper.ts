@@ -920,7 +920,7 @@ export class SalesRepHelper {
         return mergedDataArray;
     }
 
-    transformCaseTypeTargetsMonthWiseVolume(targetsData){
+    transformCaseTypeTargetsMonthWiseVolume(targetsData) {
         const transformedData = [];
         targetsData.map(row => {
             return Object.entries(row).map(([key, value]) => {
@@ -940,40 +940,63 @@ export class SalesRepHelper {
     }
 
     convertMonthFormat(month) {
-		const [monthNum, year] = month.split('-');
-		const date = new Date(`${monthNum}-01-${year}`);
-		return date.toLocaleString('en-US', { month: 'short', year: 'numeric' });
-	}
+        const [monthNum, year] = month.split('-');
+        const date = new Date(`${monthNum}-01-${year}`);
+        return date.toLocaleString('en-US', { month: 'short', year: 'numeric' });
+    }
 
 
-    mergeCaseTypeMonthlyVolumeAndTargets(salesReps, targetsData){
-        
-			const salesRepsMap = salesReps.reduce((map, item) => {
-				const key = `${item.month}-${item.case_type_name}`;
-				map[key] = item;
-				return map;
-			}, {});
+    mergeCaseTypeMonthlyVolumeAndTargets(salesReps, targetsData) {
 
-			// Merge targetsData with salesRepsData and calculate total_targets
-			const mergedData = targetsData.map(target => {
-				const key = `${target.month}-${target.case_type_name}`;
-				const salesData = salesRepsMap[key];
-				if (salesData) {
-					return {
-						case_type_name: target.case_type_name,
-						month: target.month,
-						total_cases: salesData.total_cases,
-						total_targets: target.total_cases
-					};
-				} else {
-					return {
-						case_type_name: target.case_type_name,
-						month: target.month,
-						total_cases: 0,
-						total_targets: target.total_cases
-					};
-				}
-			});
-            return mergedData;
+        const salesRepsMap = salesReps.reduce((map, item) => {
+            const key = `${item.month}-${item.case_type_name}`;
+            map[key] = item;
+            return map;
+        }, {});
+
+        // Merge targetsData with salesRepsData and calculate total_targets
+        const mergedData = targetsData.map(target => {
+            const key = `${target.month}-${target.case_type_name}`;
+            const salesData = salesRepsMap[key];
+            if (salesData) {
+                return {
+                    case_type_name: target.case_type_name,
+                    month: target.month,
+                    total_cases: salesData.total_cases,
+                    total_targets: target.total_cases
+                };
+            } else {
+                return {
+                    case_type_name: target.case_type_name,
+                    month: target.month,
+                    total_cases: 0,
+                    total_targets: target.total_cases
+                };
+            }
+        });
+        return mergedData;
+    }
+
+
+    tranformeOverViewTargetsVolume(targetData) {
+        const transformedTargetData = targetData.map((entry: any) => {
+            // Extract month and year from the month string
+            const [month, year] = entry.month.split('-');
+            // Format the month and year into a human-readable format
+            const formattedMonth = `${new Date(year, parseInt(month) - 1).toLocaleString('default', { month: 'short' })} ${year}`;
+
+            // Calculate the total cases for the current entry
+            const totalCases = Object.values(entry)
+                .filter((value: any) => !isNaN(Number(value)))
+                .reduce((acc: number, value: string) => acc + Number(value), 0);
+
+            // Return an object with the month and the total cases
+            return {
+                month: formattedMonth,
+                target_cases: totalCases
+            };
+        });
+
+        return transformedTargetData;
     }
 }

@@ -5,6 +5,7 @@ import { FilterHelper } from 'src/helpers/filterHelper';
 import { AuthGuard } from 'src/guards/auth.guard';
 import { SalesRepsTargetsService } from 'src/sales-reps-targets/sales-reps-targets.service';
 import { SalesRepHelper } from 'src/helpers/salesRepHelper';
+import { SortHelper } from 'src/helpers/sortHelper';
 
 
 @Controller({
@@ -16,7 +17,8 @@ export class OverviewController {
         private readonly overviewService: OverviewService,
         private readonly filterHelper: FilterHelper,
         private readonly salesRepsTargetsService: SalesRepsTargetsService,
-        private readonly salesRepHelper: SalesRepHelper
+        private readonly salesRepHelper: SalesRepHelper,
+        private readonly sortHelper: SortHelper
     ) { }
 
 
@@ -194,40 +196,47 @@ export class OverviewController {
 
             const data = await this.overviewService.getOverviewVolumeData(queryString);
 
-            const targetData = await this.overviewService.getOverviewVolumeTargetsData(queryString);
-
-            const transformedTargetData = targetData.map((entry: any) => {
-                // Extract month and year from the month string
-                const [month, year] = entry.month.split('-');
-                // Format the month and year into a human-readable format
-                const formattedMonth = `${new Date(year, parseInt(month) - 1).toLocaleString('default', { month: 'short' })} ${year}`;
-
-                // Calculate the total cases for the current entry
-                const totalCases = Object.values(entry)
-                    .filter((value: any) => !isNaN(Number(value)))
-                    .reduce((acc: number, value: string) => acc + Number(value), 0);
-
-                // Return an object with the month and the total cases
-                return {
-                    month: formattedMonth,
-                    target_cases: totalCases
-                };
+            return res.status(200).json({
+                success: true,
+                message: SUCCESS_FETCHED_OVERVIEW_VOLUME,
+                data: data
             });
+        }
+        catch (error) {
+            console.log({ error });
 
-            const mergedData = data.map((entry: any) => {
-                const matchedEntry = transformedTargetData.find((t: any) => t.month === entry.month);
-                const target_cases = matchedEntry ? matchedEntry.target_cases : 0;
-                return {
-                    ...entry,
-                    target_cases: target_cases
-                };
+            return res.status(500).json({
+                success: false,
+                message: error || SOMETHING_WENT_WRONG
             });
+        }
+    }
 
-            mergedData.sort((a: any, b: any) => {
-                const dateA = new Date(a.month);
-                const dateB = new Date(b.month);
-                return dateB.getTime() - dateA.getTime();
-            });
+
+    @UseGuards(AuthGuard)
+    @Get('volume-targets')
+    async getOverviewVolumeDataAndTargets(@Res() res: any, @Query() query: any) {
+        try {
+
+            // this filter is used to make the string to date filter
+            const queryString = await this.filterHelper.overviewFilter(query);
+            const targetsQueryString = await this.filterHelper.salesRepsMonthlyTargets(query);
+
+
+            const [claimsData, targetData] = await Promise.all([
+                this.overviewService.getOverviewVolumeData(queryString),
+                this.salesRepsTargetsService.getOverviewVolumeTargetsData(targetsQueryString)
+            ]);
+
+            const transformedTargetData = this.salesRepHelper.tranformeOverViewTargetsVolume(targetData);
+
+            let mergedData = transformedTargetData.map(target => ({
+                month: target.month,
+                total_targets: target.target_cases,
+                total_cases: (claimsData.find(claim => claim.month === target.month) || { total_cases: 0 }).total_cases
+            }));
+
+            mergedData = this.sortHelper.sortOnMonth(mergedData);
 
             return res.status(200).json({
                 success: true,
