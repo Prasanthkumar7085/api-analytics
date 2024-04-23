@@ -139,4 +139,39 @@ export class OverviewService {
         return data.rows;
     }
 
+    async getOverviewVolumeTargetsData(queryString: string) {
+        let query = sql`
+        SELECT 
+            month,
+            SUM(covid) AS covid_cases,
+            SUM(covid_flu) AS covid_flu_cases,
+            SUM(clinical) AS clinical_cases,
+            SUM(gastro) AS gastro_cases,
+            SUM(nail) AS nail_cases,
+            SUM(pgx) AS pgx_cases,
+            SUM(rpp) AS rpp_cases,
+            SUM(tox) AS tox_cases,
+            SUM(ua) AS ua_cases,
+            SUM(uti) AS uti_cases,
+            SUM(wound) AS wound_cases,
+            SUM(card) AS card_cases,
+            SUM(cgx) AS cgx_cases,
+            SUM(diabetes) AS diabetes_cases,
+            SUM(pad) AS pad_cases,
+            SUM(pul) AS pul_cases
+        FROM sales_reps_monthly_targets
+        ${queryString ? sql`WHERE ${sql.raw(queryString)}` : sql``}
+        GROUP BY 
+            month
+        ORDER BY 
+            month
+    `;
+
+        const data = await db.execute(query);
+
+        return data.rows;
+    }
+
+
+
 }
