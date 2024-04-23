@@ -1,25 +1,24 @@
 import { Module } from '@nestjs/common';
-import { SalesRepsTargetsAchivedService } from './sales-reps-targets-achived.service';
-import { SalesRepsTargetsAchivedController } from './sales-reps-targets-achived.controller';
-import { TargetsAchivedHelper } from 'src/helpers/targetsAchivedHelper';
-import { SalesRepsTargetsService } from 'src/sales-reps-targets/sales-reps-targets.service';
 import { JwtService } from '@nestjs/jwt';
-import { LisService } from 'src/lis/lis.service';
 import { MongooseModule } from '@nestjs/mongoose';
-import { UserSchema } from 'src/schemas/userSchema';
+import { FilterHelper } from 'src/helpers/filterHelper';
+import { MghDbConnections } from 'src/helpers/mghDbconnection';
+import { LisService } from 'src/lis/lis.service';
+import { MghSyncService } from 'src/mgh-sync/mgh-sync.service';
+import { SalesRepService } from 'src/sales-rep/sales-rep.service';
+import { SalesRepsTargetsService } from 'src/sales-reps-targets/sales-reps-targets.service';
 import { CaseSchema } from 'src/schemas/caseSchema';
-import { insurancePayorsSchema } from 'src/schemas/insurancPayors';
 import { HospitalSchema } from 'src/schemas/hospitalSchema';
+import { insurancePayorsSchema } from 'src/schemas/insurancPayors';
 import { labDataSchema } from 'src/schemas/lab';
 import { testPanelsDataSchema } from 'src/schemas/testPanelSchema';
-import { SalesRepService } from 'src/sales-rep/sales-rep.service';
-import { MghDbConnections } from 'src/helpers/mghDbconnection';
-import { MghSyncService } from 'src/mgh-sync/mgh-sync.service';
-import { FilterHelper } from 'src/helpers/filterHelper';
+import { UserSchema } from 'src/schemas/userSchema';
+import { SalesRepsTargetsAchivedController } from './sales-reps-targets-achived.controller';
+import { SalesRepsTargetsAchivedService } from './sales-reps-targets-achived.service';
 
 @Module({
   controllers: [SalesRepsTargetsAchivedController],
-  providers: [SalesRepsTargetsAchivedService, TargetsAchivedHelper, SalesRepsTargetsService, JwtService, LisService, SalesRepService, MghDbConnections,
+  providers: [SalesRepsTargetsAchivedService, SalesRepsTargetsService, JwtService, LisService, SalesRepService, MghDbConnections,
     MghSyncService, FilterHelper
   ],
   imports:[
