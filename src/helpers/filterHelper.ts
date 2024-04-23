@@ -389,15 +389,48 @@ export class FilterHelper {
         if (fromDate && toDate) {
             const from = new Date(fromDate);
             const to = new Date(toDate);
+            const monthRange = [];
 
-            const fromMonthYear = `${('0' + (from.getMonth() + 1)).slice(-2)}-${from.getFullYear()}`;
-            const toMonthYear = `${('0' + (to.getMonth() + 1)).slice(-2)}-${to.getFullYear()}`;
+            // Loop through each month between from and to dates
+            for (let current = new Date(from); current <= to; current.setMonth(current.getMonth() + 1)) {
+                const monthYear = `${('0' + (current.getMonth() + 1)).slice(-2)}-${current.getFullYear()}`;
+                monthRange.push(`'${monthYear}'`);
+            }
 
-            // Using Set to get unique values
-            const monthRangeSet = new Set([fromMonthYear, toMonthYear]);
+            filter.push(`month IN (${monthRange.join(", ")})`);
+        }
 
-            // Converting Set back to array
-            const monthRange = Array.from(monthRangeSet).map(month => `'${month}'`);
+        let queryString;
+        if (filter.length > 0) {
+            queryString = filter.join(" AND ");
+        }
+
+        return queryString;
+    }
+
+
+    singleSalesRepMonthlyTargets(query) {
+        let filter = [];
+        const {
+            sales_rep: salesRep,
+            from_date: fromDate,
+            to_date: toDate
+        } = query;
+
+        if (salesRep) {
+            filter.push(`sales_rep_id = ${salesRep}`);
+        }
+
+        if (fromDate && toDate) {
+            const from = new Date(fromDate);
+            const to = new Date(toDate);
+            const monthRange = [];
+
+            // Loop through each month between from and to dates
+            for (let current = new Date(from); current <= to; current.setMonth(current.getMonth() + 1)) {
+                const monthYear = `${('0' + (current.getMonth() + 1)).slice(-2)}-${current.getFullYear()}`;
+                monthRange.push(`'${monthYear}'`);
+            }
 
             filter.push(`month IN (${monthRange.join(", ")})`);
         }

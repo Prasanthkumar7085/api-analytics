@@ -279,7 +279,7 @@ export class SalesRepController {
 		try {
 
 			const queryString = this.filterHelper.salesRepFacilities(query);
-			const targetsQueryString = await this.filterHelper.salesRepsMonthlyTargets(query);
+			const targetsQueryString = await this.filterHelper.singleSalesRepMonthlyTargets(query);
 
 			const [patientClaimsData, targetedData] = await Promise.all([
 				this.salesRepService.getOverAllCaseTypesVolume(id, queryString),
@@ -367,7 +367,8 @@ export class SalesRepController {
 		try {
 
 			const queryString = this.filterHelper.salesRepFacilities(query);
-			const targetsQueryString = await this.filterHelper.salesRepsMonthlyTargets(query);
+			const targetsQueryString = await this.filterHelper.singleSalesRepMonthlyTargets(query);
+
 
 			const [salesReps, targetsData] = await Promise.all([
 				this.salesRepService.getCaseTypesVolume(id, queryString),
@@ -720,7 +721,7 @@ export class SalesRepController {
 
 			const id = param.id;
 
-			const queryString = this.filterHelper.salesRepsMonthlyTargets(query);
+			const queryString = this.filterHelper.singleSalesRepMonthlyTargets(query);
 
 			const [achivedData, targetedData] = await Promise.all([
 				this.salesRepsTargetsAchivedService.getSingleSalesRepTargetVolume(id, queryString),
