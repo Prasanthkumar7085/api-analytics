@@ -305,6 +305,7 @@ export class SyncHelpers {
         const notExistedData = seperatedArray.notExistedArray;
 
         if (existedData.length > 0) {
+            console.log({ existedData: existedData.length });
 
             for (let i = 0; i < existedData.length; i += batchSize) {
                 const batch = existedData.slice(i, i + batchSize);
@@ -335,6 +336,7 @@ export class SyncHelpers {
         }
 
         if (notExistedData.length > 0) {
+            console.log({ notExistedData: notExistedData.length });
 
             for (let i = 0; i < notExistedData.length; i += batchSize) {
                 console.log({ Inserted: i });
@@ -1207,12 +1209,12 @@ export class SyncHelpers {
     async insertOrUpdateTargetsAchived(existed, notExisted) {
 
         if (notExisted.length) {
-            console.log(123);
+            console.log({ notExisted: notExisted.length });
             await this.salesRepsTargetsAchivedService.insert(notExisted);
         }
 
         if (existed.length) {
-            console.log(1234);
+            console.log({ existed: existed.length });
             const convertedData = existed.map(entry => {
 
                 const startDate = entry.startDate ? new Date(entry.startDate).toISOString() : "";

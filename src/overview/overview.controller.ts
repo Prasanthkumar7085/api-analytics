@@ -131,6 +131,7 @@ export class OverviewController {
     @Get('case-types-volume-targets')
     async getOverAllCaseTypesVolumeTargets(@Res() res: any, @Query() query: any) {
         try {
+            console.log({ query });
             // this filter is used to make the string to date filter
             const queryStringForClaims = await this.filterHelper.overviewFilter(query);
             const queryString = await this.filterHelper.salesRepsMonthlyTargets(query);
