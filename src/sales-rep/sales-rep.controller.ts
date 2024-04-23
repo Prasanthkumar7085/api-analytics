@@ -70,7 +70,8 @@ export class SalesRepController {
 
 				const salesRepIds = salesReps.map(e => e.sales_rep_id);
 				query.sales_reps = salesRepIds;
-				targets = await this.salesRepHelper.getTargets(query);
+
+				targets = await this.salesRepHelper.getSalesRepsTargets(query);
 
 				salesReps = this.salesRepHelper.mergeSalesRepAndTargets(salesReps, targets);
 			}
@@ -78,7 +79,8 @@ export class SalesRepController {
 			return res.status(200).json({
 				success: true,
 				message: SUCCESS_FETCHED_SALES_REP,
-				data: salesReps
+				// data: targets,
+				salesReps
 			});
 		}
 		catch (error) {
@@ -197,27 +199,18 @@ export class SalesRepController {
 
 			const queryString = this.filterHelper.salesRepFacilities(query);
 
-			const data = await this.salesRepService.getVolumeStats(id, queryString);
+			const statsData = await this.salesRepService.getVolumeStats(id, queryString);
 
 			query.sales_reps = [id];
 
-			const salesRepTargetData = await this.salesRepHelper.getTargets(query);
+			const salesRepTargetData = await this.salesRepHelper.getSalesRepsTargets(query);
 
-			const targetVolume = salesRepTargetData.reduce((acc, entry) => {
-				// Iterate over the months and add the first element value of each month
-				Object.values(entry)
-					.filter(val => Array.isArray(val)) // Filter out non-array values
-					.forEach(month => acc += month[0]); // Add the first element value
-
-				return acc;
-			}, 0);
-
-			data[0].target_volume = targetVolume;
+			statsData[0].target_volume = salesRepTargetData[0].total_targets || 0;
 
 			return res.status(200).json({
 				success: true,
 				message: SUCCESS_FECTED_SALE_REP_VOLUME_STATS,
-				data
+				data: statsData
 			});
 		}
 		catch (error) {

@@ -700,6 +700,7 @@ export class SalesRepHelper {
         const queryString = this.filterHelper.salesRepsTargets(query);
 
         let targets: any = await this.salesRepsTargetsService.getSalesRepTargets(queryString);
+        console.log({ targets });
 
         const fromDate = query.from_date;
         const toDate = query.to_date;
@@ -770,56 +771,15 @@ export class SalesRepHelper {
 
 
     mergeSalesRepAndTargets(salesReps, targets) {
-        const groupedData = targets.reduce((acc, item) => {
-            const { sales_rep_id, ...rest } = item;
-            if (!acc[sales_rep_id]) {
-                acc[sales_rep_id] = { sales_rep_id, ...rest };
-            } else {
-                Object.keys(rest).forEach(key => {
-                    if (Array.isArray(acc[sales_rep_id][key])) {
-                        acc[sales_rep_id][key] = acc[sales_rep_id][key].map((val, index) => val + rest[key][index]);
-                    }
-                });
+        salesReps.forEach(rep => {
+            const target = targets.find(t => t.sales_rep_id === rep.sales_rep_id);
+            if (target) {
+                rep.total_targets = target.total_targets;
             }
-            return acc;
-        }, {});
-
-        // Convert groupedData object to array
-        const result = Object.values(groupedData).map(({ id, year, ...rest }) => rest);
-
-        const mergedResult = result.map(item => {
-            const total = Object.values(item)
-                .filter(val => Array.isArray(val)) // Filter out arrays
-                .reduce((acc, curr) => {
-                    return acc.map((num, i) => num + curr[i]); // Sum corresponding elements
-                });
-
-            const respData: any = {
-                sales_rep_id: item.sales_rep_id,
-                target_volume: total[0],
-                target_facilities: total[1],
-                target_achived_volume: total[2],
-                target_achived_facilites: total[3]
-            };
-
-            if (respData.target_achived_volume >= respData.target_volume) {
-                respData.target_reached = true;
-            } else {
-                respData.target_reached = false;
-            }
-
-            return respData;
         });
 
         // merge the salesRep with target
         const finalResponse = salesReps.map(salesRep => {
-            const target = mergedResult.find(target => target.sales_rep_id === salesRep.sales_rep_id);
-            if (target) {
-                salesRep.target_volume = target.target_volume;
-                salesRep.target_facilities = target.target_facilities;
-                salesRep.target_reached = target.target_reached;
-            }
-
             if (salesRep.total_cases >= salesRep.target_volume) {
                 salesRep.target_reached = true;
             } else {
@@ -998,5 +958,13 @@ export class SalesRepHelper {
         });
 
         return transformedTargetData;
+    }
+
+    async getSalesRepsTargets(query){
+        const queryString = this.filterHelper.salesRepsTargets(query);
+
+        let targets: any = await this.salesRepsTargetsService.getTotalTargets(queryString);
+
+        return targets;
     }
 }
