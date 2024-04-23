@@ -114,7 +114,7 @@ export class SalesRepsTargetsService {
   }
 
 
-  async getAllTargets(queryString) {
+  async getAllTargetsForSalesRep(id, queryString) {
     const rawQuery = sql`
           SELECT 
               month,
@@ -135,11 +135,228 @@ export class SalesRepsTargetsService {
               CAST(SUM(pad) AS INTEGER) AS PAD_ALZHEIMERS,
               CAST(SUM(pul) AS INTEGER) AS PULMONARY_PANEL
           FROM sales_reps_monthly_targets
-          ${queryString ? sql`WHERE ${sql.raw(queryString)}` : sql``}
+          WHERE sales_rep_id = ${id}
+          ${queryString ? sql`AND ${sql.raw(queryString)}` : sql``}
           GROUP BY month;
         `;
     const data = await db.execute(rawQuery);
 
+    return data.rows;
+  }
+
+
+
+  async getSingleSalesRepTargetVolume(id, queryString) {
+    const rawQuery = sql`
+    SELECT 
+        CONCAT(
+            TO_CHAR(TO_DATE(month, 'MM-YYYY'), 'Mon'), 
+            ' ', 
+            TO_CHAR(TO_DATE(month, 'MM-YYYY'), 'YYYY')
+        ) AS month,
+        CAST(SUM(total) AS INTEGER) AS total_target
+    FROM 
+        sales_reps_monthly_targets
+    WHERE 
+        sales_rep_id = ${id}
+        ${queryString ? sql`AND ${sql.raw(queryString)}` : sql``}
+    GROUP BY 
+        month
+`;
+
+    const data = await db.execute(rawQuery);
+    return data.rows;
+  }
+
+
+  async getTargetsStatsForSingleRep(id) {
+    const rawQuery = sql`
+        SELECT 
+            'COVID' AS case_type_name,
+            CAST(SUM(CASE WHEN sales_rep_id = ${id} THEN covid ELSE 0 END) AS INTEGER) AS total_targets
+        FROM sales_reps_monthly_targets
+        UNION ALL
+        SELECT 
+            'COVID FLU' AS case_type_name,
+            CAST(SUM(CASE WHEN sales_rep_id = ${id} THEN covid_flu ELSE 0 END) AS INTEGER) AS total_targets
+        FROM sales_reps_monthly_targets
+        UNION ALL
+        SELECT 
+            'CLINICAL CHEMISTRY' AS case_type_name,
+            CAST(SUM(CASE WHEN sales_rep_id = ${id} THEN clinical ELSE 0 END) AS INTEGER) AS total_targets
+        FROM sales_reps_monthly_targets
+        UNION ALL
+        SELECT 
+            'GASTRO' AS case_type_name,
+            CAST(SUM(CASE WHEN sales_rep_id = ${id} THEN gastro ELSE 0 END) AS INTEGER) AS total_targets
+        FROM sales_reps_monthly_targets
+        UNION ALL
+        SELECT 
+            'NAIL' AS case_type_name,
+            CAST(SUM(CASE WHEN sales_rep_id = ${id} THEN nail ELSE 0 END) AS INTEGER) AS total_targets
+        FROM sales_reps_monthly_targets
+        UNION ALL
+        SELECT 
+            'PGX TEST' AS case_type_name,
+            CAST(SUM(CASE WHEN sales_rep_id = ${id} THEN pgx ELSE 0 END) AS INTEGER) AS total_targets
+        FROM sales_reps_monthly_targets
+        UNION ALL
+        SELECT 
+            'RESPIRATORY PANEL' AS case_type_name,
+            CAST(SUM(CASE WHEN sales_rep_id = ${id} THEN rpp ELSE 0 END) AS INTEGER) AS total_targets
+        FROM sales_reps_monthly_targets
+        UNION ALL
+        SELECT 
+            'TOXICOLOGY' AS case_type_name,
+            CAST(SUM(CASE WHEN sales_rep_id = ${id} THEN tox ELSE 0 END) AS INTEGER) AS total_targets
+        FROM sales_reps_monthly_targets
+        UNION ALL
+        SELECT 
+            'URINALYSIS' AS case_type_name,
+            CAST(SUM(CASE WHEN sales_rep_id = ${id} THEN ua ELSE 0 END) AS INTEGER) AS total_targets
+        FROM sales_reps_monthly_targets
+        UNION ALL
+        SELECT 
+            'UTI PANEL' AS case_type_name,
+            CAST(SUM(CASE WHEN sales_rep_id = ${id} THEN uti ELSE 0 END) AS INTEGER) AS total_targets
+        FROM sales_reps_monthly_targets
+        UNION ALL
+        SELECT 
+            'WOUND' AS case_type_name,
+            CAST(SUM(CASE WHEN sales_rep_id = ${id} THEN wound ELSE 0 END) AS INTEGER) AS total_targets
+        FROM sales_reps_monthly_targets
+        UNION ALL
+        SELECT 
+            'CARDIAC' AS case_type_name,
+            CAST(SUM(CASE WHEN sales_rep_id = ${id} THEN card ELSE 0 END) AS INTEGER) AS total_targets
+        FROM sales_reps_monthly_targets
+        UNION ALL
+        SELECT 
+            'CGX PANEL' AS case_type_name,
+            CAST(SUM(CASE WHEN sales_rep_id = ${id} THEN cgx ELSE 0 END) AS INTEGER) AS total_targets
+        FROM sales_reps_monthly_targets
+        UNION ALL
+        SELECT 
+            'DIABETES' AS case_type_name,
+            CAST(SUM(CASE WHEN sales_rep_id = ${id} THEN diabetes ELSE 0 END) AS INTEGER) AS total_targets
+        FROM sales_reps_monthly_targets
+        UNION ALL
+        SELECT 
+            'PAD ALZHEIMERS' AS case_type_name,
+            CAST(SUM(CASE WHEN sales_rep_id = ${id} THEN pad ELSE 0 END) AS INTEGER) AS total_targets
+        FROM sales_reps_monthly_targets
+        UNION ALL
+        SELECT 
+            'PULMONARY PANEL' AS case_type_name,
+            CAST(SUM(CASE WHEN sales_rep_id = ${id} THEN pul ELSE 0 END) AS INTEGER) AS total_targets
+        FROM sales_reps_monthly_targets
+    `;
+
+    const data = await db.execute(rawQuery);
+    return data.rows;
+  }
+
+
+  async getTargetsStats(queryString) {
+    const rawQuery = sql`
+        SELECT 
+            'COVID' AS case_type_name,
+            CAST(SUM(covid) AS INTEGER) AS total_targets
+        FROM sales_reps_monthly_targets
+        ${queryString ? sql`WHERE ${sql.raw(queryString)}` : sql``}
+        UNION ALL
+        SELECT 
+            'COVID FLU' AS case_type_name,
+            CAST(SUM(covid_flu) AS INTEGER) AS total_targets
+        FROM sales_reps_monthly_targets
+        ${queryString ? sql`WHERE ${sql.raw(queryString)}` : sql``}
+        UNION ALL
+        SELECT 
+            'CLINICAL CHEMISTRY' AS case_type_name,
+            CAST(SUM(clinical) AS INTEGER) AS total_targets
+        FROM sales_reps_monthly_targets
+        ${queryString ? sql`WHERE ${sql.raw(queryString)}` : sql``}
+        UNION ALL
+        SELECT 
+            'GASTRO' AS case_type_name,
+            CAST(SUM(gastro) AS INTEGER) AS total_targets
+        FROM sales_reps_monthly_targets
+        ${queryString ? sql`WHERE ${sql.raw(queryString)}` : sql``}
+        UNION ALL
+        SELECT 
+            'NAIL' AS case_type_name,
+            CAST(SUM(nail) AS INTEGER) AS total_targets
+        FROM sales_reps_monthly_targets
+        ${queryString ? sql`WHERE ${sql.raw(queryString)}` : sql``}
+        UNION ALL
+        SELECT 
+            'PGX TEST' AS case_type_name,
+            CAST(SUM(pgx) AS INTEGER) AS total_targets
+        FROM sales_reps_monthly_targets
+        ${queryString ? sql`WHERE ${sql.raw(queryString)}` : sql``}
+        UNION ALL
+        SELECT 
+            'RESPIRATORY PANEL' AS case_type_name,
+            CAST(SUM(rpp) AS INTEGER) AS total_targets
+        FROM sales_reps_monthly_targets
+        ${queryString ? sql`WHERE ${sql.raw(queryString)}` : sql``}
+        UNION ALL
+        SELECT 
+            'TOXICOLOGY' AS case_type_name,
+            CAST(SUM(tox) AS INTEGER) AS total_targets
+        FROM sales_reps_monthly_targets
+        ${queryString ? sql`WHERE ${sql.raw(queryString)}` : sql``}
+        UNION ALL
+        SELECT 
+            'URINALYSIS' AS case_type_name,
+            CAST(SUM(ua) AS INTEGER) AS total_targets
+        FROM sales_reps_monthly_targets
+        ${queryString ? sql`WHERE ${sql.raw(queryString)}` : sql``}
+        UNION ALL
+        SELECT 
+            'UTI PANEL' AS case_type_name,
+            CAST(SUM(uti) AS INTEGER) AS total_targets
+        FROM sales_reps_monthly_targets
+        ${queryString ? sql`WHERE ${sql.raw(queryString)}` : sql``}
+        UNION ALL
+        SELECT 
+            'WOUND' AS case_type_name,
+            CAST(SUM(wound) AS INTEGER) AS total_targets
+        FROM sales_reps_monthly_targets
+        ${queryString ? sql`WHERE ${sql.raw(queryString)}` : sql``}
+        UNION ALL
+        SELECT 
+            'CARDIAC' AS case_type_name,
+            CAST(SUM(card) AS INTEGER) AS total_targets
+        FROM sales_reps_monthly_targets
+        ${queryString ? sql`WHERE ${sql.raw(queryString)}` : sql``}
+        UNION ALL
+        SELECT 
+            'CGX PANEL' AS case_type_name,
+            CAST(SUM(cgx) AS INTEGER) AS total_targets
+        FROM sales_reps_monthly_targets
+        ${queryString ? sql`WHERE ${sql.raw(queryString)}` : sql``}
+        UNION ALL
+        SELECT 
+            'DIABETES' AS case_type_name,
+            CAST(SUM(diabetes) AS INTEGER) AS total_targets
+        FROM sales_reps_monthly_targets
+        ${queryString ? sql`WHERE ${sql.raw(queryString)}` : sql``}
+        UNION ALL
+        SELECT 
+            'PAD ALZHEIMERS' AS case_type_name,
+            CAST(SUM(pad) AS INTEGER) AS total_targets
+        FROM sales_reps_monthly_targets
+        ${queryString ? sql`WHERE ${sql.raw(queryString)}` : sql``}
+        UNION ALL
+        SELECT 
+            'PULMONARY PANEL' AS case_type_name,
+            CAST(SUM(pul) AS INTEGER) AS total_targets
+        FROM sales_reps_monthly_targets
+        ${queryString ? sql`WHERE ${sql.raw(queryString)}` : sql``}
+    `;
+
+    const data = await db.execute(rawQuery);
     return data.rows;
   }
 

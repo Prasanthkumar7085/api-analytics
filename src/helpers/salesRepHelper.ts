@@ -888,4 +888,92 @@ export class SalesRepHelper {
     }
 
 
+    mergeSalesRepCaseTypeWiseVolumeAndTargets(targetedData, patientClaimsData) {
+        const mergedDataMap = new Map();
+
+        // Merge data from targetedData into the map
+        targetedData.forEach(target => {
+            mergedDataMap.set(target.case_type_name, {
+                case_type_name: target.case_type_name,
+                total_targets: target.total_targets,
+                total_cases: 0 // Initialize total_cases to 0
+            });
+        });
+
+        // Merge data from patientClaimsData into the map
+        patientClaimsData.forEach(claim => {
+            const existingData = mergedDataMap.get(claim.case_type_name);
+            if (existingData) {
+                existingData.total_cases = claim.total_cases;
+                mergedDataMap.set(claim.case_type_name, existingData);
+            } else {
+                mergedDataMap.set(claim.case_type_name, {
+                    case_type_name: claim.case_type_name,
+                    total_targets: 0, // Initialize total_targets to 0
+                    total_cases: claim.total_cases
+                });
+            }
+        });
+
+        // Convert the map values to an array
+        const mergedDataArray = Array.from(mergedDataMap.values());
+        return mergedDataArray;
+    }
+
+    transformCaseTypeTargetsMonthWiseVolume(targetsData){
+        const transformedData = [];
+        targetsData.map(row => {
+            return Object.entries(row).map(([key, value]) => {
+                if (key !== 'month') {
+                    // Modify the key to match the desired format
+                    const case_type_name = key.replace(/_/g, ' ').toUpperCase();
+                    transformedData.push({
+                        case_type_name,
+                        month: this.convertMonthFormat(row.month),
+                        total_cases: value
+                    });
+                }
+            });
+        }).flat();
+
+        return transformedData;
+    }
+
+    convertMonthFormat(month) {
+		const [monthNum, year] = month.split('-');
+		const date = new Date(`${monthNum}-01-${year}`);
+		return date.toLocaleString('en-US', { month: 'short', year: 'numeric' });
+	}
+
+
+    mergeCaseTypeMonthlyVolumeAndTargets(salesReps, targetsData){
+        
+			const salesRepsMap = salesReps.reduce((map, item) => {
+				const key = `${item.month}-${item.case_type_name}`;
+				map[key] = item;
+				return map;
+			}, {});
+
+			// Merge targetsData with salesRepsData and calculate total_targets
+			const mergedData = targetsData.map(target => {
+				const key = `${target.month}-${target.case_type_name}`;
+				const salesData = salesRepsMap[key];
+				if (salesData) {
+					return {
+						case_type_name: target.case_type_name,
+						month: target.month,
+						total_cases: salesData.total_cases,
+						total_targets: target.total_cases
+					};
+				} else {
+					return {
+						case_type_name: target.case_type_name,
+						month: target.month,
+						total_cases: 0,
+						total_targets: target.total_cases
+					};
+				}
+			});
+            return mergedData;
+    }
 }

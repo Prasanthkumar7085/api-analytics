@@ -78,16 +78,23 @@ export class TargetsAchivedHelper {
                     }
 
                     // Check if the month already exists for the case type
-                    const existingMonth = groupedData[caseType].month_wise.find(item => item.month === monthYear);
+                    let existingMonth = groupedData[caseType].month_wise.find(item => item.month === monthYear);
                     if (existingMonth) {
                         // If the month exists, increment the total cases
                         existingMonth.total_cases += value;
                     } else {
                         // If the month doesn't exist, add a new entry for that month
-                        groupedData[caseType].month_wise.push({
+                        existingMonth = {
                             month: monthYear,
                             total_cases: value
-                        });
+                        };
+                        groupedData[caseType].month_wise.push(existingMonth);
+                    }
+
+                    // Check if there's a corresponding target case in targetedData
+                    const targetedEntry = targetedData.find(item => item.month === monthYear);
+                    if (targetedEntry && targetedEntry[key] !== 0) {
+                        existingMonth.target_cases = targetedEntry[key];
                     }
                 }
             });
@@ -95,28 +102,23 @@ export class TargetsAchivedHelper {
 
         // Iterate through each entry in the targetedData
         targetedData.forEach(entry => {
-            // Extract the month and year from the entry
             const monthYear = entry.month;
-
-            // Iterate through each key-value pair in the entry
             Object.entries(entry).forEach(([key, value]) => {
-                // Exclude the 'month' key
                 if (key !== 'month' && value !== 0) {
-                    // Extract the case type from the key (e.g., 'covid_flu' -> 'covid')
                     const caseType = key.split('_')[0];
-
-                    // Find the corresponding case type object in groupedData
-                    const caseTypeObject = groupedData[caseType];
-
-                    // If the case type object exists
-                    if (caseTypeObject) {
-                        // Find the month object in month_wise array for the current case type
-                        const monthObject = caseTypeObject.month_wise.find(item => item.month === monthYear);
-
-                        // If the month object exists, add the target cases
-                        if (monthObject) {
-                            monthObject.target_cases = value;
-                        }
+                    if (!groupedData[caseType]) {
+                        groupedData[caseType] = {
+                            case_type: caseType,
+                            month_wise: []
+                        };
+                    }
+                    const existingMonth = groupedData[caseType].month_wise.find(item => item.month === monthYear);
+                    if (!existingMonth) {
+                        groupedData[caseType].month_wise.push({
+                            month: monthYear,
+                            total_cases: 0,
+                            target_cases: value
+                        });
                     }
                 }
             });

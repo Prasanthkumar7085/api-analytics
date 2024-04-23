@@ -4,7 +4,7 @@ export class SortHelper {
     stats(orderBy, orderType) {
         const sort = {
             [orderBy]: orderType
-        }
+        };
         return sort;
     }
 
@@ -30,11 +30,11 @@ export class SortHelper {
         return dataArray;
     }
 
-    sort(salesReps, key){
+    sort(salesReps, key) {
         salesReps.sort((a, b) => {
             const nameA = a[`${key}`].toUpperCase();
             const nameB = b[`${key}`].toUpperCase();
-            
+
             if (nameA < nameB) {
                 return -1;
             }
@@ -42,6 +42,15 @@ export class SortHelper {
                 return 1;
             }
             return 0;
+        });
+        return salesReps;
+    }
+
+    sortOnMonth(salesReps) {
+        salesReps.sort((a, b) => {
+            const monthA: any = new Date(a.month);
+            const monthB: any = new Date(b.month);
+            return monthB - monthA;
         });
         return salesReps;
     }
