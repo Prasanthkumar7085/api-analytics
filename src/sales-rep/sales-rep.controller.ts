@@ -810,26 +810,18 @@ export class SalesRepController {
 
 			let month;
 			let year;
+
 			const queryString = this.filterHelper.salesRepFacilities(query);
 
-			const data = await this.salesRepService.getVolumeStats(sales_repid, queryString);
+			const statsData = await this.salesRepService.getVolumeStats(sales_repid, queryString);
 
 			query.sales_reps = [sales_repid];
 
-			const salesRepTargetData = await this.salesRepHelper.getTargets(query);
+			const salesRepTargetData = await this.salesRepHelper.getSalesRepsTargets(query);
 
 			const salesRepData = await this.salesRepService.getOne(sales_repid);
 
-			const targetVolume = salesRepTargetData.reduce((acc, entry) => {
-				// Iterate over the months and add the first element value of each month
-				Object.values(entry)
-					.filter(val => Array.isArray(val)) // Filter out non-array values
-					.forEach(month => acc += month[0]); // Add the first element value
-
-				return acc;
-			}, 0);
-
-			data[0].target_volume = targetVolume;
+			statsData[0].target_volume = salesRepTargetData[0].total_targets || 0;
 
 			if (query.from_date && query.to_date) {
 				const fromDate = new Date(query.from_date);
@@ -841,31 +833,31 @@ export class SalesRepController {
 			else {
 
 				const dateObject = new Date();
-				month = dateObject.getMonth();
+				month = dateObject.getMonth() + 1;
 				year = dateObject.getFullYear();
 
 			}
 
-			data[0].sales_rep_name = salesRepData[0].sales_rep;
-			data[0].sales_rep_email = salesRepData[0].sales_rep_email;
-			data[0].month = month;
-			data[0].year = year;
+			statsData[0].sales_rep_name = salesRepData[0].sales_rep;
+			statsData[0].sales_rep_email = salesRepData[0].sales_rep_email;
+			statsData[0].month = month;
+			statsData[0].year = year;
 
-			if (!data[0].sales_rep_email) {
-				throw new Error("Sales rep email is empty");
-			}
+			// if (!statsData[0].sales_rep_email) {
+			// 	throw new Error("Sales rep email is empty");
+			// }
 
 			let emailContent = {
-				email: data[0].sales_rep_email,
+				email: statsData[0].sales_rep_email,
 				subject: 'Volume targets summary'
 			};
 
-			await this.emailServiceProvider.sendSalesRepsTargetSummaryReport(emailContent, data[0]);
+			this.emailServiceProvider.sendSalesRepsTargetSummaryReport(emailContent, statsData[0]);
 
 			return res.status(200).json({
 				success: true,
 				message: SUCCESS_FECTED_SALE_REP_VOLUME_STATS,
-				data
+				statsData
 			});
 		}
 		catch (error) {
