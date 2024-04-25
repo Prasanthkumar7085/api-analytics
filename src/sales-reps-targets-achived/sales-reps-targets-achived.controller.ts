@@ -52,7 +52,7 @@ export class SalesRepsTargetsAchivedController {
           sales_rep_name: target.sales_rep_name,
           total_targets: target.total_targets || 0,
           total_achievements: achieve ? achieve.total_achieves : 0,
-          month: target.month
+          month: this.formateMonth(target.month)
         };
       });
 
@@ -73,4 +73,15 @@ export class SalesRepsTargetsAchivedController {
       });
     }
   }
+
+  formateMonth(monthString) {
+    const [month, year] = monthString.split('-');
+    const monthIndex = parseInt(month) - 1; // Adjusting month index
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const monthName = monthNames[monthIndex];
+    return `${monthName} ${year}`;
+  }
+
+
 }
+

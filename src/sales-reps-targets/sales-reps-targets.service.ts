@@ -459,7 +459,7 @@ export class SalesRepsTargetsService {
                                 SELECT
                                     sm.sales_rep_id,
                                     s.name AS sales_rep_name,
-                                    sm.month,
+                                    sm.month AS month,
                                     CAST(SUM(sm.covid) AS INTEGER) AS COVID,
                                     CAST(SUM(sm.covid_flu) AS INTEGER) AS COVID_FLU,
                                     CAST(SUM(sm.clinical) AS INTEGER) AS CLINICAL_CHEMISTRY,
@@ -491,7 +491,7 @@ export class SalesRepsTargetsService {
                         TOXICOLOGY + URINALYSIS + UTI_PANEL + WOUND + CARDIAC + CGX_PANEL + DIABETES +
                         PAD_ALZHEIMERS + PULMONARY_PANEL
                     ) AS total_targets,
-                        TO_DATE(month, 'MM-YYYY') AS month
+                        month
                         FROM targets`;
 
         const data = await db.execute(rawQuery);
