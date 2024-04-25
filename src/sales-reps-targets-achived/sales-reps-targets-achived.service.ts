@@ -111,4 +111,52 @@ export class SalesRepsTargetsAchivedService {
     const data = await db.execute(rawQuery);
     return data.rows;
   }
+
+
+  async getTotalTargetAchievementsMonthWise(queryString) {
+    const rawQuery = sql`
+                    WITH targets AS (
+                                SELECT
+                                  sm.sales_rep_id,
+                                  s.name AS sales_rep_name,
+                                  sm.month,
+                                  CAST(SUM(sm.covid_a) AS INTEGER) AS COVID,
+                                  CAST(SUM(sm.covid_flu_a) AS INTEGER) AS COVID_FLU,
+                                  CAST(SUM(sm.clinical_a) AS INTEGER) AS CLINICAL_CHEMISTRY,
+                                  CAST(SUM(sm.gastro_a) AS INTEGER) AS GASTRO,
+                                  CAST(SUM(sm.nail_a) AS INTEGER) AS NAIL,
+                                  CAST(SUM(sm.pgx_a) AS INTEGER) AS PGX_TEST,
+                                  CAST(SUM(sm.rpp_a) AS INTEGER) AS RESPIRATORY_PANEL,
+                                  CAST(SUM(sm.tox_a) AS INTEGER) AS TOXICOLOGY,
+                                  CAST(SUM(sm.ua_a) AS INTEGER) AS URINALYSIS,
+                                  CAST(SUM(sm.uti_a) AS INTEGER) AS UTI_PANEL,
+                                  CAST(SUM(sm.wound_a) AS INTEGER) AS WOUND,
+                                  CAST(SUM(sm.card_a) AS INTEGER) AS CARDIAC,
+                                  CAST(SUM(sm.cgx_a) AS INTEGER) AS CGX_PANEL,
+                                  CAST(SUM(sm.diabetes_a) AS INTEGER) AS DIABETES,
+                                  CAST(SUM(sm.pad_a) AS INTEGER) AS PAD_ALZHEIMERS,
+                                  CAST(SUM(sm.pul_a) AS INTEGER) AS PULMONARY_PANEL
+                          FROM sales_reps_monthly_achieves sm
+                          JOIN sales_reps s ON sm.sales_rep_id = s.id 
+                          ${queryString ? sql`WHERE ${sql.raw(queryString)}` : sql``}
+                          GROUP BY sm.sales_rep_id,
+                                  sm.month,
+                                  s.name  
+                          
+                    )
+                    SELECT 
+                        sales_rep_id,
+                        sales_rep_name,
+                        (
+                          COVID + COVID_FLU + CLINICAL_CHEMISTRY + GASTRO + NAIL + PGX_TEST + RESPIRATORY_PANEL +
+                          TOXICOLOGY + URINALYSIS + UTI_PANEL + WOUND + CARDIAC + CGX_PANEL + DIABETES +
+                          PAD_ALZHEIMERS + PULMONARY_PANEL
+                        ) AS total_achieves,
+                    TO_DATE(month, 'MM-YYYY') AS month
+                    FROM targets`;
+
+    const data = await db.execute(rawQuery);
+
+    return data.rows;
+  }
 }

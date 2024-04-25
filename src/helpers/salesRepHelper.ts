@@ -4,6 +4,7 @@ import { SalesRepService } from "src/sales-rep/sales-rep.service";
 import { FilterHelper } from "./filterHelper";
 import { SortHelper } from "./sortHelper";
 import { SalesRepsTargetsService } from "src/sales-reps-targets/sales-reps-targets.service";
+import { SalesRepsTargetsAchivedService } from "src/sales-reps-targets-achived/sales-reps-targets-achived.service";
 
 
 @Injectable()
@@ -13,6 +14,7 @@ export class SalesRepHelper {
         private readonly filterHelper: FilterHelper,
         private readonly sortHelper: SortHelper,
         private readonly salesRepsTargetsService: SalesRepsTargetsService,
+        private readonly salesRepsTargetsAchivedService: SalesRepsTargetsAchivedService,
 
     ) { }
 
@@ -156,8 +158,10 @@ export class SalesRepHelper {
         });
 
         // merge the salesRep with target
+
         const finalResponse = salesReps.map(salesRep => {
-            if (salesRep.total_cases >= salesRep.target_volume) {
+            if (salesRep.total_cases >= salesRep.total_cases) {
+
                 salesRep.target_reached = true;
             } else {
                 salesRep.target_reached = false;
@@ -337,10 +341,27 @@ export class SalesRepHelper {
         return transformedTargetData;
     }
 
-    async getSalesRepsTargets(query){
+    async getSalesRepsTargets(query) {
         const queryString = this.filterHelper.salesRepsMonthlyTargets(query);
 
         let targets: any = await this.salesRepsTargetsService.getTotalTargets(queryString);
+
+        return targets;
+    }
+
+
+    async getSalesRepsMonthWiseTargets(query) {
+        const queryString = this.filterHelper.salesRepsMonthlyTargets(query);
+
+        let targets: any = await this.salesRepsTargetsService.getTotalTargetsMonthWise(queryString);
+
+        return targets;
+    }
+
+    async getSalesRepsMonthWiseAchievements(query) {
+        const queryString = this.filterHelper.salesRepsMonthlyAchievedTargets(query);
+
+        let targets: any = await this.salesRepsTargetsAchivedService.getTotalTargetAchievementsMonthWise(queryString);
 
         return targets;
     }
