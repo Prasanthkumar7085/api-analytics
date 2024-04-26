@@ -50,7 +50,7 @@ export class SortHelper {
         salesReps.sort((a, b) => {
             const monthA: any = new Date(a.month);
             const monthB: any = new Date(b.month);
-            return monthB - monthA;
+            return monthA - monthB;
         });
         return salesReps;
     }

@@ -20,7 +20,7 @@ export class SalesRepsTargetsController {
     private readonly filterHelper: FilterHelper
 
   ) { }
-
+  @UseGuards(AuthGuard)
   @Get()
   async getAll(
     @Res() res: any,

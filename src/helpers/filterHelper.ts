@@ -346,11 +346,15 @@ export class FilterHelper {
         if (fromDate && toDate) {
             const from = new Date(fromDate);
             const to = new Date(toDate);
+            const monthRange = [];
 
-            // Getting years without using for loops
-            const yearRange = Array.from({ length: to.getFullYear() - from.getFullYear() + 1 }, (_, index) => from.getFullYear() + index);
+            // Loop through each month between from and to dates
+            for (let current = new Date(from); current <= to; current.setMonth(current.getMonth() + 1)) {
+                const monthYear = `${('0' + (current.getMonth() + 1)).slice(-2)}-${current.getFullYear()}`;
+                monthRange.push(`'${monthYear}'`);
+            }
 
-            filter.push(`year IN (${yearRange})`);
+            filter.push(`month IN (${monthRange.join(", ")})`);
         }
 
         if (query.month) {
@@ -400,6 +404,7 @@ export class FilterHelper {
             filter.push(`month IN (${monthRange.join(", ")})`);
         }
 
+
         let queryString;
         if (filter.length > 0) {
             queryString = filter.join(" AND ");
@@ -434,6 +439,52 @@ export class FilterHelper {
 
             filter.push(`month IN (${monthRange.join(", ")})`);
         }
+
+        let queryString;
+        if (filter.length > 0) {
+            queryString = filter.join(" AND ");
+        }
+
+        return queryString;
+    }
+
+
+    salesRepsMonthlyAchievedTargets(query) {
+        let filter = [];
+        const {
+            sales_rep: salesRep,
+            sales_reps: salesReps,
+            from_date: fromDate,
+            to_date: toDate
+        } = query;
+
+        if (salesRep) {
+            filter.push(`sales_rep_id = ${salesRep}`);
+        }
+
+        if (salesReps) {
+            filter.push(`sales_rep_id IN (${salesReps})`);
+        }
+
+        if (fromDate && toDate) {
+            const from = new Date(fromDate);
+            const to = new Date(toDate);
+            const monthRange = [];
+
+            // Loop through each month between from and to dates
+            for (let current = new Date(from); current <= to; current.setMonth(current.getMonth() + 1)) {
+                const monthYear = `${('0' + (current.getMonth() + 1)).slice(-2)}-${current.getFullYear()}`;
+                monthRange.push(`'${monthYear}'`);
+            }
+
+            filter.push(`month IN (${monthRange.join(", ")})`);
+        }
+
+
+        if (query.month) {
+            filter.push(`month='${query.month}'`);
+        }
+
 
         let queryString;
         if (filter.length > 0) {
