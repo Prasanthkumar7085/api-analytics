@@ -96,7 +96,7 @@ export const salesRepsTargetsTemplate = `
                 <tbody>
                     <tr>
                         <td style="overflow:hidden;padding:5px;vertical-align:bottom;border:1px solid #999999;">
-                            <%= month %> (<%= year %>)
+                            <%= month %>-<%= year %>
                         </td>
                         <td style="overflow:hidden;padding:5px;vertical-align:bottom;border:1px solid #999999;">
                             <%= target_volume %>

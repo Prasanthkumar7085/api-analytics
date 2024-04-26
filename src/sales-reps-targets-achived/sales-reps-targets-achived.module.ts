@@ -15,13 +15,15 @@ import { testPanelsDataSchema } from 'src/schemas/testPanelSchema';
 import { UserSchema } from 'src/schemas/userSchema';
 import { SalesRepsTargetsAchivedController } from './sales-reps-targets-achived.controller';
 import { SalesRepsTargetsAchivedService } from './sales-reps-targets-achived.service';
+import { SalesRepHelper } from 'src/helpers/salesRepHelper';
+import { SortHelper } from 'src/helpers/sortHelper';
 
 @Module({
   controllers: [SalesRepsTargetsAchivedController],
   providers: [SalesRepsTargetsAchivedService, SalesRepsTargetsService, JwtService, LisService, SalesRepService, MghDbConnections,
-    MghSyncService, FilterHelper
+    MghSyncService, FilterHelper, SalesRepHelper, SortHelper
   ],
-  imports:[
+  imports: [
     MongooseModule.forFeature([
       { name: 'User', schema: UserSchema },
       { name: 'Case', schema: CaseSchema },
@@ -33,4 +35,4 @@ import { SalesRepsTargetsAchivedService } from './sales-reps-targets-achived.ser
     ])
   ]
 })
-export class SalesRepsTargetsAchivedModule {}
+export class SalesRepsTargetsAchivedModule { }
