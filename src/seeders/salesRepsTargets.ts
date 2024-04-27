@@ -1,7 +1,5 @@
 import { sales_reps_monthly_targets } from '../../src/drizzle/schemas/salesRepsMonthlyTargets';
-import { sales_reps_targets } from '../../src/drizzle/schemas/salesRepsTargets';
 import { db } from './db';
-import { faker } from '@faker-js/faker';
 
 
 export default {

@@ -2,6 +2,7 @@ import { Injectable } from "@nestjs/common";
 import * as ejs from 'ejs';
 import { salesRepsTargetsTemplate } from "src/views/email-templates/sales-reps-targets";
 import { SESAPIDataServiceProvider } from "./sesAPIDataServiceProvider";
+import { salesRepsUpdateTargetsNotifyTemplate } from "src/views/email-templates/update-targets";
 
 @Injectable()
 export class EmailServiceProvider {
@@ -63,6 +64,12 @@ export class EmailServiceProvider {
 
         this.sendEmail(emailData, emailContent, salesRepsTargetsTemplate);
     }
+
+    async sendSalesRepsTargetVolumeUpdateNotification(emailData, emailContent) {
+
+        this.sendEmail(emailData, emailContent, salesRepsUpdateTargetsNotifyTemplate);
+    }
+
 
 }
 

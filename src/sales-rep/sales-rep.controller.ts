@@ -848,7 +848,7 @@ export class SalesRepController {
 			// }
 
 			let emailContent = {
-				email: statsData[0].sales_rep_email,
+				email: "tharunampolu9.8@gmail.com",
 				subject: 'Volume targets summary'
 			};
 
