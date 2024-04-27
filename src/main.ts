@@ -2,8 +2,6 @@ import { HttpException, HttpStatus, ValidationError, ValidationPipe, VersioningT
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { errorFormattor } from './validation';
-import * as express from 'express';
-import * as path from 'path';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -32,9 +30,6 @@ async function bootstrap() {
     forbidUnknownValues: true,
     stopAtFirstError: true,
   }));
-
-
-  app.use('/public', express.static(path.join(__dirname, '..', '//public')));
 
   await app.listen(process.env.PORT || 3000);
 }
