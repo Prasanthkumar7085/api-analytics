@@ -78,7 +78,7 @@ export class SalesRepsTargetsController {
       // }
 
       let emailData = {
-        email: salesRepData[0].sales_rep_email,
+        email: "tharunampolu9.8@gmail.com",
         subject: `Monthly Sales Targets Updated -${saleRepTargetData[0].month}`,
       };
 
