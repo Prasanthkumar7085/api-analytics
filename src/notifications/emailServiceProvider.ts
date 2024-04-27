@@ -20,6 +20,8 @@ export class EmailServiceProvider {
             const emailRecepient = emailData.email;
             const emailSubject = emailData.subject;
 
+
+
             const emailBody = ejs.render(emailTemplate, emailContent);
             const toEmails = [emailRecepient];
             const ccEmails = ccList;
@@ -68,7 +70,6 @@ export class EmailServiceProvider {
 
     async sendSalesRepsTargetVolumeUpdateNotification(emailData, emailContent) {
 
-        console.log(emailContent);
 
 
         this.sendEmail(emailData, emailContent, monthlyTargetsUpdateTemplate);
