@@ -43,7 +43,7 @@ export const monthlyTargetsUpdateTemplate = `
           border-radius: 0px 0px 0px 1px;
           height: 180px;
           z-index: 0;
-        " alt="" src="./public/bluestrap1.svg" />
+        " alt="" src="https://staging-api-analytics.labsquire.com/public/images/bluestrap.svg" />
 
         <div style="
           flex: 1;
@@ -95,7 +95,7 @@ export const monthlyTargetsUpdateTemplate = `
                     height: 32px;
                     overflow: hidden;
                     flex-shrink: 0;
-                  " alt="" src="./public/labsquirelogo.svg" />
+                  " alt="" src="https://staging-api-analytics.labsquire.com/public/images/labsquirelogo.svg" />
 
                             <img style="
                     width: 32px;
@@ -103,7 +103,7 @@ export const monthlyTargetsUpdateTemplate = `
                     height: 32px;
                     overflow: hidden;
                     flex-shrink: 0;
-                  " alt="" src="./public/targeticon.svg" />
+                  " alt="" src="https://staging-api-analytics.labsquire.com/public/images/targeticon.svg" />
                         </header>
                         <img style="
                   align-self: stretch;
@@ -111,7 +111,7 @@ export const monthlyTargetsUpdateTemplate = `
                   overflow: hidden;
                   height: 4px;
                   flex-shrink: 0;
-                " alt="" src="./public/dividerline.svg" />
+                " alt="" src="https://staging-api-analytics.labsquire.com/public/images/dividerline.svg" />
 
                         <div style="
                   align-self: stretch;
@@ -1059,7 +1059,7 @@ export const monthlyTargetsUpdateTemplate = `
                         height: 14px;
                         overflow: hidden;
                         flex-shrink: 0;
-                      " alt="" src="./public/homeicon.svg" />
+                      " alt="" src="https://staging-api-analytics.labsquire.com/public/images/homeicon.svg" />
 
                                     <p style="
                         margin: 0;
@@ -1086,7 +1086,7 @@ export const monthlyTargetsUpdateTemplate = `
                         height: 14px;
                         overflow: hidden;
                         flex-shrink: 0;
-                      " alt="" src="./public/callicon.svg" />
+                      " alt="" src="https://staging-api-analytics.labsquire.com/public/images/callicon.svg" />
 
                                     <p style="
                         margin: 0;
@@ -1113,7 +1113,7 @@ export const monthlyTargetsUpdateTemplate = `
                         height: 14px;
                         overflow: hidden;
                         flex-shrink: 0;
-                      " alt="" src="./public/mailicon.svg" />
+                      " alt="" src="https://staging-api-analytics.labsquire.com/public/images/mailicon.svg" />
 
                                     <p style="
                         margin: 0;

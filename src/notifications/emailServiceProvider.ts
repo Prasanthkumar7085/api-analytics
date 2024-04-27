@@ -3,6 +3,7 @@ import * as ejs from 'ejs';
 import { salesRepsTargetsTemplate } from "src/views/email-templates/sales-reps-targets";
 import { SESAPIDataServiceProvider } from "./sesAPIDataServiceProvider";
 import { salesRepsUpdateTargetsNotifyTemplate } from "src/views/email-templates/update-targets";
+import { monthlyTargetsUpdateTemplate } from "src/views/email-templates/montly-sales-targets-update-template";
 
 @Injectable()
 export class EmailServiceProvider {
@@ -67,7 +68,7 @@ export class EmailServiceProvider {
 
     async sendSalesRepsTargetVolumeUpdateNotification(emailData, emailContent) {
 
-        this.sendEmail(emailData, emailContent, salesRepsUpdateTargetsNotifyTemplate);
+        this.sendEmail(emailData, emailContent, monthlyTargetsUpdateTemplate);
     }
 
 
