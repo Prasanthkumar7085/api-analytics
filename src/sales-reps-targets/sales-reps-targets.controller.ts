@@ -103,16 +103,12 @@ export class SalesRepsTargetsController {
 
       this.emailServiceProvider.sendSalesRepsTargetVolumeUpdateNotification(emailData, emailContent);
 
-      const invoiceHtmlCode = ejs.render(monthlyTargetsUpdateTemplate, emailContent);
 
-      res.status(200).send(invoiceHtmlCode);
+      return res.status(200).json({
+        success: true,
+        message: SALES_REPS_TARGET_DATA_UPDATED_SUCCESS,
 
-
-      // return res.status(200).json({
-      //   success: true,
-      //   message: SALES_REPS_TARGET_DATA_UPDATED_SUCCESS,
-
-      // });
+      });
     }
     catch (error) {
       console.log(error);
