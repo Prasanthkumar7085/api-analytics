@@ -1,5 +1,4 @@
-export const monthlyTargetsUpdateTemplate = `
-<!DOCTYPE html>
+export const monthlyTargetsUpdateTemplate = `<!DOCTYPE html>
 <html>
 
 <head>
@@ -43,7 +42,7 @@ export const monthlyTargetsUpdateTemplate = `
           border-radius: 0px 0px 0px 1px;
           height: 180px;
           z-index: 0;
-        " alt="" src="https://staging-api-analytics.labsquire.com/public/images/bluestrap.svg" />
+        " alt="" src="https://api-analyticslabsquire-staging.up.railway.app/public/images/bluestrap.svg" />
 
         <div style="
           flex: 1;
@@ -95,7 +94,7 @@ export const monthlyTargetsUpdateTemplate = `
                     height: 32px;
                     overflow: hidden;
                     flex-shrink: 0;
-                  " alt="" src="https://staging-api-analytics.labsquire.com/public/images/labsquirelogo.svg" />
+                  " alt="" src="https://api-analyticslabsquire-staging.up.railway.app/public/images/labsquirelogo.svg" />
 
                             <img style="
                     width: 32px;
@@ -103,7 +102,7 @@ export const monthlyTargetsUpdateTemplate = `
                     height: 32px;
                     overflow: hidden;
                     flex-shrink: 0;
-                  " alt="" src="https://staging-api-analytics.labsquire.com/public/images/targeticon.svg" />
+                  " alt="" src="https://api-analyticslabsquire-staging.up.railway.app/public/images/targeticon.svg" />
                         </header>
                         <img style="
                   align-self: stretch;
@@ -111,7 +110,7 @@ export const monthlyTargetsUpdateTemplate = `
                   overflow: hidden;
                   height: 4px;
                   flex-shrink: 0;
-                " alt="" src="https://staging-api-analytics.labsquire.com/public/images/dividerline.svg" />
+                " alt="" src="https://api-analyticslabsquire-staging.up.railway.app/public/images/dividerline.svg" />
 
                         <div style="
                   align-self: stretch;
@@ -246,6 +245,9 @@ export const monthlyTargetsUpdateTemplate = `
                                 </div>
                             </div>
                         </div>
+                      
+                        <% emailContent.forEach((target)=> { %>
+                      
                         <div style="
                   align-self: stretch;
                   border-bottom: 1px solid #e2e5f4;
@@ -255,6 +257,7 @@ export const monthlyTargetsUpdateTemplate = `
                   align-items: flex-start;
                   justify-content: flex-start;
                 ">
+
                             <div style="
                     width: 141px;
                     background-color: #fff;
@@ -266,12 +269,14 @@ export const monthlyTargetsUpdateTemplate = `
                     justify-content: flex-start;
                     padding: 14px 16px;
                   ">
+
                                 <div style="
                       position: relative;
                       line-height: 100%;
                       text-transform: capitalize;
                     ">
-                                    covid
+                                                                    <%= target.caseType %>
+
                                 </div>
                             </div>
                             <div style="
@@ -285,7 +290,8 @@ export const monthlyTargetsUpdateTemplate = `
                     justify-content: flex-start;
                     padding: 14px 16px;
                   ">
-                                <div style="position: relative; line-height: 100%">50</div>
+                                <div style="position: relative; line-height: 100%">                                <%= target.oldTargets %>
+</div>
                             </div>
                             <div style="
                     flex: 1;
@@ -295,703 +301,13 @@ export const monthlyTargetsUpdateTemplate = `
                     justify-content: flex-start;
                     padding: 14px 16px;
                   ">
-                                <div style="position: relative; line-height: 100%">50</div>
+                                <div style="position: relative; line-height: 100%">                            <%= target.updatedTargets %>
+</div>
                             </div>
                         </div>
-                        <div style="
-                  align-self: stretch;
-                  border-bottom: 1px solid #e2e5f4;
-                  overflow: hidden;
-                  display: flex;
-                  flex-direction: row;
-                  align-items: flex-start;
-                  justify-content: flex-start;
-                ">
-                            <div style="
-                    width: 141px;
-                    background-color: #fff;
-                    border-right: 1px solid #e2e5f4;
-                    box-sizing: border-box;
-                    display: flex;
-                    flex-direction: row;
-                    align-items: center;
-                    justify-content: flex-start;
-                    padding: 14px 16px;
-                  ">
-                                <div style="
-                      position: relative;
-                      line-height: 100%;
-                      text-transform: capitalize;
-                    ">
-                                    covidFlu
-                                </div>
-                            </div>
-                            <div style="
-                    width: 136px;
-                    background-color: #fff;
-                    border-right: 1px solid #e2e5f4;
-                    box-sizing: border-box;
-                    display: flex;
-                    flex-direction: row;
-                    align-items: center;
-                    justify-content: flex-start;
-                    padding: 14px 16px;
-                  ">
-                                <div style="position: relative; line-height: 100%">100</div>
-                            </div>
-                            <div style="
-                    flex: 1;
-                    display: flex;
-                    flex-direction: row;
-                    align-items: center;
-                    justify-content: flex-start;
-                    padding: 14px 16px;
-                  ">
-                                <div style="position: relative; line-height: 100%">100</div>
-                            </div>
-                        </div>
-                        <div style="
-                  align-self: stretch;
-                  border-bottom: 1px solid #e2e5f4;
-                  overflow: hidden;
-                  display: flex;
-                  flex-direction: row;
-                  align-items: flex-start;
-                  justify-content: flex-start;
-                ">
-                            <div style="
-                    width: 141px;
-                    background-color: #ffeaee;
-                    border-right: 1px solid #e2e5f4;
-                    box-sizing: border-box;
-                    display: flex;
-                    flex-direction: row;
-                    align-items: center;
-                    justify-content: flex-start;
-                    padding: 14px 16px;
-                  ">
-                                <div style="
-                      position: relative;
-                      line-height: 100%;
-                      text-transform: capitalize;
-                    ">
-                                    clinical
-                                </div>
-                            </div>
-                            <div style="
-                    width: 136px;
-                    background-color: #ffeaee;
-                    border-right: 1px solid #e2e5f4;
-                    box-sizing: border-box;
-                    display: flex;
-                    flex-direction: row;
-                    align-items: center;
-                    justify-content: flex-start;
-                    padding: 14px 16px;
-                  ">
-                                <div style="position: relative; line-height: 100%">30</div>
-                            </div>
-                            <div style="
-                    flex: 1;
-                    background-color: #ffeaee;
-                    display: flex;
-                    flex-direction: row;
-                    align-items: center;
-                    justify-content: flex-start;
-                    padding: 14px 16px;
-                    color: #bf1b39;
-                  ">
-                                <div style="position: relative; line-height: 100%">50</div>
-                            </div>
-                        </div>
-                        <div style="
-                  align-self: stretch;
-                  border-bottom: 1px solid #e2e5f4;
-                  overflow: hidden;
-                  display: flex;
-                  flex-direction: row;
-                  align-items: flex-start;
-                  justify-content: flex-start;
-                ">
-                            <div style="
-                    width: 141px;
-                    background-color: #fff;
-                    border-right: 1px solid #e2e5f4;
-                    box-sizing: border-box;
-                    display: flex;
-                    flex-direction: row;
-                    align-items: center;
-                    justify-content: flex-start;
-                    padding: 14px 16px;
-                  ">
-                                <div style="
-                      position: relative;
-                      line-height: 100%;
-                      text-transform: capitalize;
-                    ">
-                                    gastro
-                                </div>
-                            </div>
-                            <div style="
-                    width: 136px;
-                    background-color: #fff;
-                    border-right: 1px solid #e2e5f4;
-                    box-sizing: border-box;
-                    display: flex;
-                    flex-direction: row;
-                    align-items: center;
-                    justify-content: flex-start;
-                    padding: 14px 16px;
-                  ">
-                                <div style="position: relative; line-height: 100%">10</div>
-                            </div>
-                            <div style="
-                    flex: 1;
-                    display: flex;
-                    flex-direction: row;
-                    align-items: center;
-                    justify-content: flex-start;
-                    padding: 14px 16px;
-                  ">
-                                <div style="position: relative; line-height: 100%">10</div>
-                            </div>
-                        </div>
-                        <div style="
-                  align-self: stretch;
-                  border-bottom: 1px solid #e2e5f4;
-                  overflow: hidden;
-                  display: flex;
-                  flex-direction: row;
-                  align-items: flex-start;
-                  justify-content: flex-start;
-                ">
-                            <div style="
-                    width: 141px;
-                    background-color: #fff;
-                    border-right: 1px solid #e2e5f4;
-                    box-sizing: border-box;
-                    display: flex;
-                    flex-direction: row;
-                    align-items: center;
-                    justify-content: flex-start;
-                    padding: 14px 16px;
-                  ">
-                                <div style="
-                      position: relative;
-                      line-height: 100%;
-                      text-transform: capitalize;
-                    ">
-                                    nail
-                                </div>
-                            </div>
-                            <div style="
-                    width: 136px;
-                    background-color: #fff;
-                    border-right: 1px solid #e2e5f4;
-                    box-sizing: border-box;
-                    display: flex;
-                    flex-direction: row;
-                    align-items: center;
-                    justify-content: flex-start;
-                    padding: 14px 16px;
-                  ">
-                                <div style="position: relative; line-height: 100%">100</div>
-                            </div>
-                            <div style="
-                    flex: 1;
-                    display: flex;
-                    flex-direction: row;
-                    align-items: center;
-                    justify-content: flex-start;
-                    padding: 14px 16px;
-                  ">
-                                <div style="position: relative; line-height: 100%">100</div>
-                            </div>
-                        </div>
-                        <div style="
-                  align-self: stretch;
-                  border-bottom: 1px solid #e2e5f4;
-                  overflow: hidden;
-                  display: flex;
-                  flex-direction: row;
-                  align-items: flex-start;
-                  justify-content: flex-start;
-                ">
-                            <div style="
-                    width: 141px;
-                    background-color: #fff;
-                    border-right: 1px solid #e2e5f4;
-                    box-sizing: border-box;
-                    display: flex;
-                    flex-direction: row;
-                    align-items: center;
-                    justify-content: flex-start;
-                    padding: 14px 16px;
-                  ">
-                                <div style="
-                      position: relative;
-                      line-height: 100%;
-                      text-transform: uppercase;
-                    ">
-                                    pgx
-                                </div>
-                            </div>
-                            <div style="
-                    width: 136px;
-                    background-color: #fff;
-                    border-right: 1px solid #e2e5f4;
-                    box-sizing: border-box;
-                    display: flex;
-                    flex-direction: row;
-                    align-items: center;
-                    justify-content: flex-start;
-                    padding: 14px 16px;
-                  ">
-                                <div style="position: relative; line-height: 100%">0</div>
-                            </div>
-                            <div style="
-                    flex: 1;
-                    display: flex;
-                    flex-direction: row;
-                    align-items: center;
-                    justify-content: flex-start;
-                    padding: 14px 16px;
-                  ">
-                                <div style="position: relative; line-height: 100%">0</div>
-                            </div>
-                        </div>
-                        <div style="
-                  align-self: stretch;
-                  background-color: #ffeaee;
-                  border-bottom: 1px solid #e2e5f4;
-                  overflow: hidden;
-                  display: flex;
-                  flex-direction: row;
-                  align-items: flex-start;
-                  justify-content: flex-start;
-                ">
-                            <div style="
-                    width: 141px;
-                    border-right: 1px solid #e2e5f4;
-                    box-sizing: border-box;
-                    display: flex;
-                    flex-direction: row;
-                    align-items: center;
-                    justify-content: flex-start;
-                    padding: 14px 16px;
-                  ">
-                                <div style="
-                      position: relative;
-                      line-height: 100%;
-                      text-transform: uppercase;
-                    ">
-                                    rpp
-                                </div>
-                            </div>
-                            <div style="
-                    width: 136px;
-                    border-right: 1px solid #e2e5f4;
-                    box-sizing: border-box;
-                    display: flex;
-                    flex-direction: row;
-                    align-items: center;
-                    justify-content: flex-start;
-                    padding: 14px 16px;
-                  ">
-                                <div style="position: relative; line-height: 100%">2</div>
-                            </div>
-                            <div style="
-                    flex: 1;
-                    display: flex;
-                    flex-direction: row;
-                    align-items: center;
-                    justify-content: flex-start;
-                    padding: 14px 16px;
-                    color: #bf1b39;
-                  ">
-                                <div style="position: relative; line-height: 100%">0</div>
-                            </div>
-                        </div>
-                        <div style="
-                  align-self: stretch;
-                  border-bottom: 1px solid #e2e5f4;
-                  overflow: hidden;
-                  display: flex;
-                  flex-direction: row;
-                  align-items: flex-start;
-                  justify-content: flex-start;
-                ">
-                            <div style="
-                    width: 141px;
-                    background-color: #fff;
-                    border-right: 1px solid #e2e5f4;
-                    box-sizing: border-box;
-                    display: flex;
-                    flex-direction: row;
-                    align-items: center;
-                    justify-content: flex-start;
-                    padding: 14px 16px;
-                  ">
-                                <div style="position: relative; line-height: 100%">
-                                    Toxicology
-                                </div>
-                            </div>
-                            <div style="
-                    width: 136px;
-                    background-color: #fff;
-                    border-right: 1px solid #e2e5f4;
-                    box-sizing: border-box;
-                    display: flex;
-                    flex-direction: row;
-                    align-items: center;
-                    justify-content: flex-start;
-                    padding: 14px 16px;
-                  ">
-                                <div style="position: relative; line-height: 100%">20</div>
-                            </div>
-                            <div style="
-                    flex: 1;
-                    display: flex;
-                    flex-direction: row;
-                    align-items: center;
-                    justify-content: flex-start;
-                    padding: 14px 16px;
-                  ">
-                                <div style="position: relative; line-height: 100%">20</div>
-                            </div>
-                        </div>
-                        <div style="
-                  align-self: stretch;
-                  border-bottom: 1px solid #e2e5f4;
-                  overflow: hidden;
-                  display: flex;
-                  flex-direction: row;
-                  align-items: flex-start;
-                  justify-content: flex-start;
-                ">
-                            <div style="
-                    width: 141px;
-                    background-color: #ffeaee;
-                    border-right: 1px solid #e2e5f4;
-                    box-sizing: border-box;
-                    display: flex;
-                    flex-direction: row;
-                    align-items: center;
-                    justify-content: flex-start;
-                    padding: 14px 16px;
-                  ">
-                                <div style="position: relative; line-height: 100%">
-                                    Urinalalysis
-                                </div>
-                            </div>
-                            <div style="
-                    width: 136px;
-                    background-color: #ffeaee;
-                    border-right: 1px solid #e2e5f4;
-                    box-sizing: border-box;
-                    display: flex;
-                    flex-direction: row;
-                    align-items: center;
-                    justify-content: flex-start;
-                    padding: 14px 16px;
-                  ">
-                                <div style="position: relative; line-height: 100%">5</div>
-                            </div>
-                            <div style="
-                    flex: 1;
-                    background-color: #ffeaee;
-                    display: flex;
-                    flex-direction: row;
-                    align-items: center;
-                    justify-content: flex-start;
-                    padding: 14px 16px;
-                    color: #bf1b39;
-                  ">
-                                <div style="position: relative; line-height: 100%">4</div>
-                            </div>
-                        </div>
-                        <div style="
-                  align-self: stretch;
-                  border-bottom: 1px solid #e2e5f4;
-                  overflow: hidden;
-                  display: flex;
-                  flex-direction: row;
-                  align-items: flex-start;
-                  justify-content: flex-start;
-                ">
-                            <div style="
-                    width: 141px;
-                    background-color: #fff;
-                    border-right: 1px solid #e2e5f4;
-                    box-sizing: border-box;
-                    display: flex;
-                    flex-direction: row;
-                    align-items: center;
-                    justify-content: flex-start;
-                    padding: 14px 16px;
-                  ">
-                                <div style="position: relative; line-height: 100%">UTI</div>
-                            </div>
-                            <div style="
-                    width: 136px;
-                    background-color: #fff;
-                    border-right: 1px solid #e2e5f4;
-                    box-sizing: border-box;
-                    display: flex;
-                    flex-direction: row;
-                    align-items: center;
-                    justify-content: flex-start;
-                    padding: 14px 16px;
-                  ">
-                                <div style="position: relative; line-height: 100%">0</div>
-                            </div>
-                            <div style="
-                    flex: 1;
-                    display: flex;
-                    flex-direction: row;
-                    align-items: center;
-                    justify-content: flex-start;
-                    padding: 14px 16px;
-                  ">
-                                <div style="position: relative; line-height: 100%">0</div>
-                            </div>
-                        </div>
-                        <div style="
-                  align-self: stretch;
-                  border-bottom: 1px solid #e2e5f4;
-                  overflow: hidden;
-                  display: flex;
-                  flex-direction: row;
-                  align-items: flex-start;
-                  justify-content: flex-start;
-                ">
-                            <div style="
-                    width: 141px;
-                    background-color: #fff;
-                    border-right: 1px solid #e2e5f4;
-                    box-sizing: border-box;
-                    display: flex;
-                    flex-direction: row;
-                    align-items: center;
-                    justify-content: flex-start;
-                    padding: 14px 16px;
-                  ">
-                                <div style="position: relative; line-height: 100%">Wound</div>
-                            </div>
-                            <div style="
-                    width: 136px;
-                    background-color: #fff;
-                    border-right: 1px solid #e2e5f4;
-                    box-sizing: border-box;
-                    display: flex;
-                    flex-direction: row;
-                    align-items: center;
-                    justify-content: flex-start;
-                    padding: 14px 16px;
-                  ">
-                                <div style="position: relative; line-height: 100%">1</div>
-                            </div>
-                            <div style="
-                    flex: 1;
-                    display: flex;
-                    flex-direction: row;
-                    align-items: center;
-                    justify-content: flex-start;
-                    padding: 14px 16px;
-                  ">
-                                <div style="position: relative; line-height: 100%">1</div>
-                            </div>
-                        </div>
-                        <div style="
-                  align-self: stretch;
-                  background-color: #ffeaee;
-                  border-bottom: 1px solid #ffeaee;
-                  overflow: hidden;
-                  display: flex;
-                  flex-direction: row;
-                  align-items: flex-start;
-                  justify-content: flex-start;
-                ">
-                            <div style="
-                    width: 141px;
-                    border-right: 1px solid #e2e5f4;
-                    box-sizing: border-box;
-                    display: flex;
-                    flex-direction: row;
-                    align-items: center;
-                    justify-content: flex-start;
-                    padding: 14px 16px;
-                  ">
-                                <div style="position: relative; line-height: 100%">
-                                    Cardiac
-                                </div>
-                            </div>
-                            <div style="
-                    width: 136px;
-                    border-right: 1px solid #e2e5f4;
-                    box-sizing: border-box;
-                    display: flex;
-                    flex-direction: row;
-                    align-items: center;
-                    justify-content: flex-start;
-                    padding: 14px 16px;
-                  ">
-                                <div style="position: relative; line-height: 100%">2</div>
-                            </div>
-                            <div style="
-                    flex: 1;
-                    display: flex;
-                    flex-direction: row;
-                    align-items: center;
-                    justify-content: flex-start;
-                    padding: 14px 16px;
-                    color: #bf1b39;
-                  ">
-                                <div style="position: relative; line-height: 100%">3</div>
-                            </div>
-                        </div>
-                        <div style="
-                  align-self: stretch;
-                  border-bottom: 1px solid #e2e5f4;
-                  overflow: hidden;
-                  display: flex;
-                  flex-direction: row;
-                  align-items: flex-start;
-                  justify-content: flex-start;
-                ">
-                            <div style="
-                    width: 141px;
-                    background-color: #fff;
-                    border-right: 1px solid #e2e5f4;
-                    box-sizing: border-box;
-                    display: flex;
-                    flex-direction: row;
-                    align-items: center;
-                    justify-content: flex-start;
-                    padding: 14px 16px;
-                  ">
-                                <div style="position: relative; line-height: 100%">
-                                    Diabetes
-                                </div>
-                            </div>
-                            <div style="
-                    width: 136px;
-                    background-color: #fff;
-                    border-right: 1px solid #e2e5f4;
-                    box-sizing: border-box;
-                    display: flex;
-                    flex-direction: row;
-                    align-items: center;
-                    justify-content: flex-start;
-                    padding: 14px 16px;
-                  ">
-                                <div style="position: relative; line-height: 100%">2</div>
-                            </div>
-                            <div style="
-                    flex: 1;
-                    display: flex;
-                    flex-direction: row;
-                    align-items: center;
-                    justify-content: flex-start;
-                    padding: 14px 16px;
-                  ">
-                                <div style="position: relative; line-height: 100%">2</div>
-                            </div>
-                        </div>
-                        <div style="
-                  align-self: stretch;
-                  border-bottom: 1px solid #e2e5f4;
-                  overflow: hidden;
-                  display: flex;
-                  flex-direction: row;
-                  align-items: flex-start;
-                  justify-content: flex-start;
-                ">
-                            <div style="
-                    width: 141px;
-                    background-color: #fff;
-                    border-right: 1px solid #e2e5f4;
-                    box-sizing: border-box;
-                    display: flex;
-                    flex-direction: row;
-                    align-items: center;
-                    justify-content: flex-start;
-                    padding: 14px 16px;
-                  ">
-                                <div style="position: relative; line-height: 100%">PAD</div>
-                            </div>
-                            <div style="
-                    width: 136px;
-                    background-color: #fff;
-                    border-right: 1px solid #e2e5f4;
-                    box-sizing: border-box;
-                    display: flex;
-                    flex-direction: row;
-                    align-items: center;
-                    justify-content: flex-start;
-                    padding: 14px 16px;
-                  ">
-                                <div style="position: relative; line-height: 100%">8</div>
-                            </div>
-                            <div style="
-                    flex: 1;
-                    display: flex;
-                    flex-direction: row;
-                    align-items: center;
-                    justify-content: flex-start;
-                    padding: 14px 16px;
-                  ">
-                                <div style="position: relative; line-height: 100%">8</div>
-                            </div>
-                        </div>
-                        <div style="
-                  align-self: stretch;
-                  border-bottom: 1px solid #e2e5f4;
-                  overflow: hidden;
-                  display: flex;
-                  flex-direction: row;
-                  align-items: flex-start;
-                  justify-content: flex-start;
-                ">
-                            <div style="
-                    width: 141px;
-                    background-color: #fff;
-                    border-right: 1px solid #e2e5f4;
-                    box-sizing: border-box;
-                    display: flex;
-                    flex-direction: row;
-                    align-items: center;
-                    justify-content: flex-start;
-                    padding: 14px 16px;
-                  ">
-                                <div style="position: relative; line-height: 100%">
-                                    Pulmonary
-                                </div>
-                            </div>
-                            <div style="
-                    width: 136px;
-                    background-color: #fff;
-                    border-right: 1px solid #e2e5f4;
-                    box-sizing: border-box;
-                    display: flex;
-                    flex-direction: row;
-                    align-items: center;
-                    justify-content: flex-start;
-                    padding: 14px 16px;
-                  ">
-                                <div style="position: relative; line-height: 100%">10</div>
-                            </div>
-                            <div style="
-                    flex: 1;
-                    display: flex;
-                    flex-direction: row;
-                    align-items: center;
-                    justify-content: flex-start;
-                    padding: 14px 16px;
-                  ">
-                                <div style="position: relative; line-height: 100%">10</div>
-                            </div>
-                        </div>
+                                                <% }); %>
+
+                      
                     </div>
                 </div>
                 <footer style="
@@ -1059,7 +375,7 @@ export const monthlyTargetsUpdateTemplate = `
                         height: 14px;
                         overflow: hidden;
                         flex-shrink: 0;
-                      " alt="" src="https://staging-api-analytics.labsquire.com/public/images/homeicon.svg" />
+                      " alt="" src="https://api-analyticslabsquire-staging.up.railway.app/public/images/homeicon.svg" />
 
                                     <p style="
                         margin: 0;
@@ -1086,7 +402,7 @@ export const monthlyTargetsUpdateTemplate = `
                         height: 14px;
                         overflow: hidden;
                         flex-shrink: 0;
-                      " alt="" src="https://staging-api-analytics.labsquire.com/public/images/callicon.svg" />
+                      " alt="" src="https://api-analyticslabsquire-staging.up.railway.app/public/images/callicon.svg" />
 
                                     <p style="
                         margin: 0;
@@ -1113,7 +429,7 @@ export const monthlyTargetsUpdateTemplate = `
                         height: 14px;
                         overflow: hidden;
                         flex-shrink: 0;
-                      " alt="" src="https://staging-api-analytics.labsquire.com/public/images/mailicon.svg" />
+                      " alt="" src="https://api-analyticslabsquire-staging.up.railway.app/public/images/mailicon.svg" />
 
                                     <p style="
                         margin: 0;
@@ -1133,7 +449,7 @@ export const monthlyTargetsUpdateTemplate = `
                   height: 40px;
                   overflow: hidden;
                   flex-shrink: 0;
-                " alt="" src="./public/labsquirelogoicon.svg" />
+                " alt="" src="https://api-analyticslabsquire-staging.up.railway.app/labsquirelogoicon.svg" />
                     </div>
                     <p style="
                 margin: 0;
@@ -1153,5 +469,4 @@ export const monthlyTargetsUpdateTemplate = `
 </body>
 
 </html>
-
-`
+`;

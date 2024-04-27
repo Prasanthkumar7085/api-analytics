@@ -6,6 +6,9 @@ import { EmailServiceProvider } from 'src/notifications/emailServiceProvider';
 import { SalesRepService } from 'src/sales-rep/sales-rep.service';
 import { UpdateSalesRepTargetsDto } from './dto/update-sales-reps-target.dto';
 import { SalesRepsTargetsService } from './sales-reps-targets.service';
+import * as ejs from 'ejs';
+import { salesRepsTargetsTemplate } from 'src/views/email-templates/sales-reps-targets';
+import { monthlyTargetsUpdateTemplate } from 'src/views/email-templates/montly-sales-targets-update-template';
 
 
 
@@ -100,11 +103,16 @@ export class SalesRepsTargetsController {
 
       this.emailServiceProvider.sendSalesRepsTargetVolumeUpdateNotification(emailData, emailContent);
 
-      return res.status(200).json({
-        success: true,
-        message: SALES_REPS_TARGET_DATA_UPDATED_SUCCESS,
+      const invoiceHtmlCode = ejs.render(monthlyTargetsUpdateTemplate, emailContent);
 
-      });
+      res.status(200).send(invoiceHtmlCode);
+
+
+      // return res.status(200).json({
+      //   success: true,
+      //   message: SALES_REPS_TARGET_DATA_UPDATED_SUCCESS,
+
+      // });
     }
     catch (error) {
       console.log(error);

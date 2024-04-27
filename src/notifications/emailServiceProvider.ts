@@ -68,6 +68,9 @@ export class EmailServiceProvider {
 
     async sendSalesRepsTargetVolumeUpdateNotification(emailData, emailContent) {
 
+        console.log(emailContent);
+
+
         this.sendEmail(emailData, emailContent, monthlyTargetsUpdateTemplate);
     }
 
