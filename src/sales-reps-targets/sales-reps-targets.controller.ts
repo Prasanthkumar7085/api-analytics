@@ -9,7 +9,6 @@ import { SalesRepsTargetsService } from './sales-reps-targets.service';
 import * as ejs from 'ejs';
 import { salesRepsTargetsTemplate } from 'src/views/email-templates/sales-reps-targets';
 import { monthlyTargetsUpdateTemplate } from 'src/views/email-templates/montly-sales-targets-update-template';
-import { salesRepsUpdateTargetsNotifyTemplate } from 'src/views/email-templates/update-targets';
 
 
 
@@ -102,20 +101,14 @@ export class SalesRepsTargetsController {
 
       };
 
-
-
       this.emailServiceProvider.sendSalesRepsTargetVolumeUpdateNotification(emailData, emailContent);
 
-      const htmlcode = ejs.render(monthlyTargetsUpdateTemplate, emailContent);
 
+      return res.status(200).json({
+        success: true,
+        message: SALES_REPS_TARGET_DATA_UPDATED_SUCCESS,
 
-      res.status(200).send(htmlcode);
-
-      // return res.status(200).json({
-      //   success: true,
-      //   message: SALES_REPS_TARGET_DATA_UPDATED_SUCCESS,
-
-      // });
+      });
     }
     catch (error) {
       console.log(error);
