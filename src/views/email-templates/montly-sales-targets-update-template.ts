@@ -449,7 +449,7 @@ export const monthlyTargetsUpdateTemplate = `<!DOCTYPE html>
                   height: 40px;
                   overflow: hidden;
                   flex-shrink: 0;
-                " alt="" src="${process.env.API_URL}/public/imageslabsquirelogoicon.svg" />
+                " alt="" src="${process.env.API_URL}/public/images/labsquirelogoicon.svg" />
                     </div>
                     <p style="
                 margin: 0;
