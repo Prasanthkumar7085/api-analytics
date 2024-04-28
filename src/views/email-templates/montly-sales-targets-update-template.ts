@@ -42,7 +42,7 @@ export const monthlyTargetsUpdateTemplate = `<!DOCTYPE html>
           border-radius: 0px 0px 0px 1px;
           height: 180px;
           z-index: 0;
-        " alt="" src="${process.env.API_URL}/public/images/bluestrap.svg" />
+        " alt="" src="${process.env.API_URL}/public/images/BlueStrap.png" />
 
         <div style="
           flex: 1;
@@ -94,7 +94,7 @@ export const monthlyTargetsUpdateTemplate = `<!DOCTYPE html>
                     height: 32px;
                     overflow: hidden;
                     flex-shrink: 0;
-                  " alt="" src="${process.env.API_URL}/public/images/labsquirelogo.svg" />
+                  " alt="" src="${process.env.API_URL}/public/images/CallIcon.png" />
 
                             <img style="
                     width: 32px;
@@ -102,7 +102,7 @@ export const monthlyTargetsUpdateTemplate = `<!DOCTYPE html>
                     height: 32px;
                     overflow: hidden;
                     flex-shrink: 0;
-                  " alt="" src="${process.env.API_URL}/public/images/targeticon.svg" />
+                  " alt="" src="${process.env.API_URL}/public/images/TargetIcon.svg" />
                         </header>
                         <img style="
                   align-self: stretch;
@@ -110,7 +110,7 @@ export const monthlyTargetsUpdateTemplate = `<!DOCTYPE html>
                   overflow: hidden;
                   height: 4px;
                   flex-shrink: 0;
-                " alt="" src="${process.env.API_URL}/public/images/dividerline.svg" />
+                " alt="" src="${process.env.API_URL}/public/images/DividerLine.svg" />
 
                         <div style="
                   align-self: stretch;
@@ -375,7 +375,7 @@ export const monthlyTargetsUpdateTemplate = `<!DOCTYPE html>
                         height: 14px;
                         overflow: hidden;
                         flex-shrink: 0;
-                      " alt="" src="${process.env.API_URL}/public/images/homeicon.svg" />
+                      " alt="" src="${process.env.API_URL}/public/images/HomeIcon.svg" />
 
                                     <p style="
                         margin: 0;
@@ -402,7 +402,7 @@ export const monthlyTargetsUpdateTemplate = `<!DOCTYPE html>
                         height: 14px;
                         overflow: hidden;
                         flex-shrink: 0;
-                      " alt="" src="${process.env.API_URL}/public/images/callicon.svg" />
+                      " alt="" src="${process.env.API_URL}/public/images/CallIcon.svg" />
 
                                     <p style="
                         margin: 0;
@@ -429,7 +429,7 @@ export const monthlyTargetsUpdateTemplate = `<!DOCTYPE html>
                         height: 14px;
                         overflow: hidden;
                         flex-shrink: 0;
-                      " alt="" src="${process.env.API_URL}/public/images/mailicon.svg" />
+                      " alt="" src="${process.env.API_URL}/public/images/MailIcon.svg" />
 
                                     <p style="
                         margin: 0;
@@ -449,7 +449,7 @@ export const monthlyTargetsUpdateTemplate = `<!DOCTYPE html>
                   height: 40px;
                   overflow: hidden;
                   flex-shrink: 0;
-                " alt="" src="${process.env.API_URL}/public/images/labsquirelogoicon.svg" />
+                " alt="" src="${process.env.API_URL}/public/images/LabsquireLogoIcon.svg" />
                     </div>
                     <p style="
                 margin: 0;

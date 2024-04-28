@@ -20,9 +20,10 @@ export class EmailServiceProvider {
             const emailRecepient = emailData.email;
             const emailSubject = emailData.subject;
 
-
-
             const emailBody = ejs.render(emailTemplate, emailContent);
+
+            console.log("email", emailBody);
+
             const toEmails = [emailRecepient];
             const ccEmails = ccList;
 
