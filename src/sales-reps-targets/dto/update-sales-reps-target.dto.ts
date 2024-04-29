@@ -5,50 +5,53 @@ export class UpdateSalesRepTargetsDto {
     @IsNotEmpty({ message: 'Covid volume is required' })
     covid: number;
 
-    @IsNotEmpty({ message: 'Covid Flu is required' })
-    covid_flu: number;
+    @IsNotEmpty({ message: 'Covid flu volume is required' })
+    covidFlu: number;
 
-    @IsNotEmpty({ message: 'Clinical Volume is required' })
+    @IsNotEmpty({ message: 'Clinical volume is required' })
     clinical: number;
 
-    @IsNotEmpty({ message: 'Gastro Volume is required' })
+    @IsNotEmpty({ message: 'Gastro volume is required' })
     gastro: number;
 
-    @IsNotEmpty({ message: 'Nail Volume is required' })
+    @IsNotEmpty({ message: 'Nail volume is required' })
     nail: number;
 
-    @IsNotEmpty({ message: 'Pgx Volume is required' })
+    @IsNotEmpty({ message: 'Pgx test Volume is required' })
     pgx: number;
 
-    @IsNotEmpty({ message: 'Rpp volume is required' })
+    @IsNotEmpty({ message: 'Respiratory panel volume is required' })
     rpp: number;
 
-    @IsNotEmpty({ message: 'Tox volume is required' })
+    @IsNotEmpty({ message: 'Toxicology volume is required' })
     tox: number;
 
-    @IsNotEmpty({ message: 'Ua volume is required' })
+    @IsNotEmpty({ message: 'Urinalysis volume is required' })
     ua: number;
 
-    @IsNotEmpty({ message: 'Uti volume is required' })
+    @IsNotEmpty({ message: 'UTI panel volume is required' })
     uti: number;
 
     @IsNotEmpty({ message: 'Wound volume is required' })
     wound: number;
 
-    @IsNotEmpty({ message: 'Card volume is required' })
+    @IsNotEmpty({ message: 'Cardiac volume is required' })
     card: number;
 
-    @IsNotEmpty({ message: 'Cgx volume is required' })
+    @IsNotEmpty({ message: 'Cgx panel volume is required' })
     cgx: number;
 
     @IsNotEmpty({ message: 'Diabetes volume is required' })
     diabetes: number;
 
-    @IsNotEmpty({ message: 'Pad volume is required' })
+    @IsNotEmpty({ message: 'Pad alzheimers volume is required' })
     pad: number;
 
-    @IsNotEmpty({ message: 'Pul volume is required' })
+    @IsNotEmpty({ message: 'Pulmonary panel volume is required' })
     pul: number;
+
+    @IsNotEmpty({ message: 'Total volume is required' })
+    total: number;
 
     @IsNotEmpty({ message: 'Facilities volume is required' })
     new_facilities: number;

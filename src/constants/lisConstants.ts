@@ -201,3 +201,26 @@ export const keyMapping = {
     total_a: 'totalA',
     new_facilities_a: 'newFacilitiesA'
 };
+
+
+export const labelNames = {
+    covid: 'COVID',
+    covidFlu: 'COVID FLU',
+    clinical: 'Clinical',
+    gastro: 'Gastro',
+    nail: 'Nail',
+    pgx: 'PGX Test',
+    rpp: 'Respiratory Panel',
+    tox: 'Toxicology',
+    ua: 'Urinalysis',
+    uti: 'UTI Panel',
+    wound: 'Wound',
+    card: 'Cardiac',
+    cgx: 'CGX Panel',
+    diabetes: 'Diabetes',
+    pad: 'PAD Alzheimer',
+    pul: 'Pulmonary Panel',
+};
+
+
+
