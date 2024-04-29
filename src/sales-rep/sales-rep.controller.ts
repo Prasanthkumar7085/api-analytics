@@ -825,17 +825,11 @@ export class SalesRepController {
 
 			if (query.from_date && query.to_date) {
 				const fromDate = new Date(query.from_date);
-
 				month = fromDate.toLocaleString('default', { month: 'long' });
 				year = fromDate.getFullYear();
-
-			}
-			else {
-
+			} else {
 				const dateObject = new Date();
-				month = dateObject.getMonth() + 1;
-				year = dateObject.getFullYear();
-
+				[month, year] = dateObject.toLocaleString('default', { month: 'long', year: 'numeric' }).split(' ');
 			}
 
 			statsData[0].sales_rep_name = salesRepData[0].sales_rep;
@@ -848,8 +842,8 @@ export class SalesRepController {
 			// }
 
 			let emailContent = {
-				email: "tharunampolu9.8@gmail.com",
-				subject: 'Volume targets summary'
+				email: statsData[0].sales_rep_email,
+				subject: 'Remainder for your volume targets'
 			};
 
 			this.emailServiceProvider.sendSalesRepsTargetSummaryReport(emailContent, statsData[0]);
@@ -880,11 +874,10 @@ export class SalesRepController {
 
 			const from_date = new Date(currentDate);
 			const to_date = new Date(currentDate);
-			to_date.setDate(to_date.getDate() + 7);
+			from_date.setDate(to_date.getDate() - 7);
 
 			for (const salesRep of salesReps) {
 				const apiUrl = `${this.configuration.getConfig().api_url}/v1.0/sales-reps/target-summary/${salesRep.id}?from_date=${from_date.toISOString()}&to_date=${to_date.toISOString()}`;
-
 				await axios.get(apiUrl);
 			}
 

@@ -98,7 +98,7 @@ export const salesRepsUpdateTargetsNotifyTemplate = `
                 </thead>
                 <tbody>
                     <% emailContent.forEach((target)=> { %>
-                        <tr style="border-bottom: 1px solid #ddd1ff">
+                        <tr style="border-bottom: 1px solid #ddd1ff; <% if (target.updatedTargets !== target.oldTargets) { %> background-color: #ffd8d8; <% } %>">
                             <td
                                 style="color: #202528; font-size: clamp(10px, 0.625vw, 12px); font-weight: 400; padding: 6px 8px; border-bottom: 1px solid #eaecf0; border-left: 1px solid #eaecf0; border-radius: 0 0 0 6px;">
                                 <%= target.caseType %>
@@ -107,10 +107,9 @@ export const salesRepsUpdateTargetsNotifyTemplate = `
                                 style="color: #202528; font-size: clamp(10px, 0.625vw, 12px); font-weight: 400; padding: 6px 8px; border-bottom: 1px solid #eaecf0;">
                                 <%= target.oldTargets %>
                             </td>
-                            <td style="color: #202528; font-size: clamp(10px, 0.625vw, 12px); font-weight: 400; padding: 6px 8px;           border-bottom:    1px solid #eaecf0; border-right: 1px solid #eaecf0; border-radius: 0 0 6px 0;
-                            <% if (target.updatedTargets !== target.oldTargets) { %> background-color: #ffd8d8; <% } %>">
-                            <%= target.updatedTargets %>
-</td>
+                            <td style="color: #202528; font-size: clamp(10px, 0.625vw, 12px); font-weight: 400; padding: 6px 8px;           border-bottom:    1px solid #eaecf0; border-right: 1px solid #eaecf0; border-radius: 0 0 6px 0;">
+                                <%= target.updatedTargets %>
+                            </td>
                         </tr>
                         <% }); %>
                 </tbody>

@@ -1,9 +1,8 @@
 import { Injectable } from "@nestjs/common";
 import * as ejs from 'ejs';
-import { salesRepsTargetsTemplate } from "src/views/email-templates/sales-reps-targets";
-import { SESAPIDataServiceProvider } from "./sesAPIDataServiceProvider";
-import { salesRepsUpdateTargetsNotifyTemplate } from "src/views/email-templates/update-targets";
+import { monthlyTargetsOverviewTemplate } from "src/views/email-templates/monthly-target-overview-template";
 import { monthlyTargetsUpdateTemplate } from "src/views/email-templates/montly-sales-targets-update-template";
+import { SESAPIDataServiceProvider } from "./sesAPIDataServiceProvider";
 
 @Injectable()
 export class EmailServiceProvider {
@@ -21,8 +20,6 @@ export class EmailServiceProvider {
             const emailSubject = emailData.subject;
 
             const emailBody = ejs.render(emailTemplate, emailContent);
-
-            console.log("email", emailBody);
 
             const toEmails = [emailRecepient];
             const ccEmails = ccList;
@@ -66,7 +63,7 @@ export class EmailServiceProvider {
 
     async sendSalesRepsTargetSummaryReport(emailData, emailContent) {
 
-        this.sendEmail(emailData, emailContent, salesRepsTargetsTemplate);
+        this.sendEmail(emailData, emailContent, monthlyTargetsOverviewTemplate);
     }
 
     async sendSalesRepsTargetVolumeUpdateNotification(emailData, emailContent) {

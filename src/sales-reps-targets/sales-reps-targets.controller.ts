@@ -9,6 +9,8 @@ import { SalesRepsTargetsService } from './sales-reps-targets.service';
 import * as ejs from 'ejs';
 import { salesRepsTargetsTemplate } from 'src/views/email-templates/sales-reps-targets';
 import { monthlyTargetsUpdateTemplate } from 'src/views/email-templates/montly-sales-targets-update-template';
+import { labelNames } from 'src/constants/lisConstants';
+import { date } from 'drizzle-orm/mysql-core';
 
 
 
@@ -81,31 +83,29 @@ export class SalesRepsTargetsController {
       // }
 
       let emailData = {
-        email: "tharunampolu9.8@gmail.com",
+        email: salesRepData[0].sales_rep_email,
         subject: `Monthly Sales Targets Updated -${saleRepTargetData[0].month}`,
       };
 
       delete updateSalesRepTargetDto.new_facilities;
+      delete updateSalesRepTargetDto.total;
 
-      const caseTypes = Object.keys(updateSalesRepTargetDto); // Get all case types from the update DTO
-
-      const updatedTargetsArray = caseTypes.map(caseType => ({
-        caseType: caseType,
+      const updatedTargetsArray = Object.keys(updateSalesRepTargetDto).map(caseType => ({
+        caseType: labelNames[caseType] || caseType, // Use labelNames to get the display name if available
         oldTargets: saleRepTargetData[0][caseType], // Assuming the structure is consistent
         updatedTargets: updateSalesRepTargetDto[caseType]
       }));
 
+      const monthAndYear = this.formateMonth(saleRepTargetData[0].month); // Format the month and year here
+
       const emailContent = {
         emailContent: updatedTargetsArray,
-        sales_rep_name: salesRepData[0].sales_rep
-
+        sales_rep_name: salesRepData[0].sales_rep,
+        month: monthAndYear.month,
+        year: monthAndYear.year // Add the year here
       };
 
       this.emailServiceProvider.sendSalesRepsTargetVolumeUpdateNotification(emailData, emailContent);
-
-      // const htmlCode = ejs.render(monthlyTargetsUpdateTemplate, emailContent);
-
-      // return res.status(200).send(htmlCode);
 
       return res.status(200).json({
         success: true,
@@ -122,5 +122,18 @@ export class SalesRepsTargetsController {
       });
     }
   }
+
+  formateMonth(monthString) {
+    const [month, year] = monthString.split('-');
+    const monthIndex = parseInt(month) - 1; // Adjusting month index
+    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    const monthName = monthNames[monthIndex];
+    return {
+      month: monthName,
+      year: year
+    };
+  }
+
 }
+
 
