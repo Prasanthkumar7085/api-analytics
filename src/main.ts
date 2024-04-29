@@ -1,11 +1,10 @@
+import { HttpException, HttpStatus, ValidationError, ValidationPipe, VersioningType } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { HttpException, HttpStatus, ValidationError, ValidationPipe, VersioningType } from '@nestjs/common';
 import { errorFormattor } from './validation';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-
   app.enableCors();
 
   app.enableVersioning({
@@ -31,7 +30,7 @@ async function bootstrap() {
     forbidUnknownValues: true,
     stopAtFirstError: true,
   }));
-  
+
   await app.listen(process.env.PORT || 3000);
 }
 bootstrap();
