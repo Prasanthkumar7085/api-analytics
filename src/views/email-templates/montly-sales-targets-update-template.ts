@@ -1,11 +1,12 @@
 export const monthlyTargetsUpdateTemplate = `<!DOCTYPE html>
 <html>
 
-<head>
+  <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="initial-scale=1, width=device-width" />
 
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500&display=swap" />
+    <link rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500&display=swap" />
 
     <style>
         body {
@@ -13,9 +14,9 @@ export const monthlyTargetsUpdateTemplate = `<!DOCTYPE html>
             line-height: normal;
         }
     </style>
-</head>
+  </head>
 
-<body>
+  <body>
     <div style="
         width: 100%;
         position: relative;
@@ -33,7 +34,7 @@ export const monthlyTargetsUpdateTemplate = `<!DOCTYPE html>
         color: #1b2459;
         font-family: Poppins;
       ">
-        <img style="
+      <img style="
           width: 669px;
           position: absolute;
           margin: 0 !important;
@@ -42,9 +43,9 @@ export const monthlyTargetsUpdateTemplate = `<!DOCTYPE html>
           border-radius: 0px 0px 0px 1px;
           height: 180px;
           z-index: 0;
-        " alt="" src="${process.env.API_URL}/public/images/BlueStrap.png" />
+        " alt src="${process.env.API_URL}/public/images/BlueStrap.png" />
 
-        <div style="
+      <div style="
           flex: 1;
           box-shadow: 4px 4px 9px rgba(0, 0, 0, 0.05);
           border-radius: 8px;
@@ -57,7 +58,7 @@ export const monthlyTargetsUpdateTemplate = `<!DOCTYPE html>
           padding: 16px;
           z-index: 1;
         ">
-            <div style="
+        <div style="
             flex: 1;
             display: flex;
             flex-direction: column;
@@ -65,7 +66,7 @@ export const monthlyTargetsUpdateTemplate = `<!DOCTYPE html>
             justify-content: flex-start;
             gap: 24px;
           ">
-                <div style="
+          <div style="
               align-self: stretch;
               display: flex;
               flex-direction: column;
@@ -73,7 +74,7 @@ export const monthlyTargetsUpdateTemplate = `<!DOCTYPE html>
               justify-content: flex-start;
               gap: 24px;
             ">
-                    <div style="
+            <div style="
                 align-self: stretch;
                 display: flex;
                 flex-direction: column;
@@ -81,38 +82,41 @@ export const monthlyTargetsUpdateTemplate = `<!DOCTYPE html>
                 justify-content: flex-start;
                 gap: 24px;
               ">
-                        <header style="
+              <header style="
                   align-self: stretch;
                   display: flex;
                   flex-direction: row;
                   align-items: center;
                   justify-content: space-between;
                 ">
-                            <img style="
+                <img style="
                     width: 155.4px;
                     position: relative;
                     height: 32px;
                     overflow: hidden;
                     flex-shrink: 0;
-                  " alt="" src="${process.env.API_URL}/public/images/LabsquireLogo.png" />
+                  " alt
+                  src="${process.env.API_URL}/public/images/LabsquireLogo.png" />
 
-                            <img style="
+                <img style="
                     width: 32px;
                     position: relative;
                     height: 32px;
                     overflow: hidden;
                     flex-shrink: 0;
-                  " alt="" src="${process.env.API_URL}/public/images/TargetIcon.png" />
-                        </header>
-                        <img style="
+                  " alt
+                  src="${process.env.API_URL}/public/images/TargetIcon.png" />
+              </header>
+              <img style="
                   align-self: stretch;
                   max-width: 100%;
                   overflow: hidden;
                   height: 4px;
                   flex-shrink: 0;
-                " alt="" src="${process.env.API_URL}/public/images/DividerLine.png" />
+                " alt
+                src="${process.env.API_URL}/public/images/DividerLine.png" />
 
-                        <div style="
+              <div style="
                   align-self: stretch;
                   display: flex;
                   flex-direction: column;
@@ -120,7 +124,7 @@ export const monthlyTargetsUpdateTemplate = `<!DOCTYPE html>
                   justify-content: flex-start;
                   gap: 12px;
                 ">
-                            <h3 style="
+                <h3 style="
                     margin: 0;
                     align-self: stretch;
                     position: relative;
@@ -129,9 +133,9 @@ export const monthlyTargetsUpdateTemplate = `<!DOCTYPE html>
                     font-weight: 400;
                     font-family: inherit;
                   ">
-                                Monthly Sales Target Update(s)
-                            </h3>
-                            <div style="
+                  Monthly Sales Target Update(s)
+                </h3>
+                <div style="
                     align-self: stretch;
                     display: flex;
                     flex-direction: column;
@@ -141,7 +145,7 @@ export const monthlyTargetsUpdateTemplate = `<!DOCTYPE html>
                     font-size: 14px;
                     color: #000;
                   ">
-                                <div style="
+                  <div style="
                       align-self: stretch;
                       display: flex;
                       flex-direction: row;
@@ -149,12 +153,12 @@ export const monthlyTargetsUpdateTemplate = `<!DOCTYPE html>
                       justify-content: flex-start;
                       gap: 2px;
                     ">
-                                    <div style="position: relative; line-height: 100%">Hey</div>
-                                    <div style="flex: 1; position: relative; line-height: 100%">
-                                        Blake Glass,
-                                    </div>
-                                </div>
-                                <div style="
+                    <div style="position: relative; line-height: 100%">Hey</div>
+                    <div style="flex: 1; position: relative; line-height: 100%">
+                      Blake Glass,
+                    </div>
+                  </div>
+                  <div style="
                       align-self: stretch;
                       display: flex;
                       flex-direction: row;
@@ -163,22 +167,22 @@ export const monthlyTargetsUpdateTemplate = `<!DOCTYPE html>
                       justify-content: flex-start;
                       color: #636363;
                     ">
-                                    <div style="flex: 1; position: relative; line-height: 140%">
-                                        <span>We’ve </span>
-                                        <span style="
+                    <div style="flex: 1; position: relative; line-height: 140%">
+                      <span>We’ve </span>
+                      <span style="
                           text-transform: uppercase;
                           font-weight: 500;
                           color: #bf1b39;
                         ">updated</span>
-                                        <span>
-                                            your monthly sales target(s). Please review below
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                      <span>
+                        your monthly sales target(s). Please review below
+                      </span>
                     </div>
-                    <div style="
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div style="
                 width: 445px;
                 border-radius: 6px 6px 0px 0px;
                 background-color: #fff;
@@ -193,7 +197,7 @@ export const monthlyTargetsUpdateTemplate = `<!DOCTYPE html>
                 font-size: 14px;
                 color: #000;
               ">
-                        <div style="
+              <div style="
                   align-self: stretch;
                   display: flex;
                   flex-direction: row;
@@ -201,7 +205,7 @@ export const monthlyTargetsUpdateTemplate = `<!DOCTYPE html>
                   justify-content: flex-start;
                   color: #fff;
                 ">
-                            <div style="
+                <div style="
                     width: 141px;
                     background-color: #bf1b39;
                     border-right: 1px solid #e2e5f4;
@@ -212,11 +216,11 @@ export const monthlyTargetsUpdateTemplate = `<!DOCTYPE html>
                     justify-content: flex-start;
                     padding: 14px 16px;
                   ">
-                                <div style="position: relative; line-height: 100%">
-                                    CaseType
-                                </div>
-                            </div>
-                            <div style="
+                  <div style="position: relative; line-height: 100%">
+                    CaseType
+                  </div>
+                </div>
+                <div style="
                     width: 136px;
                     background-color: #bf1b39;
                     border-right: 1px solid #e2e5f4;
@@ -227,11 +231,11 @@ export const monthlyTargetsUpdateTemplate = `<!DOCTYPE html>
                     justify-content: flex-start;
                     padding: 14px 16px;
                   ">
-                                <div style="position: relative; line-height: 100%">
-                                    Old Targets
-                                </div>
-                            </div>
-                            <div style="
+                  <div style="position: relative; line-height: 100%">
+                    Old Targets
+                  </div>
+                </div>
+                <div style="
                     flex: 1;
                     background-color: #bf1b39;
                     display: flex;
@@ -240,15 +244,15 @@ export const monthlyTargetsUpdateTemplate = `<!DOCTYPE html>
                     justify-content: flex-start;
                     padding: 14px 16px;
                   ">
-                                <div style="position: relative; line-height: 100%">
-                                    Updated Targets
-                                </div>
-                            </div>
-                        </div>
-                      
-                        <% emailContent.forEach((target)=> { %>
-                      
-                        <div style="
+                  <div style="position: relative; line-height: 100%">
+                    Updated Targets
+                  </div>
+                </div>
+              </div>
+
+              <% emailContent.forEach((target)=> { %>
+
+              <div style="
                   align-self: stretch;
                   border-bottom: 1px solid #e2e5f4;
                   overflow: hidden;
@@ -258,7 +262,7 @@ export const monthlyTargetsUpdateTemplate = `<!DOCTYPE html>
                   justify-content: flex-start;
                 ">
 
-                            <div style="
+                <div style="
                     width: 141px;
                     background-color: #fff;
                     border-right: 1px solid #e2e5f4;
@@ -270,16 +274,16 @@ export const monthlyTargetsUpdateTemplate = `<!DOCTYPE html>
                     padding: 14px 16px;
                   ">
 
-                                <div style="
+                  <div style="
                       position: relative;
                       line-height: 100%;
                       text-transform: capitalize;
                     ">
-                                                                    <%= target.caseType %>
+                    <%= target.caseType %>
 
-                                </div>
-                            </div>
-                            <div style="
+                  </div>
+                </div>
+                <div style="
                     width: 136px;
                     background-color: #fff;
                     border-right: 1px solid #e2e5f4;
@@ -290,10 +294,11 @@ export const monthlyTargetsUpdateTemplate = `<!DOCTYPE html>
                     justify-content: flex-start;
                     padding: 14px 16px;
                   ">
-                                <div style="position: relative; line-height: 100%">                                <%= target.oldTargets %>
-</div>
-                            </div>
-                            <div style="
+                  <div style="position: relative; line-height: 100%"> <%=
+                    target.oldTargets %>
+                  </div>
+                </div>
+                <div style="
                     flex: 1;
                     display: flex;
                     flex-direction: row;
@@ -301,16 +306,16 @@ export const monthlyTargetsUpdateTemplate = `<!DOCTYPE html>
                     justify-content: flex-start;
                     padding: 14px 16px;
                   ">
-                                <div style="position: relative; line-height: 100%">                            <%= target.updatedTargets %>
-</div>
-                            </div>
-                        </div>
-                                                <% }); %>
-
-                      
-                    </div>
+                  <div style="position: relative; line-height: 100%"> <%=
+                    target.updatedTargets %>
+                  </div>
                 </div>
-                <footer style="
+              </div>
+              <% }); %>
+
+            </div>
+          </div>
+          <footer style="
               align-self: stretch;
               display: flex;
               flex-direction: column;
@@ -322,7 +327,7 @@ export const monthlyTargetsUpdateTemplate = `<!DOCTYPE html>
               color: #141414;
               font-family: Poppins;
             ">
-                    <div style="
+            <div style="
                 align-self: stretch;
                 border-top: 1px solid #8d92ac;
                 display: flex;
@@ -331,7 +336,7 @@ export const monthlyTargetsUpdateTemplate = `<!DOCTYPE html>
                 justify-content: space-between;
                 padding: 16px 0px 0px;
               ">
-                        <div style="
+              <div style="
                   flex: 1;
                   display: flex;
                   flex-direction: column;
@@ -339,7 +344,7 @@ export const monthlyTargetsUpdateTemplate = `<!DOCTYPE html>
                   justify-content: flex-start;
                   gap: 12px;
                 ">
-                            <h4 style="
+                <h4 style="
                     margin: 0;
                     position: relative;
                     font-size: inherit;
@@ -347,9 +352,9 @@ export const monthlyTargetsUpdateTemplate = `<!DOCTYPE html>
                     font-weight: 500;
                     font-family: inherit;
                   ">
-                                Contact Details
-                            </h4>
-                            <div style="
+                  Contact Details
+                </h4>
+                <div style="
                     align-self: stretch;
                     display: flex;
                     flex-direction: row;
@@ -359,7 +364,7 @@ export const monthlyTargetsUpdateTemplate = `<!DOCTYPE html>
                     gap: 20px;
                     color: #636363;
                   ">
-                                <div style="
+                  <div style="
                       width: 140px;
                       display: flex;
                       flex-direction: row;
@@ -369,25 +374,26 @@ export const monthlyTargetsUpdateTemplate = `<!DOCTYPE html>
                       min-width: 140px;
                       max-width: 150px;
                     ">
-                                    <img style="
+                    <img style="
                         width: 14px;
                         position: relative;
                         height: 14px;
                         overflow: hidden;
                         flex-shrink: 0;
-                      " alt="" src="${process.env.API_URL}/public/images/HomeIcon.png" />
+                      " alt
+                      src="${process.env.API_URL}/public/images/HomeIcon.png" />
 
-                                    <p style="
+                    <p style="
                         margin: 0;
                         flex: 1;
                         position: relative;
                         line-height: 120%;
                       ">
-                                        <span style="display: block">2925 Skyway Circle,</span>
-                                        <span style="display: block">Irving, TX 75038</span>
-                                    </p>
-                                </div>
-                                <div style="
+                      <span style="display: block">2925 Skyway Circle,</span>
+                      <span style="display: block">Irving, TX 75038</span>
+                    </p>
+                  </div>
+                  <div style="
                       display: flex;
                       flex-direction: row;
                       align-items: center;
@@ -396,24 +402,25 @@ export const monthlyTargetsUpdateTemplate = `<!DOCTYPE html>
                       min-width: 100px;
                       max-width: 130px;
                     ">
-                                    <img style="
+                    <img style="
                         width: 14px;
                         position: relative;
                         height: 14px;
                         overflow: hidden;
                         flex-shrink: 0;
-                      " alt="" src="${process.env.API_URL}/public/images/CallIcon.png" />
+                      " alt
+                      src="${process.env.API_URL}/public/images/CallIcon.png" />
 
-                                    <p style="
+                    <p style="
                         margin: 0;
                         position: relative;
                         text-decoration: underline;
                         line-height: 100%;
                       ">
-                                        +1(214)704-3865
-                                    </p>
-                                </div>
-                                <div style="
+                      +1(214)704-3865
+                    </p>
+                  </div>
+                  <div style="
                       width: 150px;
                       display: flex;
                       flex-direction: row;
@@ -423,35 +430,37 @@ export const monthlyTargetsUpdateTemplate = `<!DOCTYPE html>
                       min-width: 140px;
                       max-width: 150px;
                     ">
-                                    <img style="
+                    <img style="
                         width: 14px;
                         position: relative;
                         height: 14px;
                         overflow: hidden;
                         flex-shrink: 0;
-                      " alt="" src="${process.env.API_URL}/public/images/MailIcon.png" />
+                      " alt
+                      src="${process.env.API_URL}/public/images/MailIcon.png" />
 
-                                    <p style="
+                    <p style="
                         margin: 0;
                         flex: 1;
                         position: relative;
                         text-decoration: underline;
                         line-height: 100%;
                       ">
-                                        labsquire@info.com
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                        <img style="
+                      labsquire@info.com
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <img style="
                   width: 36.3px;
                   position: relative;
                   height: 40px;
                   overflow: hidden;
                   flex-shrink: 0;
-                " alt="" src="${process.env.API_URL}/public/images/LabsquireLogoIcon.png" />
-                    </div>
-                    <p style="
+                " alt
+                src="${process.env.API_URL}/public/images/LabsquireLogoIcon.png" />
+            </div>
+            <p style="
                 margin: 0;
                 align-self: stretch;
                 position: relative;
@@ -460,13 +469,13 @@ export const monthlyTargetsUpdateTemplate = `<!DOCTYPE html>
                 color: #959595;
                 text-align: center;
               ">
-                        © Copyright 2024 LabSquire
-                    </p>
-                </footer>
-            </div>
+              © Copyright 2024 LabSquire
+            </p>
+          </footer>
         </div>
+      </div>
     </div>
-</body>
+  </body>
 
 </html>
 `;
