@@ -50,6 +50,9 @@ export class UpdateSalesRepTargetsDto {
     @IsNotEmpty({ message: 'Pulmonary panel volume is required' })
     pul: number;
 
+    @IsNotEmpty({ message: 'Total volume is required' })
+    total: number;
+
     @IsNotEmpty({ message: 'Facilities volume is required' })
     new_facilities: number;
 
