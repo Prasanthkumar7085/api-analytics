@@ -102,7 +102,7 @@ export const monthlyTargetsUpdateTemplate = `<!DOCTYPE html>
                     height: 32px;
                     overflow: hidden;
                     flex-shrink: 0;
-                  " alt="" src="${process.env.API_URL}/public/images/TargetIcon.svg" />
+                  " alt="" src="${process.env.API_URL}/public/images/TargetIcon.png" />
                         </header>
                         <img style="
                   align-self: stretch;
@@ -110,7 +110,7 @@ export const monthlyTargetsUpdateTemplate = `<!DOCTYPE html>
                   overflow: hidden;
                   height: 4px;
                   flex-shrink: 0;
-                " alt="" src="${process.env.API_URL}/public/images/DividerLine.svg" />
+                " alt="" src="${process.env.API_URL}/public/images/DividerLine.png" />
 
                         <div style="
                   align-self: stretch;
@@ -375,7 +375,7 @@ export const monthlyTargetsUpdateTemplate = `<!DOCTYPE html>
                         height: 14px;
                         overflow: hidden;
                         flex-shrink: 0;
-                      " alt="" src="${process.env.API_URL}/public/images/HomeIcon.svg" />
+                      " alt="" src="${process.env.API_URL}/public/images/HomeIcon.png" />
 
                                     <p style="
                         margin: 0;
@@ -402,7 +402,7 @@ export const monthlyTargetsUpdateTemplate = `<!DOCTYPE html>
                         height: 14px;
                         overflow: hidden;
                         flex-shrink: 0;
-                      " alt="" src="${process.env.API_URL}/public/images/CallIcon.svg" />
+                      " alt="" src="${process.env.API_URL}/public/images/CallIcon.png" />
 
                                     <p style="
                         margin: 0;
@@ -429,7 +429,7 @@ export const monthlyTargetsUpdateTemplate = `<!DOCTYPE html>
                         height: 14px;
                         overflow: hidden;
                         flex-shrink: 0;
-                      " alt="" src="${process.env.API_URL}/public/images/MailIcon.svg" />
+                      " alt="" src="${process.env.API_URL}/public/images/MailIcon.png" />
 
                                     <p style="
                         margin: 0;
@@ -449,7 +449,7 @@ export const monthlyTargetsUpdateTemplate = `<!DOCTYPE html>
                   height: 40px;
                   overflow: hidden;
                   flex-shrink: 0;
-                " alt="" src="${process.env.API_URL}/public/images/LabsquireLogoIcon.svg" />
+                " alt="" src="${process.env.API_URL}/public/images/LabsquireLogoIcon.png" />
                     </div>
                     <p style="
                 margin: 0;
