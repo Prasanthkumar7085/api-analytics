@@ -490,7 +490,7 @@ export const monthlyTargetsUpdateTemplate = `<!DOCTYPE html>
                   <p>
                     Your monthly sales targets got
                     <span class="spl-text-one">updated</span> as below for the
-                    month of <span class="spl-text-two"> <%= month %>, <year>.</span>
+                    month of <span class="spl-text-two"> <%= month %>, <%= year %>.</span>
                   </p>
                 </div>
                 <div class="data-table">
