@@ -587,5 +587,27 @@ export class SalesRepService {
 	}
 
 
+	async getFacilityCountsByMonth(id: number, queryString: string) {
+		let statement = sql`
+        SELECT 
+		    facility_id,
+            TO_CHAR(service_date, 'Mon YYYY') AS month,
+            COUNT(DISTINCT facility_id) AS total_facilities
+        FROM patient_claims
+        WHERE sales_rep_id = ${id}
+        ${queryString ? sql`AND ${sql.raw(queryString)}` : sql``}
+        GROUP BY    
+            TO_CHAR(service_date, 'Mon YYYY'),
+			facility_id
+        ORDER BY
+            TO_DATE(TO_CHAR(service_date, 'Mon YYYY'), 'Mon YYYY')
+    `;
+
+		const data = await db.execute(statement);
+
+		return data.rows;
+	}
+
+
 }
 
