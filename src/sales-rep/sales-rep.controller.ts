@@ -11,6 +11,7 @@ import axios from 'axios';
 import { Configuration } from 'src/config/config.service';
 import { SalesRepsTargetsAchivedService } from 'src/sales-reps-targets-achived/sales-reps-targets-achived.service';
 import { SalesRepsTargetsService } from 'src/sales-reps-targets/sales-reps-targets.service';
+import { CaseTypesService } from 'src/case-types/case-types.service';
 
 
 @Controller({
@@ -27,7 +28,9 @@ export class SalesRepController {
 		private readonly emailServiceProvider: EmailServiceProvider,
 		private readonly configuration: Configuration,
 		private readonly salesRepsTargetsAchivedService: SalesRepsTargetsAchivedService,
-		private readonly salesRepsTargetsService: SalesRepsTargetsService
+		private readonly salesRepsTargetsService: SalesRepsTargetsService,
+		private readonly caseTypesService: CaseTypesService,
+
 
 
 	) { }
@@ -379,6 +382,19 @@ export class SalesRepController {
 
 			// Merge targetsData with salesRepsData and calculate total_targets
 			const mergedData = this.salesRepHelper.mergeCaseTypeMonthlyVolumeAndTargets(salesReps, transformedData);
+
+			const caseTypes = await this.caseTypesService.getAllCaseTypes();
+
+
+			mergedData.forEach(e => {
+
+				const matchingCaseType = caseTypes.find(ct => ct.displayName === e.case_type_name);
+				if (matchingCaseType) {
+					e.case_type_id = matchingCaseType.id;
+				}
+
+			});
+
 
 			return res.status(200).json({
 				success: true,
@@ -905,7 +921,7 @@ export class SalesRepController {
 
 			const queryString = this.filterHelper.facilitiesDateFilter(query);
 
-			const data = await this.salesRepService.getFacilityCountsByMonth(id,queryString);
+			const data = await this.salesRepService.getFacilityCountsByMonth(id, queryString);
 
 			return res.status(200).json({
 				success: true,
