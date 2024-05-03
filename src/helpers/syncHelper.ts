@@ -37,20 +37,23 @@ export class SyncHelpers {
         // Set the time to the start of the day (00:00:00)
         previousDate.setUTCHours(0, 0, 0, 0);
 
+        const toDate = new Date(previousDate);
+        toDate.setUTCHours(23, 59, 59, 999);
+
         return {
             fromDate: previousDate,
-            toDate: currentDate
+            toDate: toDate
         };
     }
 
 
-    async getCases(fromDate, facilities) {
+    async getCases(fromDate, toDate, facilities) {
         try {
             let query = {
                 status: { $nin: ["ARCHIVE", "ARCHIVED"] },
-                created_at: {
-                    $gte: "2023-10-01",
-                    // $lte: toDate
+                received_date: {
+                    $gte: fromDate,
+                    $lte: toDate
                 },
                 hospital: {
                     $in: facilities
@@ -1039,13 +1042,13 @@ export class SyncHelpers {
 
     }
 
-    async getMghCases(fromDate, facilities) {
+    async getMghCases(fromDate, toDate, facilities) {
         try {
             let query = {
                 status: { $nin: ["ARCHIVE", "ARCHIVED"] },
-                created_at: {
-                    $gte: "2023-10-01",
-                    // $lte: toDate
+                received_date: {
+                    $gte: fromDate,
+                    $lte: toDate
                 },
                 hospital: {
                     $in: facilities
