@@ -30,7 +30,7 @@ export class MghSyncController {
       await mongoose.connect(lis_mgh_db_url);
 
 
-      const datesObj = this.syncHelpers.getFromAndToDates(7);
+      const datesObj = this.syncHelpers.getFromAndToDates(1);
 
       const fromDate = datesObj.fromDate;
       const toDate = datesObj.toDate;
@@ -41,7 +41,7 @@ export class MghSyncController {
 
       facilities = facilities.filter(item => item !== null);
 
-      const cases = await this.syncHelpers.getMghCases(fromDate, facilities);
+      const cases = await this.syncHelpers.getMghCases(fromDate, toDate, facilities);
 
       if (cases.length == 0) {
         return res.status(200).json({
@@ -50,12 +50,13 @@ export class MghSyncController {
         });
       }
 
-      const data = await this.syncHelpers.insertMghPatientClaims(cases);
+      console.log({ cases: cases.length });
+
+      this.syncHelpers.insertMghPatientClaims(cases);
 
       return res.status(200).json({
         success: true,
-        message: SUCCESS_SYNC_PATIENT_CLAIMS,
-        data
+        message: SUCCESS_SYNC_PATIENT_CLAIMS
       });
     } catch (err) {
       console.log({ err });

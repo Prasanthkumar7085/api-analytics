@@ -53,7 +53,7 @@ export class SyncController {
 	async addPatientClaims(@Res() res: any) {
 		try {
 
-			const datesObj = this.syncHelpers.getFromAndToDates(7);
+			const datesObj = this.syncHelpers.getFromAndToDates(1);
 
 			const fromDate = datesObj.fromDate;
 			const toDate = datesObj.toDate;
@@ -64,8 +64,7 @@ export class SyncController {
 
 			facilities = facilities.filter(item => item !== null);
 
-
-			const cases = await this.syncHelpers.getCases(fromDate, facilities);
+			const cases = await this.syncHelpers.getCases(fromDate, toDate, facilities);
 
 			if (cases.length == 0) {
 				return res.status(200).json({
@@ -75,12 +74,11 @@ export class SyncController {
 			}
 			console.log({ cases: cases.length });
 
-			const data = await this.syncHelpers.insertPatientClaims(cases);
+			this.syncHelpers.insertPatientClaims(cases);
 
 			return res.status(200).json({
 				success: true,
-				message: SUCCESS_SYNC_PATIENT_CLAIMS,
-				data
+				message: SUCCESS_SYNC_PATIENT_CLAIMS
 			});
 
 		} catch (err) {
