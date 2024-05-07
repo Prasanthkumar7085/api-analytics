@@ -510,10 +510,10 @@ export const monthlyTargetsOverviewTemplate = `<!DOCTYPE html>
                   </table>
                   <div class="section-heading">
                     <h3>Reminder for your volume targets</h3>
-                    <p class="person-name">Hi AFIZ HUDANI,</p>
+                    <p class="person-name">Hi <%= sales_rep_name %>,</p>
                     <p>
                       Following is the summary report for the month of
-                      <span class="spl-text-two">April, 2024.</span>
+                      <span class="spl-text-two"> <%= month %>, <%= year %>.</span>
                     </p>
                   </div>
                   <div class="data-table">

@@ -860,7 +860,7 @@ export class SalesRepController {
 			// }
 
 			let emailContent = {
-				email: "tharunampolu9.8@gmail.com",
+				email: statsData[0].sales_rep_email,
 				subject: 'Remainder for your volume targets'
 			};
 
@@ -890,16 +890,12 @@ export class SalesRepController {
 
 			const datesObj = this.syncHelpers.getFromAndToDates(10);
 
-			// const fromDate = datesObj.fromDate;
-			const fromDate = '2024-05-01';
+			const fromDate = datesObj.fromDate;
 
-			// const toDate = datesObj.toDate;
-
-			const toDate = '2024-05-06';
+			const toDate = datesObj.toDate;
 
 			for (const salesRep of salesReps) {
-				const apiUrl = `${this.configuration.getConfig().api_url}/v1.0/sales-reps/target-summary/${salesRep.id}?from_date=${fromDate}&to_date=${toDate}`;
-				console.log("apiUrl", apiUrl);
+				const apiUrl = `${this.configuration.getConfig().api_url}/v1.0/sales-reps/target-summary/${salesRep.id}?from_date=${fromDate.toISOString()}&to_date=${toDate.toISOString() }`;
 
 				await axios.get(apiUrl);
 			}
