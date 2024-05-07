@@ -30,6 +30,8 @@ export class SalesRepController {
 		private readonly salesRepsTargetsAchivedService: SalesRepsTargetsAchivedService,
 		private readonly salesRepsTargetsService: SalesRepsTargetsService,
 		private readonly caseTypesService: CaseTypesService,
+		private readonly syncHelpers: SyncHelpers,
+
 
 
 
@@ -858,7 +860,7 @@ export class SalesRepController {
 			// }
 
 			let emailContent = {
-				email: statsData[0].sales_rep_email,
+				email: "tharunampolu9.8@gmail.com",
 				subject: 'Remainder for your volume targets'
 			};
 
@@ -886,14 +888,13 @@ export class SalesRepController {
 
 			const salesReps = await this.salesRepService.getAllSalesReps();
 
-			const currentDate = new Date();
-
-			const from_date = new Date(currentDate);
-			const to_date = new Date(currentDate);
-			from_date.setDate(to_date.getDate() - 7);
+			const datesObj = this.syncHelpers.getFromAndToDates(10);
+			
+			const fromDate = datesObj.fromDate;
+			const toDate = datesObj.toDate;
 
 			for (const salesRep of salesReps) {
-				const apiUrl = `${this.configuration.getConfig().api_url}/v1.0/sales-reps/target-summary/${salesRep.id}?from_date=${from_date.toISOString()}&to_date=${to_date.toISOString()}`;
+				const apiUrl = `${this.configuration.getConfig().api_url}/v1.0/sales-reps/target-summary/${salesRep.id}?from_date=${fromDate.toISOString()}&to_date=${toDate.toISOString()}`;
 				await axios.get(apiUrl);
 			}
 
