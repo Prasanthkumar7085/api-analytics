@@ -889,12 +889,14 @@ export class SalesRepController {
 			const salesReps = await this.salesRepService.getAllSalesReps();
 
 			const datesObj = this.syncHelpers.getFromAndToDates(10);
-			
-			const fromDate = datesObj.fromDate;
+
+			// const fromDate = datesObj.fromDate;
+			const fromDate = '2024-05-01';
+
 			const toDate = datesObj.toDate;
 
 			for (const salesRep of salesReps) {
-				const apiUrl = `${this.configuration.getConfig().api_url}/v1.0/sales-reps/target-summary/${salesRep.id}?from_date=${fromDate.toISOString()}&to_date=${toDate.toISOString()}`;
+				const apiUrl = `${this.configuration.getConfig().api_url}/v1.0/sales-reps/target-summary/${salesRep.id}?from_date=${fromDate}&to_date=${toDate.toISOString()}`;
 				await axios.get(apiUrl);
 			}
 
