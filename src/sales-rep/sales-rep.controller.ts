@@ -30,6 +30,8 @@ export class SalesRepController {
 		private readonly salesRepsTargetsAchivedService: SalesRepsTargetsAchivedService,
 		private readonly salesRepsTargetsService: SalesRepsTargetsService,
 		private readonly caseTypesService: CaseTypesService,
+		private readonly syncHelpers: SyncHelpers,
+
 
 
 
@@ -826,18 +828,36 @@ export class SalesRepController {
 
 			let month;
 			let year;
+			let statsData;
+			let salesRepData;
+			let salesRepIds;
 
 			const queryString = this.filterHelper.salesRepFacilities(query);
 
-			const statsData = await this.salesRepService.getVolumeStats(sales_repid, queryString);
+			salesRepData = await this.salesRepService.getOneSalesRep(sales_repid);
 
-			query.sales_reps = [sales_repid];
+			console.log("salesRepData", salesRepData);
+
+
+			const salesRepName = salesRepData[0].sales_rep;
+
+			if (salesRepData[0].sales_rep_role_id === 2 || salesRepData[0].sales_rep_role_id === 3) {
+
+				salesRepData = await this.salesRepService.getSalesRepsByReportingTo(salesRepData[0].sales_rep_role_id);
+				salesRepIds = salesRepData.map(e => e.id);
+
+			}
+			else {
+
+				salesRepIds = [sales_repid];
+
+			}
+
+			statsData = await this.salesRepService.getVolumeStatsOfSalesReps(salesRepIds, queryString);
+
+			query.sales_reps = [salesRepIds];
 
 			const salesRepTargetData = await this.salesRepHelper.getSalesRepsTargets(query);
-
-			const salesRepData = await this.salesRepService.getOne(sales_repid);
-
-			statsData[0].target_volume = salesRepTargetData[0].total_targets || 0;
 
 			if (query.from_date && query.to_date) {
 				const fromDate = new Date(query.from_date);
@@ -848,21 +868,47 @@ export class SalesRepController {
 				[month, year] = dateObject.toLocaleString('default', { month: 'long', year: 'numeric' }).split(' ');
 			}
 
-			statsData[0].sales_rep_name = salesRepData[0].sales_rep;
-			statsData[0].sales_rep_email = salesRepData[0].sales_rep_email;
-			statsData[0].month = month;
-			statsData[0].year = year;
 
-			// if (!statsData[0].sales_rep_email) {
-			// 	throw new Error("Sales rep email is empty");
-			// }
+			// const modifiedData = salesRepData.map((e) =>
+			// {
+			// 	e.
+			// })
+
+			console.log("data", salesRepData);
+
+
+			console.log("length", salesRepData.length);
+
+			if (salesRepData.length === 1) {
+
+				statsData[0].target_volume = salesRepTargetData[0].total_targets || 0;
+				statsData[0].sales_rep_name = salesRepData[0].sales_rep;
+				statsData[0].sales_rep_email = salesRepData[0].sales_rep_email;
+
+			}
+			else {
+				for (let i = 0; i <= statsData.length; i++) {
+					statsData[i].target_volume = salesRepTargetData[i].total_targets || 0;
+					statsData[i].sales_rep_name = salesRepData[i].name;
+					statsData[i].sales_rep_email = salesRepData[i].email;
+
+				}
+
+			}
+
+			const emailBody = {
+				statsData,
+				salesRepName,
+				month,
+				year
+			};
 
 			let emailContent = {
-				email: statsData[0].sales_rep_email,
+				email: "tharunampolu9.8@gmail.com",
 				subject: 'Remainder for your volume targets'
 			};
 
-			this.emailServiceProvider.sendSalesRepsTargetSummaryReport(emailContent, statsData[0]);
+			this.emailServiceProvider.sendSalesRepsTargetSummaryReport(emailContent, emailBody);
 
 			return res.status(200).json({
 				success: true,
@@ -886,14 +932,15 @@ export class SalesRepController {
 
 			const salesReps = await this.salesRepService.getAllSalesReps();
 
-			const currentDate = new Date();
+			const datesObj = this.syncHelpers.getFromAndToDates(10);
 
-			const from_date = new Date(currentDate);
-			const to_date = new Date(currentDate);
-			from_date.setDate(to_date.getDate() - 7);
+			const fromDate = datesObj.fromDate;
+
+			const toDate = datesObj.toDate;
 
 			for (const salesRep of salesReps) {
-				const apiUrl = `${this.configuration.getConfig().api_url}/v1.0/sales-reps/target-summary/${salesRep.id}?from_date=${from_date.toISOString()}&to_date=${to_date.toISOString()}`;
+				const apiUrl = `${this.configuration.getConfig().api_url}/v1.0/sales-reps/target-summary/${salesRep.id}?from_date=${fromDate.toISOString()}&to_date=${toDate.toISOString()}`;
+
 				await axios.get(apiUrl);
 			}
 
