@@ -865,12 +865,20 @@ export class SalesRepController {
 			const salesRepTargetData = await this.salesRepHelper.getSalesRepsTargets(query);
 
 			if (query.from_date && query.to_date) {
-				const fromDate = new Date(query.from_date);
-				month = fromDate.toLocaleString('default', { month: 'long' });
-				year = fromDate.getFullYear();
-			} else {
-				const dateObject = new Date();
-				[month, year] = dateObject.toLocaleString('default', { month: 'long', year: 'numeric' }).split(' ');
+
+				if (query.to_date.split("-")[2] === '01') {
+
+					const fromDate = new Date(query.from_date);
+					month = fromDate.toLocaleString('default', { month: 'long' });
+					year = fromDate.getFullYear();
+
+				}
+				else {
+					const toDate = new Date(query.to_date);
+					month = toDate.toLocaleString('default', { month: 'long' });
+					year = toDate.getFullYear();
+				}
+
 			}
 
 			salesRepData.forEach(rep => {
