@@ -609,14 +609,15 @@ export class SalesRepService {
 	}
 
 
-	async getOneSalesRep(id: number) {
+	async getOneSalesRepBySalesRepId(id: number) {
 
 		//SELF JOIN on sales-reps reporting_to to id
 		let query = sql`
 			SELECT 
-				sr.name AS sales_rep,
+				sr.name AS name,
+				sr.id,
 				m.name AS manager,
-				sr.email as sales_rep_email,
+				sr.email as email,
 				sr.role_id as sales_rep_role_id 
 			FROM sales_reps sr
 			JOIN sales_reps m 
@@ -630,8 +631,6 @@ export class SalesRepService {
 	}
 
 	async getSalesRepsByReportingTo(id: number) {
-
-		console.log("id", id);
 		const data = await db.execute(sql`SELECT * FROM sales_reps WHERE reporting_to = ${id}`);
 
 		return data.rows;
@@ -639,11 +638,12 @@ export class SalesRepService {
 	}
 
 
-		async getVolumeStatsOfSalesReps(salesRepIds: any, queryString: string) {
+	async getVolumeStatsOfSalesReps(salesRepIds: any, queryString: string) {
 
-			// This query calculates the total number of cases for a specific sales representative. 
-			let query = sql`
+		// This query calculates the total number of cases for a specific sales representative. 
+		let query = sql`
 				SELECT
+					sales_rep_id,
 					CAST(COUNT(*) AS INTEGER) AS total_cases,
 					CAST(COUNT(*) FILTER(WHERE reports_finalized = TRUE) AS INTEGER) AS completed_cases,
 					CAST(COUNT(*) FILTER (WHERE reports_finalized = FALSE) AS INTEGER) AS pending_cases
@@ -654,10 +654,10 @@ export class SalesRepService {
 				
 			`;
 
-			const data = await db.execute(query);
+		const data = await db.execute(query);
 
-			return data.rows;
-		}
+		return data.rows;
+	}
 
 
 }

@@ -53,9 +53,9 @@ export const monthlyTargetsOverviewTemplate = `<!DOCTYPE html>
         display: block;
         margin: 0 auto !important;
         /* makes it centered */
-        max-width: 580px;
+        max-width: 768px;
         padding: 10px;
-        width: 580px;
+        width:768px;
       }
 
       /* This should also be a block element, so that it will fill 100% of the .container */
@@ -63,7 +63,7 @@ export const monthlyTargetsOverviewTemplate = `<!DOCTYPE html>
         box-sizing: border-box;
         display: block;
         margin: 0 auto;
-        max-width: 580px;
+        max-width: 768px;
         padding: 10px;
       }
 

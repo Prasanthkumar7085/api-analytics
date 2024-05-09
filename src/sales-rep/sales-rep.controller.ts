@@ -834,23 +834,28 @@ export class SalesRepController {
 
 			const queryString = this.filterHelper.salesRepFacilities(query);
 
-			salesRepData = await this.salesRepService.getOneSalesRep(sales_repid);
+			salesRepData = await this.salesRepService.getOneSalesRepBySalesRepId(sales_repid);
 
-			console.log("salesRepData", salesRepData);
+			const salesRepName = salesRepData[0].name;
 
-
-			const salesRepName = salesRepData[0].sales_rep;
+			const salesRepEmail = salesRepData[0].email;
 
 			if (salesRepData[0].sales_rep_role_id === 2 || salesRepData[0].sales_rep_role_id === 3) {
 
-				salesRepData = await this.salesRepService.getSalesRepsByReportingTo(salesRepData[0].sales_rep_role_id);
+				const salesRep = await this.salesRepService.getOneSalesRepBySalesRepId(sales_repid);
+
+				salesRepData = await this.salesRepService.getSalesRepsByReportingTo(salesRepData[0].id);
+
+				salesRepData = salesRepData.concat(salesRep);
+
+				salesRepData = this.removeDuplicateSalesReps(salesRepData, 'id');
+
 				salesRepIds = salesRepData.map(e => e.id);
 
 			}
 			else {
 
 				salesRepIds = [sales_repid];
-
 			}
 
 			statsData = await this.salesRepService.getVolumeStatsOfSalesReps(salesRepIds, queryString);
@@ -860,40 +865,47 @@ export class SalesRepController {
 			const salesRepTargetData = await this.salesRepHelper.getSalesRepsTargets(query);
 
 			if (query.from_date && query.to_date) {
-				const fromDate = new Date(query.from_date);
-				month = fromDate.toLocaleString('default', { month: 'long' });
-				year = fromDate.getFullYear();
-			} else {
-				const dateObject = new Date();
-				[month, year] = dateObject.toLocaleString('default', { month: 'long', year: 'numeric' }).split(' ');
-			}
 
+				if (query.to_date.split("-")[2] === '01') {
 
-			// const modifiedData = salesRepData.map((e) =>
-			// {
-			// 	e.
-			// })
-
-			console.log("data", salesRepData);
-
-
-			console.log("length", salesRepData.length);
-
-			if (salesRepData.length === 1) {
-
-				statsData[0].target_volume = salesRepTargetData[0].total_targets || 0;
-				statsData[0].sales_rep_name = salesRepData[0].sales_rep;
-				statsData[0].sales_rep_email = salesRepData[0].sales_rep_email;
-
-			}
-			else {
-				for (let i = 0; i <= statsData.length; i++) {
-					statsData[i].target_volume = salesRepTargetData[i].total_targets || 0;
-					statsData[i].sales_rep_name = salesRepData[i].name;
-					statsData[i].sales_rep_email = salesRepData[i].email;
+					const fromDate = new Date(query.from_date);
+					month = fromDate.toLocaleString('default', { month: 'long' });
+					year = fromDate.getFullYear();
 
 				}
+				else {
+					const toDate = new Date(query.to_date);
+					month = toDate.toLocaleString('default', { month: 'long' });
+					year = toDate.getFullYear();
+				}
 
+			}
+
+			salesRepData.forEach(rep => {
+				// Find the corresponding entry in statsData
+				const matchingStat = statsData.find(stat => stat.sales_rep_id === rep.id);
+
+				// If no matching stat entry is found, add a new entry with default values
+				if (!matchingStat) {
+					statsData.push({
+						sales_rep_id: rep.id,
+						total_cases: 0,
+						completed_cases: 0,
+						pending_cases: 0,
+						target_volume: 0,
+						sales_rep_name: rep.name,
+						sales_rep_email: rep.email
+					});
+				}
+			});
+
+			for (let i = 0; i < statsData.length; i++) {
+				const matchingRep = salesRepData.find(rep => rep.id === statsData[i].sales_rep_id);
+				if (matchingRep) {
+					statsData[i].target_volume = salesRepTargetData[i].total_targets || 0;
+					statsData[i].sales_rep_name = matchingRep.name;
+					statsData[i].sales_rep_email = matchingRep.email;
+				}
 			}
 
 			const emailBody = {
@@ -904,7 +916,7 @@ export class SalesRepController {
 			};
 
 			let emailContent = {
-				email: "tharunampolu9.8@gmail.com",
+				email: salesRepEmail,
 				subject: 'Remainder for your volume targets'
 			};
 
@@ -936,7 +948,8 @@ export class SalesRepController {
 
 			const fromDate = datesObj.fromDate;
 
-			const toDate = datesObj.toDate;
+			const toDate = new Date();
+			toDate.setHours(23, 59, 59, 999);
 
 			for (const salesRep of salesReps) {
 				const apiUrl = `${this.configuration.getConfig().api_url}/v1.0/sales-reps/target-summary/${salesRep.id}?from_date=${fromDate.toISOString()}&to_date=${toDate.toISOString()}`;
@@ -985,4 +998,17 @@ export class SalesRepController {
 			});
 		}
 	}
+
+
+	removeDuplicateSalesReps(arr: any[], key: string): any[] {
+		const uniqueKeys = new Set();
+		return arr.filter(obj => {
+			if (!uniqueKeys.has(obj[key])) {
+				uniqueKeys.add(obj[key]);
+				return true;
+			}
+			return false;
+		});
+	}
+
 }
