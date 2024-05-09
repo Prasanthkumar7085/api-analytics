@@ -368,7 +368,7 @@ export class FacilitiesService {
 
     async getFacilitiesRefIds(hospitalIds) {
 
-        return await db.execute(sql`SELECT ref_id FROM facilities WHERE ref_id IN ${hospitalIds}`);
+        return await db.execute(sql`SELECT id, name, ref_id FROM facilities WHERE ref_id IN ${hospitalIds}`);
     }
 
 

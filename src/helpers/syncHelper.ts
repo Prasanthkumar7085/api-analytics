@@ -580,23 +580,96 @@ export class SyncHelpers {
 
 
     async getFacilitiesNotExisting(facilitiesData) {
-
-        const hospitalIds = facilitiesData.map((item) => item._id);
-
-        const matchedFacilitiesIds = await this.facilitiesService.getFacilitiesRefIds(hospitalIds); // fetching matched facilities id from analytics db
-
-        const refIdValues = matchedFacilitiesIds.rows.map((obj) => obj.ref_id);
-
-        const unMatchedFacilities = facilitiesData.filter((id) => !refIdValues.includes(id)); // fetching un-matched id of facilities
-
-        if (unMatchedFacilities.length) {
-            unMatchedFacilities.forEach(rep => {
+        if (facilitiesData.length) {
+            facilitiesData.forEach(rep => {
                 rep._id = rep._id.toString();
             });
         }
-        return unMatchedFacilities;
+
+        const hospitalIds = facilitiesData.map((item) => item._id);
+
+        const matchedFacilitiesData = await this.facilitiesService.getFacilitiesRefIds(hospitalIds); // fetching matched facilities id from analytics db
+
+        let existedFacilities = [];
+        let notExistedFacilities = [];
+
+        if (matchedFacilitiesData.rows.length) {
+            existedFacilities = matchedFacilitiesData.rows.map((matchedFacility: any) => {
+                const facility = facilitiesData.find(facility =>
+                    facility.name.toUpperCase() === matchedFacility.name.toUpperCase() &&
+                    facility._id === matchedFacility.ref_id
+                );
+
+                if (facility) {
+                    return {
+                        ref_id: matchedFacility.ref_id,
+                        name: matchedFacility.name,
+                        id: matchedFacility.id
+                    };
+                }
+            });
+
+
+            notExistedFacilities = facilitiesData.filter(facility => {
+                return !matchedFacilitiesData.rows.some((matchedFacility: any) => {
+                    return facility.name.toUpperCase() === matchedFacility.name.toUpperCase() && facility._id === matchedFacility.ref_id;
+                });
+            });
+        }
+
+        return { notExistedFacilities, existedFacilities };
     }
 
+
+    async insertOrUpdatedFacilities(existedFacilities, NotExistedFacilities) {
+        let insertFacilities = [];
+        if (NotExistedFacilities) {
+            const unMatchedFacilitiesIds = NotExistedFacilities.map((e) => e._id);
+
+            const finalSalesRepsData = await this.getSalesRepsByFacilites(unMatchedFacilitiesIds);
+
+            // Assign names to transformedArray based on facilitiesMap
+            let transformedArray = this.transformFacilities(finalSalesRepsData, NotExistedFacilities);
+
+            insertFacilities = await this.modifyFacilitiesData(transformedArray);
+
+            // this.facilitiesService.insertfacilities(updatedFacilities);
+        }
+
+
+        if (existedFacilities) {
+            console.log(12345);
+            const matchedFacilitiesIds = existedFacilities.map((e) => e._id);
+
+            const finalSalesRepsData = await this.getSalesRepsByFacilites(matchedFacilitiesIds);
+
+            // Assign names to transformedArray based on facilitiesMap
+            let transformedArray = this.transformFacilities(finalSalesRepsData, existedFacilities);
+            console.log({ transformedArray });
+            // const convertedData = batch.map(entry => {
+
+            //     const serviceDate = entry.serviceDate ? new Date(entry.serviceDate).toISOString() : "";
+            //     const collectionDate = entry.collectionDate ? new Date(entry.collectionDate).toISOString() : "";
+
+            //     const caseTypeId = entry.caseTypeId ? entry.caseTypeId : null;
+            //     const patientId = entry.patientId || 0;
+            //     const reportsFinalized = entry.reportsFinalized ? entry.reportsFinalized : false;
+            //     const physicianId = entry.physicianId ? entry.physicianId : null;
+            //     const facilityId = entry.facilityId ? entry.facilityId : null;
+            //     const salesRepId = entry.salesRepId ? entry.salesRepId : null;
+            //     const insurancePayerId = entry.insurancePayerId ? entry.insurancePayerId : null;
+            //     const labId = entry.labId ? entry.labId : null;
+
+            //     const formattedQueryEntry = `('${entry.accessionId}', '${serviceDate}'::timestamp, '${collectionDate}'::timestamp, ${caseTypeId}, '${patientId}', ${reportsFinalized}, '${physicianId}', ${facilityId}, ${salesRepId}, ${insurancePayerId}, ${labId})`;
+            //     return formattedQueryEntry;
+            // });
+
+            // const finalString = convertedData.join(', ');
+        }
+
+
+        return { insertFacilities };
+    }
 
     async getSalesRepsIdsandRefIds(salesRepsData) {
 
