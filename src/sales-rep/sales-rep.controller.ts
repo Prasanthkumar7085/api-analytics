@@ -915,13 +915,8 @@ export class SalesRepController {
 				year
 			};
 
-			// let emailContent = {
-			// 	email: salesRepEmail,
-			// 	subject: 'Remainder for your volume targets'
-			// };
-
 			let emailContent = {
-				email: "tharunampolu9.8@gmail.com",
+				email: salesRepEmail,
 				subject: 'Remainder for your volume targets'
 			};
 
