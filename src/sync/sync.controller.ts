@@ -330,7 +330,7 @@ export class SyncController {
 
 			const query = {
 				_id: {
-					$in: ["65cfa19966fab7e5b9f45a47"]
+					$in: ["66183a1f43e9c2e20dbb81d3"]
 				}
 			};
 
@@ -366,12 +366,11 @@ export class SyncController {
 
 			const { notExistedFacilities, existedFacilities } = await this.syncHelpers.getFacilitiesNotExisting(facilitiesData);
 
-			// const { insertFacilities } = await this.syncHelpers.insertOrUpdatedFacilities(unMatchedFacilities, matchedFacilities);
+			await this.syncHelpers.insertOrUpdatedFacilities(notExistedFacilities, existedFacilities);
 
 			return res.status(200).json({
 				success: true,
 				message: SUCCESS_INSERTED_FACILICES,
-				// insertFacilities,
 				notExistedFacilities, existedFacilities
 			});
 		}

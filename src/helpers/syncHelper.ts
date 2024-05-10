@@ -596,7 +596,7 @@ export class SyncHelpers {
         if (matchedFacilitiesData.rows.length) {
             existedFacilities = matchedFacilitiesData.rows.map((matchedFacility: any) => {
                 const facility = facilitiesData.find(facility =>
-                    facility.name.toUpperCase() === matchedFacility.name.toUpperCase() &&
+                    facility.name.toUpperCase() === matchedFacility.name.toUpperCase() ||
                     facility._id === matchedFacility.ref_id
                 );
 
@@ -612,7 +612,7 @@ export class SyncHelpers {
 
             notExistedFacilities = facilitiesData.filter(facility => {
                 return !matchedFacilitiesData.rows.some((matchedFacility: any) => {
-                    return facility.name.toUpperCase() === matchedFacility.name.toUpperCase() && facility._id === matchedFacility.ref_id;
+                    return facility.name.toUpperCase() === matchedFacility.name.toUpperCase() || facility._id === matchedFacility.ref_id;
                 });
             });
         }
@@ -621,9 +621,9 @@ export class SyncHelpers {
     }
 
 
-    async insertOrUpdatedFacilities(existedFacilities, NotExistedFacilities) {
+    async insertOrUpdatedFacilities(NotExistedFacilities, existedFacilities) {
         let insertFacilities = [];
-        if (NotExistedFacilities) {
+        if (NotExistedFacilities.length) {
             const unMatchedFacilitiesIds = NotExistedFacilities.map((e) => e._id);
 
             const finalSalesRepsData = await this.getSalesRepsByFacilites(unMatchedFacilitiesIds);
@@ -633,39 +633,26 @@ export class SyncHelpers {
 
             insertFacilities = await this.modifyFacilitiesData(transformedArray);
 
-            // this.facilitiesService.insertfacilities(updatedFacilities);
+            // this.facilitiesService.insertfacilities(insertFacilities);
         }
 
 
-        if (existedFacilities) {
-            console.log(12345);
-            const matchedFacilitiesIds = existedFacilities.map((e) => e._id);
+        // if (existedFacilities.length) {
+        //     console.log(12345);
 
-            const finalSalesRepsData = await this.getSalesRepsByFacilites(matchedFacilitiesIds);
+        //     console.log({ existedFacilities });
+        //     const convertedData = existedFacilities.map(entry => {
 
-            // Assign names to transformedArray based on facilitiesMap
-            let transformedArray = this.transformFacilities(finalSalesRepsData, existedFacilities);
-            console.log({ transformedArray });
-            // const convertedData = batch.map(entry => {
+        //         const refId = entry.ref_id;
+        //         const id = entry.id;
+        //         const labId = entry.labId ? entry.labId : null;
 
-            //     const serviceDate = entry.serviceDate ? new Date(entry.serviceDate).toISOString() : "";
-            //     const collectionDate = entry.collectionDate ? new Date(entry.collectionDate).toISOString() : "";
+        //         const formattedQueryEntry = `('${entry.accessionId}', '${serviceDate}'::timestamp, '${collectionDate}'::timestamp, ${caseTypeId}, '${patientId}', ${reportsFinalized}, '${physicianId}', ${facilityId}, ${salesRepId}, ${insurancePayerId}, ${labId})`;
+        //         return formattedQueryEntry;
+        //     });
 
-            //     const caseTypeId = entry.caseTypeId ? entry.caseTypeId : null;
-            //     const patientId = entry.patientId || 0;
-            //     const reportsFinalized = entry.reportsFinalized ? entry.reportsFinalized : false;
-            //     const physicianId = entry.physicianId ? entry.physicianId : null;
-            //     const facilityId = entry.facilityId ? entry.facilityId : null;
-            //     const salesRepId = entry.salesRepId ? entry.salesRepId : null;
-            //     const insurancePayerId = entry.insurancePayerId ? entry.insurancePayerId : null;
-            //     const labId = entry.labId ? entry.labId : null;
-
-            //     const formattedQueryEntry = `('${entry.accessionId}', '${serviceDate}'::timestamp, '${collectionDate}'::timestamp, ${caseTypeId}, '${patientId}', ${reportsFinalized}, '${physicianId}', ${facilityId}, ${salesRepId}, ${insurancePayerId}, ${labId})`;
-            //     return formattedQueryEntry;
-            // });
-
-            // const finalString = convertedData.join(', ');
-        }
+        //     const finalString = convertedData.join(', ');
+        // }
 
 
         return { insertFacilities };
