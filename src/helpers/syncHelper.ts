@@ -593,29 +593,28 @@ export class SyncHelpers {
         let existedFacilities = [];
         let notExistedFacilities = [];
 
-        if (matchedFacilitiesData.rows.length) {
-            existedFacilities = matchedFacilitiesData.rows.map((matchedFacility: any) => {
-                const facility = facilitiesData.find(facility =>
-                    facility.name.toUpperCase() === matchedFacility.name.toUpperCase() ||
-                    facility._id === matchedFacility.ref_id
-                );
+        existedFacilities = matchedFacilitiesData.rows.map((matchedFacility: any) => {
+            const facility = facilitiesData.find(facility =>
+                facility.name.toUpperCase() === matchedFacility.name.toUpperCase() ||
+                facility._id === matchedFacility.ref_id
+            );
 
-                if (facility) {
-                    return {
-                        ref_id: facility._id,
-                        name: facility.name,
-                        id: matchedFacility.id
-                    };
-                }
+            if (facility) {
+                return {
+                    ref_id: facility._id,
+                    name: facility.name,
+                    id: matchedFacility.id
+                };
+            }
+        });
+
+
+        notExistedFacilities = facilitiesData.filter(facility => {
+            return !matchedFacilitiesData.rows.some((matchedFacility: any) => {
+                return facility.name.toUpperCase() === matchedFacility.name.toUpperCase() || facility._id === matchedFacility.ref_id;
             });
+        });
 
-
-            notExistedFacilities = facilitiesData.filter(facility => {
-                return !matchedFacilitiesData.rows.some((matchedFacility: any) => {
-                    return facility.name.toUpperCase() === matchedFacility.name.toUpperCase() || facility._id === matchedFacility.ref_id;
-                });
-            });
-        }
 
         return { notExistedFacilities, existedFacilities };
     }
@@ -741,12 +740,43 @@ export class SyncHelpers {
     }
 
 
+    async getMghSalesRepsByFacilites(facilities) {
+        const query = {
+            user_type: { $in: ["MARKETER", "HOSPITAL_MARKETING_MANAGER"] },
+            status: "ACTIVE",
+            hospitals: {
+                $in: facilities
+            }
+        };
+
+
+        const select = {
+            _id: 1,
+            hospitals: 1
+        };
+
+        const salesRepsData = await this.mghLisService.getUsers(query, select);
+
+        if (salesRepsData.length) {
+            salesRepsData.forEach(rep => {
+                rep._id = rep._id.toString();
+                rep.hospitals = rep.hospitals.map(hospitalId => hospitalId.toString());
+            });
+
+        }
+
+        console.log({ salesRepsData });
+
+        return salesRepsData;
+    }
+
     transformFacilities(salesRepsData, unMatchedFacilities) {
         unMatchedFacilities.forEach(facility => {
             // Check if the facility _id is included in any hospital in salesRepsData
             const matchedRep = salesRepsData.find(rep =>
                 rep.hospitals.includes(facility._id)
             );
+            // console.log({ matchedRep });
 
             // If a match is found, add the _id from salesRepsData to the facility object
             if (matchedRep) {
@@ -767,7 +797,7 @@ export class SyncHelpers {
             return {
                 name: facility.name,
                 refId: facility._id,
-                salesRepId: salesRep ? salesRep.id : 9
+                salesRepId: salesRep.id
             };
         });
 
@@ -778,15 +808,13 @@ export class SyncHelpers {
     async modifyMghFacilitiesData(transformedArray) {
 
         const salesRepsIdsAndRefIdsData = await this.getuniqueMghSalesReps(transformedArray);
-        console.log({ salesRepsIdsAndRefIdsData: salesRepsIdsAndRefIdsData[0] });
-        console.log({ transformedArray: transformedArray[0] });
 
         const updatedFacilities = transformedArray.map(facility => {
-            const salesRep = salesRepsIdsAndRefIdsData.find(rep => rep.ref_id.toString() === facility.salesRepId);
+            const salesRep = salesRepsIdsAndRefIdsData.find(rep => rep.mgh_ref_id.toString() === facility.salesRepId);
             return {
                 name: facility.name,
-                mghRefId: facility.mghRefId,
-                salesRepId: salesRep ? salesRep.id : 9
+                mghRefId: facility._id,
+                salesRepId: salesRep.id
             };
         });
 
@@ -964,83 +992,38 @@ export class SyncHelpers {
     }
 
 
-    async insertOrUpdateMghFacilities(modifiedData) {
-        const analyticsFacilities = await this.facilitiesService.getAllFacilitiesData();
-        const existed = [];
-        let notExisted = [];
+    async insertOrUpdateMghFacilities(notExistedFacilities, existedFacilities) {
+        let insertFacilities = [];
+        if (notExistedFacilities.length) {
+            const unMatchedFacilitiesIds = notExistedFacilities.map((e) => e._id);
 
-        modifiedData.forEach(modifiedRep => {
-            const existingRep = analyticsFacilities.find(rep => rep.name.toLowerCase() === modifiedRep.name.toLowerCase());
-            if (existingRep) {
-                existed.push({ mghRefId: modifiedRep.mghRefId.toString(), id: existingRep.id });
-            } else {
-                notExisted.push({ mghRefId: modifiedRep.mghRefId.toString(), name: modifiedRep.name });
-            }
-        });
+            const finalSalesRepsData = await this.getMghSalesRepsByFacilites(unMatchedFacilitiesIds);
 
-        if (existed) {
-            const convertedData = existed.map(entry => {
+            // Assign names to transformedArray based on facilitiesMap
+            let transformedArray = this.transformFacilities(finalSalesRepsData, notExistedFacilities);
 
-                const formattedQueryEntry = `(${entry.id}, '${entry.mghRefId}')`;
+            insertFacilities = await this.modifyMghFacilitiesData(transformedArray);
+
+            this.facilitiesService.insertfacilities(insertFacilities);
+        }
+
+
+        if (existedFacilities.length) {
+            const convertedData = existedFacilities.map(entry => {
+
+                const mghRefId = entry.mgh_ref_id;
+                const id = entry.id;
+
+                const formattedQueryEntry = `(${id}, '${mghRefId}')`;
                 return formattedQueryEntry;
             });
 
             const finalString = convertedData.join(', ');
-
-            // this.facilitiesService.updateMghFacilities(finalString);
-
+            this.facilitiesService.updateMghFacilities(finalString);
         }
 
-        if (notExisted.length) {
-            this.toInsertMghFacilities(notExisted);
-        }
+        return insertFacilities;
 
-        return { existed, notExisted };
-
-    }
-
-    async toInsertMghFacilities(notExisted) {
-        const notExistedFacilities = notExisted.map(e => e.mghRefId);
-
-        const query = {
-            status: "ACTIVE",
-            user_type: { $in: ["MARKETER", "HOSPITAL_MARKETING_MANAGER"] },
-            hospitals: {
-                $in: notExistedFacilities
-            }
-        };
-
-
-        const select = {
-            _id: 1,
-            hospitals: 1
-        };
-
-        const salesRepsData = await this.mghLisService.getUsers(query, select);
-
-
-        let finalSalesReps = salesRepsData.map(item => {
-            let newItem = { ...item }; // Create a copy of the object
-            newItem._id = item._id.toString();
-            newItem.hospitals = item.hospitals.map(objectId => objectId.toString());
-            return newItem;
-        });
-
-        const transformedData = this.transformMghFacilities(finalSalesReps, notExisted);
-
-        const salesReps = await this.getuniqueMghSalesReps(transformedData);
-
-        const updatedFacilities = transformedData.map(facility => {
-            const salesRep = salesReps.find(rep => rep.mgh_ref_id.toString() === facility.salesRepId);
-            return {
-                name: facility.name,
-                mghRefId: facility.mghRefId,
-                salesRepId: salesRep ? salesRep.id : null
-            };
-        });
-
-
-        this.facilitiesService.insertfacilities(updatedFacilities);
     }
 
 
@@ -1351,6 +1334,51 @@ export class SyncHelpers {
         const year = date.getFullYear();
         const month = String(date.getMonth() + 1).padStart(2, '0');
         return `${month}-${year}`;
+    }
+
+
+    async getMghFacilitiesNotExisting(facilitiesData) {
+        if (facilitiesData.length) {
+            facilitiesData.forEach(rep => {
+                rep._id = rep._id.toString();
+            });
+        }
+
+        const hospitalIds = facilitiesData.map((item) => item._id);
+
+        const matchedFacilitiesData = await this.facilitiesService.getMghFacilitiesRefIds(hospitalIds); // fetching matched facilities id from analytics db
+
+        let existedFacilities = [];
+        let notExistedFacilities = [];
+
+        if (matchedFacilitiesData.rows.length) {
+            existedFacilities = matchedFacilitiesData.rows.map((matchedFacility: any) => {
+                const facility = facilitiesData.find(facility =>
+                    facility.name.toUpperCase() === matchedFacility.name.toUpperCase() ||
+                    facility._id === matchedFacility.mgh_ref_id
+                );
+
+                if (facility) {
+                    return {
+                        mgh_ref_id: facility._id,
+                        name: facility.name,
+                        id: matchedFacility.id
+                    };
+                } else {
+                    return null;
+                }
+            }).filter(facility => facility !== null);
+
+
+
+            notExistedFacilities = facilitiesData.filter(facility => {
+                return !matchedFacilitiesData.rows.some((matchedFacility: any) => {
+                    return facility.name.toUpperCase() === matchedFacility.name.toUpperCase() || facility._id === matchedFacility.ref_id;
+                });
+            });
+        }
+
+        return { notExistedFacilities, existedFacilities };
     }
 
 }

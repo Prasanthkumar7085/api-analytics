@@ -331,7 +331,8 @@ export class SyncController {
 			const query = {
 				_id: {
 					$in: salesReps
-				}
+				},
+				status: "ACTIVE"
 			};
 
 			const select = {

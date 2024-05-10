@@ -371,6 +371,11 @@ export class FacilitiesService {
         return await db.execute(sql`SELECT id, name, ref_id FROM facilities WHERE ref_id IN ${hospitalIds}`);
     }
 
+    async getMghFacilitiesRefIds(hospitalIds) {
+
+        return await db.execute(sql`SELECT id, name, mgh_ref_id FROM facilities`);
+    }
+
 
     async insertfacilities(data) {
 

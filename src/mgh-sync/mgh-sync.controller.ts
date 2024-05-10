@@ -7,6 +7,7 @@ import { SyncHelpers } from 'src/helpers/syncHelper';
 import { MghSyncService } from './mgh-sync.service';
 import { FacilitiesService } from 'src/facilities/facilities.service';
 import { HOSPITAL_MARKETING_MANAGER, MARKETER } from 'src/constants/lisConstants';
+import { SalesRepService } from 'src/sales-rep/sales-rep.service';
 
 @Controller({
   version: '1.0',
@@ -18,7 +19,8 @@ export class MghSyncController {
   constructor(
     private readonly mghSyncService: MghSyncService,
     private readonly facilitiesService: FacilitiesService,
-    private readonly syncHelpers: SyncHelpers
+    private readonly syncHelpers: SyncHelpers,
+    private readonly salesRepService: SalesRepService
   ) { }
 
 
@@ -224,40 +226,27 @@ export class MghSyncController {
 
       const datesFilter = this.syncHelpers.getFromAndToDates(7);
 
+      const salesRepsData = await this.salesRepService.getSalesReps("");
+      const salesReps = salesRepsData.map((e) => e.mgh_ref_id).filter((mgh_ref_id) => mgh_ref_id !== null);
+
+      console.log(salesReps.length);
       const query = {
         _id: {
-          $in: [
-            "65c159bcb2a4b7d072c7afc9",
-            "661047986b4dd9bc67574f1f",
-            "6610487e15478abc276765c9",
-            "661193602055f3dc3b1f4149",
-            "66104b6dc8bf08bcc77070f9",
-            "65301618d78bd4eaa12f281c",
-            "661055101720c4bb87e4c721",
-            "651d7c490f68d73ac39a64b4",
-            "64a5a5acead06a14f9c10625",
-            "60c8cecd2af7f56c193e7d69",
-            "60f9b10bb1469c21fd5748b6",
-            "64026600269c13638eed6ba1",
-            "645e69b0a097dd2ae675499c",
-            "645e6a366f916d2abaf39873",
-            "646bf97fc07ab512b47927bf",
-            "64e60201d007c63e429a9fea",
-            "64e77f81abed24021e2679bc",
-            "6610574b94b288bc47221cd7"
-          ]
-        }
+          $in: salesReps
+        },
+        status: 'ACTIVE'
       };
 
       const select = {
         _id: 1, hospitals: 1
       };
-      const salesReps = await this.mghSyncService.getUsers(query, select);
+      const salesRepsDataFromLis = await this.mghSyncService.getUsers(query, select);
 
-      const hospitalsArray = salesReps.map(e => e.hospitals).flat();
+      console.log({ salesRepsDataFromLis: salesRepsDataFromLis.length });
+
+      const hospitalsArray = salesRepsDataFromLis.map(e => e.hospitals).flat();
 
       const hospitals = [...new Set(hospitalsArray)];
-
 
       const hospitalQuery = {
         status: 'ACTIVE',
@@ -278,16 +267,14 @@ export class MghSyncController {
         return res.status(200).json({ success: true, message: LIS_FACILITIES_NOT_FOUND });
       }
 
-      const modifiedData = facilitiesData.map(e => ({
-        mghRefId: e._id,
-        name: e.name
-      }));
+      const { notExistedFacilities, existedFacilities } = await this.syncHelpers.getMghFacilitiesNotExisting(facilitiesData);
 
-      this.syncHelpers.insertOrUpdateMghFacilities(modifiedData);
+      this.syncHelpers.insertOrUpdateMghFacilities(notExistedFacilities, existedFacilities);
 
       return res.status(200).json({
         success: true,
-        message: SUCCESS_INSERTED_FACILICES
+        message: SUCCESS_INSERTED_FACILICES,
+        notExistedFacilities, existedFacilities
       });
     } catch (err) {
       console.log({ err });
