@@ -392,4 +392,21 @@ export class FacilitiesService {
 
         return db.execute(rawQuery);
     }
+
+    async updateDlwFacilities(queryString) {
+        const rawQuery = sql`
+        UPDATE facilities AS t
+        SET
+          id = u.id,
+          name = u.name,
+          ref_id = u.refId
+        FROM(
+          VALUES
+
+        ${sql.raw(queryString)}
+        ) as u(id, name, refId)
+        WHERE t.id = u.id`;
+
+        return db.execute(rawQuery);
+    }
 }

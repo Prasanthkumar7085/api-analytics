@@ -602,8 +602,8 @@ export class SyncHelpers {
 
                 if (facility) {
                     return {
-                        ref_id: matchedFacility.ref_id,
-                        name: matchedFacility.name,
+                        ref_id: facility._id,
+                        name: facility.name,
                         id: matchedFacility.id
                     };
                 }
@@ -633,26 +633,25 @@ export class SyncHelpers {
 
             insertFacilities = await this.modifyFacilitiesData(transformedArray);
 
-            // this.facilitiesService.insertfacilities(insertFacilities);
+            this.facilitiesService.insertfacilities(insertFacilities);
         }
 
 
-        // if (existedFacilities.length) {
-        //     console.log(12345);
+        if (existedFacilities.length) {
 
-        //     console.log({ existedFacilities });
-        //     const convertedData = existedFacilities.map(entry => {
+            const convertedData = existedFacilities.map(entry => {
 
-        //         const refId = entry.ref_id;
-        //         const id = entry.id;
-        //         const labId = entry.labId ? entry.labId : null;
+                const refId = entry.ref_id;
+                const id = entry.id;
+                const name = entry.name.replace(/'/g, "''");
 
-        //         const formattedQueryEntry = `('${entry.accessionId}', '${serviceDate}'::timestamp, '${collectionDate}'::timestamp, ${caseTypeId}, '${patientId}', ${reportsFinalized}, '${physicianId}', ${facilityId}, ${salesRepId}, ${insurancePayerId}, ${labId})`;
-        //         return formattedQueryEntry;
-        //     });
+                const formattedQueryEntry = `(${id}, '${name}', '${refId}')`;
+                return formattedQueryEntry;
+            });
 
-        //     const finalString = convertedData.join(', ');
-        // }
+            const finalString = convertedData.join(', ');
+            this.facilitiesService.updateDlwFacilities(finalString);
+        }
 
 
         return { insertFacilities };
