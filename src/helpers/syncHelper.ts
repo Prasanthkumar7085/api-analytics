@@ -49,7 +49,7 @@ export class SyncHelpers {
 
     getFromAndToDatesInEST(days: number) {
         const currentDate = new Date();
-        const previousDate = new Date(currentDate);
+        const previousDate = new Date('2023-09-01');
 
         previousDate.setDate(currentDate.getDate() - days);
 
@@ -57,7 +57,7 @@ export class SyncHelpers {
 
         console.log({ previousDate });
 
-        let clientTime = moment.utc(previousDate);
+        let clientTime = moment.utc(new Date('2023-09-01'));
         let h = clientTime.hour();
         let mn = clientTime.minutes();
         let s = clientTime.seconds();
@@ -109,13 +109,15 @@ export class SyncHelpers {
             let query = {
                 status: { $nin: ["ARCHIVE", "ARCHIVED"] },
                 received_date: {
-                    $gte: fromDate,
-                    $lte: toDate
+                    $gte: '2023-10-01T05:00:00Z',
+                    $lte: '2024-05-12T04:59:59Z'
                 },
                 hospital: {
                     $in: facilities
                 }
             };
+
+            console.log({ query: JSON.stringify(query) });
 
             const select = {
                 accession_id: 1,
@@ -391,7 +393,7 @@ export class SyncHelpers {
                 const finalString = convertedData.join(', ');
 
                 console.log({ Updated: i });
-                // this.SyncService.updateManyPatientClaims(finalString);
+                this.SyncService.updateManyPatientClaims(finalString);
             }
         }
 
@@ -401,7 +403,7 @@ export class SyncHelpers {
             for (let i = 0; i < notExistedData.length; i += batchSize) {
                 console.log({ Inserted: i });
                 const batch = notExistedData.slice(i, i + batchSize);
-                // this.SyncService.insertPatientClaims(batch);
+                this.SyncService.insertPatientClaims(batch);
             }
         }
 
