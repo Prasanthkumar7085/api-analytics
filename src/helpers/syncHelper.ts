@@ -117,8 +117,6 @@ export class SyncHelpers {
                 }
             };
 
-            console.log({ query: JSON.stringify(query) });
-
             const select = {
                 accession_id: 1,
                 case_types: 1,
@@ -1161,13 +1159,15 @@ export class SyncHelpers {
             let query = {
                 status: { $nin: ["ARCHIVE", "ARCHIVED"] },
                 received_date: {
-                    $gte: fromDate,
-                    $lte: toDate
+                    $gte: '2023-10-01T05:00:00Z',
+                    $lte: '2024-05-12T04:59:59Z'
                 },
                 hospital: {
                     $in: facilities
                 }
             };
+
+            console.log({ query: JSON.stringify(query) });
 
             const select = {
                 accession_id: 1,

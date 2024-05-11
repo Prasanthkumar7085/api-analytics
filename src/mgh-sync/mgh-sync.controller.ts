@@ -32,7 +32,7 @@ export class MghSyncController {
       await mongoose.connect(lis_mgh_db_url);
 
 
-      const datesObj = this.syncHelpers.getFromAndToDates(1);
+			const datesObj = this.syncHelpers.getFromAndToDatesInEST(1);
 
       const fromDate = datesObj.fromDate;
       const toDate = datesObj.toDate;
