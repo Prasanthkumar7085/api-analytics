@@ -229,7 +229,6 @@ export class MghSyncController {
       const salesRepsData = await this.salesRepService.getSalesReps("");
       const salesReps = salesRepsData.map((e) => e.mgh_ref_id).filter((mgh_ref_id) => mgh_ref_id !== null);
 
-      console.log(salesReps.length);
       const query = {
         _id: {
           $in: salesReps
@@ -241,8 +240,6 @@ export class MghSyncController {
         _id: 1, hospitals: 1
       };
       const salesRepsDataFromLis = await this.mghSyncService.getUsers(query, select);
-
-      console.log({ salesRepsDataFromLis: salesRepsDataFromLis.length });
 
       const hospitalsArray = salesRepsDataFromLis.map(e => e.hospitals).flat();
 

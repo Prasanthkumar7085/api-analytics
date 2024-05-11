@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { CaseTypesService } from "src/case-types/case-types.service";
-import { ARCHIVED, CASE_TYPE_MAPPING, keyMapping } from "src/constants/lisConstants";
+import { ARCHIVED, CASE_TYPE_MAPPING, MARKETER, keyMapping } from "src/constants/lisConstants";
 import { FacilitiesService } from "src/facilities/facilities.service";
 import { InsurancesService } from "src/insurances/insurances.service";
 import { LabsService } from "src/labs/labs.service";
@@ -9,7 +9,7 @@ import { MghSyncService } from "src/mgh-sync/mgh-sync.service";
 import { SalesRepService } from "src/sales-rep/sales-rep.service";
 import { SyncService } from "src/sync/sync.service";
 import { SalesRepsTargetsAchivedService } from 'src/sales-reps-targets-achived/sales-reps-targets-achived.service';
-
+import * as moment from 'moment-timezone';
 
 @Injectable()
 export class SyncHelpers {
@@ -43,6 +43,63 @@ export class SyncHelpers {
         return {
             fromDate: previousDate,
             toDate: toDate
+        };
+    }
+
+
+    getFromAndToDatesInEST(days: number) {
+        const currentDate = new Date();
+        const previousDate = new Date(currentDate);
+
+        previousDate.setDate(currentDate.getDate() - days);
+
+        previousDate.setUTCHours(0, 0, 0, 0);
+
+        console.log({ previousDate });
+
+        let clientTime = moment.utc(previousDate);
+        let h = clientTime.hour();
+        let mn = clientTime.minutes();
+        let s = clientTime.seconds();
+        let y = clientTime.year();
+        let d = clientTime.date();
+        let m = clientTime.month();
+
+        const timezone = 'America/New_York';
+        let startOfDate = moment()
+            .tz(timezone)
+            .set({
+                hours: h,
+                minutes: mn,
+                year: y,
+                seconds: s,
+                date: d,
+                month: m,
+            })
+            .utc()
+            .format();
+        let endOfDate = moment()
+            .tz(timezone)
+            .set({
+                hours: h,
+                minutes: mn,
+                year: y,
+                seconds: s,
+                date: d,
+                month: m,
+            })
+            .endOf("day")
+            .utc()
+            .format();
+
+        console.log({
+            fromDate: startOfDate,
+            toDate: endOfDate
+        });
+
+        return {
+            fromDate: startOfDate,
+            toDate: endOfDate
         };
     }
 
@@ -334,7 +391,7 @@ export class SyncHelpers {
                 const finalString = convertedData.join(', ');
 
                 console.log({ Updated: i });
-                this.SyncService.updateManyPatientClaims(finalString);
+                // this.SyncService.updateManyPatientClaims(finalString);
             }
         }
 
@@ -344,7 +401,7 @@ export class SyncHelpers {
             for (let i = 0; i < notExistedData.length; i += batchSize) {
                 console.log({ Inserted: i });
                 const batch = notExistedData.slice(i, i + batchSize);
-                this.SyncService.insertPatientClaims(batch);
+                // this.SyncService.insertPatientClaims(batch);
             }
         }
 
@@ -723,7 +780,8 @@ export class SyncHelpers {
 
         const select = {
             _id: 1,
-            hospitals: 1
+            hospitals: 1,
+            user_type: 1
         };
 
         const salesRepsData = await this.lisService.getUsers(query, select);
@@ -735,6 +793,8 @@ export class SyncHelpers {
             });
 
         }
+
+        console.log("COMPLETED");
 
         return salesRepsData;
     }
@@ -765,24 +825,33 @@ export class SyncHelpers {
 
         }
 
-        console.log({ salesRepsData });
-
         return salesRepsData;
     }
 
     transformFacilities(salesRepsData, unMatchedFacilities) {
+
         unMatchedFacilities.forEach(facility => {
             // Check if the facility _id is included in any hospital in salesRepsData
-            const matchedRep = salesRepsData.find(rep =>
+            const matchedReps = salesRepsData.filter(rep =>
                 rep.hospitals.includes(facility._id)
             );
-            // console.log({ matchedRep });
+
+            const marketersData = matchedReps.filter(e => e.user_type === MARKETER);
+
+            let matchedRep: any = {};
+            if (marketersData.length) {
+                matchedRep = marketersData[0];
+            } else {
+                matchedRep = matchedReps[0];
+            }
 
             // If a match is found, add the _id from salesRepsData to the facility object
             if (matchedRep) {
                 facility.salesRepId = matchedRep._id;
             }
         });
+
+        console.log(1234567);
 
         return unMatchedFacilities;
     }
@@ -828,8 +897,9 @@ export class SyncHelpers {
 
         const uniqueSalesRepsIds = [...new Set(salesRepsIds)];
 
-
         const salesRepsIdsAndRefIdsData = await this.salesRepsService.getSalesRepsIdsAndRefIds(uniqueSalesRepsIds);
+
+        console.log("------->");
         return salesRepsIdsAndRefIdsData;
     }
 
