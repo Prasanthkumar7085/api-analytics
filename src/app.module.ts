@@ -47,7 +47,9 @@ export class AppModule implements NestModule {
         { path: 'v1.0/overview/case-types-volume-targets', method: RequestMethod.GET },
         { path: 'v1.0/overview/revenue', method: RequestMethod.GET },
         { path: 'v1.0/overview/volume', method: RequestMethod.GET },
-        { path: 'v1.0/overview/volume-targets', method: RequestMethod.GET }
+        { path: 'v1.0/overview/volume-targets', method: RequestMethod.GET },
+        { path: '/v1.0/insurances', method: RequestMethod.GET },
+        { path: '/v1.0/facilities', method: RequestMethod.GET }
       );
   }
 }

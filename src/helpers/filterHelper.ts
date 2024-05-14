@@ -239,7 +239,8 @@ export class FilterHelper {
     facilitiesFilter(query) {
         let filter = [];
 
-        const { from_date, to_date, sales_reps } = query;
+        const { from_date, to_date, sales_reps, sales_rep_ids
+        } = query;
 
         if (from_date && to_date) {
             filter.push(`service_date BETWEEN '${from_date}' AND '${to_date}'`);
@@ -247,6 +248,10 @@ export class FilterHelper {
 
         if (sales_reps) {
             filter.push(`p.sales_rep_id IN (${sales_reps})`);
+        }
+
+        if (sales_rep_ids && !sales_reps) {
+            filter.push(`p.sales_rep_id IN (${sales_rep_ids})`);
         }
 
         let queryString;
