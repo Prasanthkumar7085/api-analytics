@@ -1,9 +1,10 @@
-import { boolean, date, doublePrecision, index, integer, pgTable, serial, varchar } from 'drizzle-orm/pg-core';
+import { boolean, date, doublePrecision, index, integer, pgTable, serial, timestamp, varchar } from 'drizzle-orm/pg-core';
 import { case_types } from './caseTypes';
 import { facilities } from './facilities';
 import { insurance_payors } from './insurancePayors';
 import { labs } from './labs';
 import { sales_reps } from './salesReps';
+import { sql } from 'drizzle-orm';
 
 export const patient_claims = pgTable('patient_claims', {
     id: serial('id').primaryKey(),
@@ -26,7 +27,9 @@ export const patient_claims = pgTable('patient_claims', {
     patientId: varchar("patient_id", { length: 30 }),
     isPartialPaid: boolean("is_partial_paid").default(false),
     billingDate: date('billing_date'),
-    labId: integer("lab_id").references(() => labs.id)
+    labId: integer("lab_id").references(() => labs.id),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
 },
     (table: any) => {
         return {

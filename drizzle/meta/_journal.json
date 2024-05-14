@@ -43,6 +43,27 @@
       "when": 1713594653566,
       "tag": "0016_friendly_night_thrasher",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "5",
+      "when": 1715661378877,
+      "tag": "0017_bitter_liz_osborn",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "5",
+      "when": 1715661617069,
+      "tag": "0018_tan_psynapse",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "5",
+      "when": 1715661912687,
+      "tag": "0019_stormy_killmonger",
+      "breakpoints": true
     }
   ]
 }
