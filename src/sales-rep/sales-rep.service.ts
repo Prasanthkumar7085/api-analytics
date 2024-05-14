@@ -660,5 +660,9 @@ export class SalesRepService {
 	}
 
 
+	async getActiveSalesReps(){
+		return db.select({ id: sales_reps.id }).from(sales_reps).where(eq(sales_reps.status, "ACTIVE"));
+	}
+
 }
 

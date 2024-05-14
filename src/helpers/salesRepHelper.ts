@@ -365,4 +365,13 @@ export class SalesRepHelper {
 
         return targets;
     }
+
+
+    async getActiveSalesReps() {
+        const idsData = await this.salesRepService.getActiveSalesReps();
+
+        const ids = idsData.map(e => e.id);
+
+        return ids;
+    }
 }

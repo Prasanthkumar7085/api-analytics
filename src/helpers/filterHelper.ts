@@ -280,7 +280,8 @@ export class FilterHelper {
         const {
             from_date: fromDate,
             to_date: toDate,
-            sales_reps: salesReps
+            sales_reps: salesReps,
+            sales_rep_ids: salesRepIds
         } = query;
 
         if (fromDate && toDate) {
@@ -289,6 +290,10 @@ export class FilterHelper {
 
         if (salesReps) {
             filter.push(`sales_rep_id IN (${salesReps})`);
+        }
+
+        if(salesRepIds && !salesReps){
+            filter.push(`sales_rep_id IN (${salesRepIds})`);
         }
 
         let queryString;
@@ -393,7 +398,8 @@ export class FilterHelper {
             sales_rep: salesRep,
             sales_reps: salesReps,
             from_date: fromDate,
-            to_date: toDate
+            to_date: toDate,
+            sales_rep_ids: salesRepIds
         } = query;
 
         if (salesRep) {
@@ -402,6 +408,10 @@ export class FilterHelper {
 
         if (salesReps) {
             filter.push(`sales_rep_id IN (${salesReps})`);
+        }
+
+        if (salesRepIds && !salesRep && !salesReps) {
+            filter.push(`sales_rep_id IN (${salesRepIds})`);
         }
 
         if (fromDate && toDate) {
