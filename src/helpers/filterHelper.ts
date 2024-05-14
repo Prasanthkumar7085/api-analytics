@@ -169,7 +169,8 @@ export class FilterHelper {
         const {
             from_date: fromDate,
             to_date: toDate,
-            sales_reps: salesReps
+            sales_reps: salesReps,
+            status: status
         } = query;
 
         if (fromDate && toDate) {
@@ -178,6 +179,12 @@ export class FilterHelper {
 
         if (salesReps) {
             filter.push(`sales_rep_id IN (${salesReps})`);
+        }
+
+        if (!status) {
+            filter.push(`status = 'ACTIVE'`);
+        } else {
+            filter.push(`status = ${status}`);
         }
 
         let queryString;
@@ -296,11 +303,18 @@ export class FilterHelper {
     salesRepsFilter(query) {
         let filter = [];
         const {
-            sales_reps: salesReps
+            sales_reps: salesReps,
+            status: status
         } = query;
 
         if (salesReps) {
             filter.push(`id IN (${salesReps})`);
+        }
+
+        if (!status) {
+            filter.push(`status = 'ACTIVE'`);
+        } else {
+            filter.push(`status = ${status}`);
         }
 
         let queryString;
