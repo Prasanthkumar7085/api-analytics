@@ -43,9 +43,12 @@ export class Configuration {
 
         const api_url = this.configService.get<string>('API_URL');
 
+        const static_ids = {
+            insurance_id: this.configService.get<number>('NO_INSURANCE_ID')
+        }
 
 
-        return { lis_dlw_db_url, lab_id, ls_api_key, lis_mgh_db_url, jwt, kaka_email_service, api_url };
+        return { lis_dlw_db_url, lab_id, ls_api_key, lis_mgh_db_url, jwt, kaka_email_service, api_url, static_ids };
     }
 
 }

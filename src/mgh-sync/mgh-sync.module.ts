@@ -17,10 +17,13 @@ import { testPanelsDataSchema } from 'src/schemas/testPanelSchema';
 import { HospitalSchema } from 'src/schemas/hospitalSchema';
 import { labDataSchema } from 'src/schemas/lab';
 import { SalesRepsTargetsAchivedService } from 'src/sales-reps-targets-achived/sales-reps-targets-achived.service';
+import { Configuration } from 'src/config/config.service';
+import { ConfigService } from '@nestjs/config';
 
 @Module({
   controllers: [MghSyncController],
-  providers: [MghSyncService, LabsService, SyncHelpers, LisService, CaseTypesService, FacilitiesService, InsurancesService, SyncService, SalesRepService, SalesRepsTargetsAchivedService],
+  providers: [MghSyncService, LabsService, SyncHelpers, LisService, CaseTypesService, FacilitiesService, InsurancesService, SyncService, 
+    SalesRepService, SalesRepsTargetsAchivedService, Configuration, ConfigService],
   imports: [
     MongooseModule.forFeature([
       { name: 'User', schema: UserSchema },

@@ -10,6 +10,7 @@ import { SalesRepService } from "src/sales-rep/sales-rep.service";
 import { SyncService } from "src/sync/sync.service";
 import { SalesRepsTargetsAchivedService } from 'src/sales-reps-targets-achived/sales-reps-targets-achived.service';
 import * as moment from 'moment-timezone';
+import { Configuration } from "src/config/config.service";
 
 @Injectable()
 export class SyncHelpers {
@@ -23,7 +24,8 @@ export class SyncHelpers {
         private readonly salesRepsService: SalesRepService,
         private readonly labsService: LabsService,
         private readonly mghLisService: MghSyncService,
-        private readonly salesRepsTargetsAchivedService: SalesRepsTargetsAchivedService
+        private readonly salesRepsTargetsAchivedService: SalesRepsTargetsAchivedService,
+        private readonly configuration: Configuration,
 
     ) { }
 
@@ -366,7 +368,7 @@ export class SyncHelpers {
 
 
     async insertOrUpdateModifiedClaims(seperatedArray) {
-        const batchSize = 2000;
+        const batchSize = 100;
 
         const existedData = seperatedArray.existedArray;
         const notExistedData = seperatedArray.notExistedArray;
@@ -388,7 +390,7 @@ export class SyncHelpers {
                     const physicianId = entry.physicianId ? entry.physicianId : null;
                     const facilityId = entry.facilityId ? entry.facilityId : null;
                     const salesRepId = entry.salesRepId ? entry.salesRepId : null;
-                    const insurancePayerId = entry.insurancePayerId ? entry.insurancePayerId : null;
+                    const insurancePayerId = entry.insurancePayerId ? entry.insurancePayerId : this.configuration.getConfig().static_ids.insurance_id;
                     const labId = entry.labId ? entry.labId : null;
 
                     const formattedQueryEntry = `('${entry.accessionId}', '${serviceDate}'::timestamp, '${collectionDate}'::timestamp, ${caseTypeId}, '${patientId}', ${reportsFinalized}, '${physicianId}', ${facilityId}, ${salesRepId}, ${insurancePayerId}, ${labId})`;
@@ -408,6 +410,7 @@ export class SyncHelpers {
             for (let i = 0; i < notExistedData.length; i += batchSize) {
                 console.log({ Inserted: i });
                 const batch = notExistedData.slice(i, i + batchSize);
+
                 this.SyncService.insertPatientClaims(batch);
             }
         }

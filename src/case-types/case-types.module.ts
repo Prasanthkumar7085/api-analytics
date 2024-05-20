@@ -20,11 +20,14 @@ import { labDataSchema } from 'src/schemas/lab';
 import { MghSyncService } from 'src/mgh-sync/mgh-sync.service';
 import { MghDbConnections } from 'src/helpers/mghDbconnection';
 import { SalesRepsTargetsAchivedService } from 'src/sales-reps-targets-achived/sales-reps-targets-achived.service';
+import { Configuration } from 'src/config/config.service';
+import { ConfigService } from '@nestjs/config';
 
 @Module({
   controllers: [CaseTypesController],
-  providers: [CaseTypesService, FilterHelper, JwtService, LisService, SalesRepService, SyncHelpers, 
-    InsurancesService, FacilitiesService, SyncService, LabsService, MghSyncService, MghDbConnections, SalesRepsTargetsAchivedService],
+  providers: [CaseTypesService, FilterHelper, JwtService, LisService, SalesRepService, SyncHelpers,
+    InsurancesService, FacilitiesService, SyncService, LabsService, MghSyncService, MghDbConnections, SalesRepsTargetsAchivedService,
+    Configuration, ConfigService],
   imports: [
     MongooseModule.forFeature([
       { name: 'User', schema: UserSchema },
