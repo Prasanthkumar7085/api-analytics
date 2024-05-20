@@ -58,6 +58,8 @@ export class SyncController {
 			const fromDate = datesObj.fromDate;
 			const toDate = datesObj.toDate;
 
+			console.log({fromDate, toDate})
+
 			const facilitiesArray = await this.facilitiesService.getAllFacilitiesData();
 
 			let facilities = facilitiesArray.map(e => e.refId);

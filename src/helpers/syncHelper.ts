@@ -49,58 +49,65 @@ export class SyncHelpers {
 
     getFromAndToDatesInEST(days: number) {
         const currentDate = new Date();
-        const previousDate = new Date('2023-09-01');
+        const previousDate = new Date(currentDate);
 
         previousDate.setDate(currentDate.getDate() - days);
 
         previousDate.setUTCHours(0, 0, 0, 0);
 
-        console.log({ previousDate });
+        const fromDateString = new Date(previousDate);
+        const toDateString = new Date(previousDate);
 
-        let clientTime = moment.utc(new Date('2023-09-01'));
-        let h = clientTime.hour();
-        let mn = clientTime.minutes();
-        let s = clientTime.seconds();
-        let y = clientTime.year();
-        let d = clientTime.date();
-        let m = clientTime.month();
+        const labTimezone = 'America/New_York';
 
-        const timezone = 'America/New_York';
-        let startOfDate = moment()
-            .tz(timezone)
+
+
+        let toDateTime = moment.utc(toDateString);
+
+        let th = toDateTime.hour();
+        let tmn = toDateTime.minutes();
+        let ts = toDateTime.seconds();
+        let ty = toDateTime.year();
+        let td = toDateTime.date();
+        let tm = toDateTime.month();
+        const toDate = moment()
+            .tz(labTimezone)
             .set({
-                hours: h,
-                minutes: mn,
-                year: y,
-                seconds: s,
-                date: d,
-                month: m,
-            })
-            .utc()
-            .format();
-        let endOfDate = moment()
-            .tz(timezone)
-            .set({
-                hours: h,
-                minutes: mn,
-                year: y,
-                seconds: s,
-                date: d,
-                month: m,
+                hours: th,
+                minutes: tmn,
+                year: ty,
+                seconds: ts,
+                date: td,
+                month: tm,
             })
             .endOf("day")
             .utc()
             .format();
+        let fromDateTime = moment.utc(fromDateString);
 
-        console.log({
-            fromDate: startOfDate,
-            toDate: endOfDate
-        });
+        let h = fromDateTime.hour();
+        let mn = fromDateTime.minutes();
+        let s = fromDateTime.seconds();
 
-        return {
-            fromDate: startOfDate,
-            toDate: endOfDate
-        };
+        let y = fromDateTime.year();
+        let d = fromDateTime.date();
+        let m = fromDateTime.month();
+
+        const fromDate = moment()
+            .tz(labTimezone)
+            .set({
+                hours: h,
+                minutes: mn,
+                year: y,
+                seconds: s,
+                date: d,
+                month: m,
+            })
+            .utc()
+            .format();
+
+        return { fromDate, toDate };
+
     }
 
 
@@ -109,8 +116,8 @@ export class SyncHelpers {
             let query = {
                 status: { $nin: ["ARCHIVE", "ARCHIVED"] },
                 received_date: {
-                    $gte: '2023-10-01T05:00:00Z',
-                    $lte: '2024-05-12T04:59:59Z'
+                    $gte: fromDate,
+                    $lte: toDate
                 },
                 hospital: {
                     $in: facilities
@@ -640,8 +647,10 @@ export class SyncHelpers {
         if (facilitiesData.length) {
             facilitiesData.forEach(rep => {
                 rep._id = rep._id.toString();
+                rep.name = rep.name.replace(/\s+/g, ' ').trim();
             });
         }
+
 
         const hospitalIds = facilitiesData.map((item) => item._id);
 
@@ -1159,15 +1168,13 @@ export class SyncHelpers {
             let query = {
                 status: { $nin: ["ARCHIVE", "ARCHIVED"] },
                 received_date: {
-                    $gte: '2023-10-01T05:00:00Z',
-                    $lte: '2024-05-12T04:59:59Z'
+                    $gte: fromDate,
+                    $lte: toDate
                 },
                 hospital: {
                     $in: facilities
                 }
             };
-
-            console.log({ query: JSON.stringify(query) });
 
             const select = {
                 accession_id: 1,
@@ -1448,6 +1455,8 @@ export class SyncHelpers {
                     return facility.name.toUpperCase() === matchedFacility.name.toUpperCase() || facility._id === matchedFacility.ref_id;
                 });
             });
+        } else {
+            notExistedFacilities = facilitiesData;
         }
 
         return { notExistedFacilities, existedFacilities };
