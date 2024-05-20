@@ -12,7 +12,6 @@ export class ActiveSalesRepsMiddleware implements NestMiddleware {
     async use(req: Request, res: Response, next: NextFunction) {
 
         let query: any = req.query;
-        console.log({ sridhar:query });
 
         if (!query.sales_reps) {
             const idsData = await this.salesRepService.getActiveSalesReps();

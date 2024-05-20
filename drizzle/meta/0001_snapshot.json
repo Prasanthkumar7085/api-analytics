@@ -1,0 +1,1344 @@
+{
+  "id": "68d42a3c-03e5-4777-81ec-c3bd9d81d4c9",
+  "prevId": "e3290af2-d760-4865-8ce9-6f4f2c16f9e8",
+  "version": "5",
+  "dialect": "pg",
+  "tables": {
+    "case_types": {
+      "name": "case_types",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "display_name": {
+          "name": "display_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "CURRENT_TIMESTAMP"
+        }
+      },
+      "indexes": {
+        "case_types_name_idx": {
+          "name": "case_types_name_idx",
+          "columns": [
+            "name"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "facilities": {
+      "name": "facilities",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ref_id": {
+          "name": "ref_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "default": null
+        },
+        "mgh_ref_id": {
+          "name": "mgh_ref_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "default": null
+        },
+        "sales_rep_id": {
+          "name": "sales_rep_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": null
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "CURRENT_TIMESTAMP"
+        }
+      },
+      "indexes": {
+        "facilties_mgh_ref_id_idx": {
+          "name": "facilties_mgh_ref_id_idx",
+          "columns": [
+            "mgh_ref_id"
+          ],
+          "isUnique": false
+        },
+        "facilties_ref_id_idx": {
+          "name": "facilties_ref_id_idx",
+          "columns": [
+            "ref_id"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "facilities_sales_rep_id_sales_reps_id_fk": {
+          "name": "facilities_sales_rep_id_sales_reps_id_fk",
+          "tableFrom": "facilities",
+          "tableTo": "sales_reps",
+          "columnsFrom": [
+            "sales_rep_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "insurance_payors": {
+      "name": "insurance_payors",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ref_id": {
+          "name": "ref_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "default": null
+        },
+        "mgh_ref_id": {
+          "name": "mgh_ref_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "default": null
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "CURRENT_TIMESTAMP"
+        }
+      },
+      "indexes": {
+        "insurance_mgh_ref_id_idx": {
+          "name": "insurance_mgh_ref_id_idx",
+          "columns": [
+            "mgh_ref_id"
+          ],
+          "isUnique": false
+        },
+        "insurance_ref_id_idx": {
+          "name": "insurance_ref_id_idx",
+          "columns": [
+            "ref_id"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "labs": {
+      "name": "labs",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "code": {
+          "name": "code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ref_id": {
+          "name": "ref_id",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false,
+          "default": null
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "CURRENT_TIMESTAMP"
+        }
+      },
+      "indexes": {
+        "lab_ref_id_idx": {
+          "name": "lab_ref_id_idx",
+          "columns": [
+            "ref_id"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "patient_claim_payment_history": {
+      "name": "patient_claim_payment_history",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "accession_id": {
+          "name": "accession_id",
+          "type": "varchar(20)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cleared_amount": {
+          "name": "cleared_amount",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "payment_date": {
+          "name": "payment_date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "patient_id": {
+          "name": "patient_id",
+          "type": "varchar(30)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "patient_claim_id": {
+          "name": "patient_claim_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "patient_claim_accession_id_idx": {
+          "name": "patient_claim_accession_id_idx",
+          "columns": [
+            "accession_id"
+          ],
+          "isUnique": false
+        },
+        "patient_claim_patient_id_idx": {
+          "name": "patient_claim_patient_id_idx",
+          "columns": [
+            "patient_id"
+          ],
+          "isUnique": false
+        },
+        "patient_claim_patient_claim_id_idx": {
+          "name": "patient_claim_patient_claim_id_idx",
+          "columns": [
+            "patient_claim_id"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "patient_claim_payment_history_patient_claim_id_patient_claims_id_fk": {
+          "name": "patient_claim_payment_history_patient_claim_id_patient_claims_id_fk",
+          "tableFrom": "patient_claim_payment_history",
+          "tableTo": "patient_claims",
+          "columnsFrom": [
+            "patient_claim_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "patient_claims": {
+      "name": "patient_claims",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "accession_id": {
+          "name": "accession_id",
+          "type": "varchar(20)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "case_type_id": {
+          "name": "case_type_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "physician_id": {
+          "name": "physician_id",
+          "type": "varchar(30)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "facility_id": {
+          "name": "facility_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "sales_rep_id": {
+          "name": "sales_rep_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "insurance_payer_id": {
+          "name": "insurance_payer_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "expected_amount": {
+          "name": "expected_amount",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "billable_amount": {
+          "name": "billable_amount",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "cleared_amount": {
+          "name": "cleared_amount",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "pending_amount": {
+          "name": "pending_amount",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "service_date": {
+          "name": "service_date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "collection_date": {
+          "name": "collection_date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "reports_finalized": {
+          "name": "reports_finalized",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
+        },
+        "is_bill_cleared": {
+          "name": "is_bill_cleared",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
+        },
+        "recent_payment_date": {
+          "name": "recent_payment_date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "insurnace_target_price": {
+          "name": "insurnace_target_price",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "patient_id": {
+          "name": "patient_id",
+          "type": "varchar(30)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "is_partial_paid": {
+          "name": "is_partial_paid",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
+        },
+        "billing_date": {
+          "name": "billing_date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "lab_id": {
+          "name": "lab_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "CURRENT_TIMESTAMP"
+        }
+      },
+      "indexes": {
+        "accession_id_idx": {
+          "name": "accession_id_idx",
+          "columns": [
+            "accession_id"
+          ],
+          "isUnique": false
+        },
+        "case_type_id_idx": {
+          "name": "case_type_id_idx",
+          "columns": [
+            "case_type_id"
+          ],
+          "isUnique": false
+        },
+        "physician_id_idx": {
+          "name": "physician_id_idx",
+          "columns": [
+            "physician_id"
+          ],
+          "isUnique": false
+        },
+        "facility_id_idx": {
+          "name": "facility_id_idx",
+          "columns": [
+            "facility_id"
+          ],
+          "isUnique": false
+        },
+        "sales_rep_id_idx": {
+          "name": "sales_rep_id_idx",
+          "columns": [
+            "sales_rep_id"
+          ],
+          "isUnique": false
+        },
+        "insurance_payer_id_idx": {
+          "name": "insurance_payer_id_idx",
+          "columns": [
+            "insurance_payer_id"
+          ],
+          "isUnique": false
+        },
+        "patient_id_idx": {
+          "name": "patient_id_idx",
+          "columns": [
+            "patient_id"
+          ],
+          "isUnique": false
+        },
+        "lab_id_idx": {
+          "name": "lab_id_idx",
+          "columns": [
+            "lab_id"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "patient_claims_case_type_id_case_types_id_fk": {
+          "name": "patient_claims_case_type_id_case_types_id_fk",
+          "tableFrom": "patient_claims",
+          "tableTo": "case_types",
+          "columnsFrom": [
+            "case_type_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "patient_claims_facility_id_facilities_id_fk": {
+          "name": "patient_claims_facility_id_facilities_id_fk",
+          "tableFrom": "patient_claims",
+          "tableTo": "facilities",
+          "columnsFrom": [
+            "facility_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "patient_claims_sales_rep_id_sales_reps_id_fk": {
+          "name": "patient_claims_sales_rep_id_sales_reps_id_fk",
+          "tableFrom": "patient_claims",
+          "tableTo": "sales_reps",
+          "columnsFrom": [
+            "sales_rep_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "patient_claims_insurance_payer_id_insurance_payors_id_fk": {
+          "name": "patient_claims_insurance_payer_id_insurance_payors_id_fk",
+          "tableFrom": "patient_claims",
+          "tableTo": "insurance_payors",
+          "columnsFrom": [
+            "insurance_payer_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "patient_claims_lab_id_labs_id_fk": {
+          "name": "patient_claims_lab_id_labs_id_fk",
+          "tableFrom": "patient_claims",
+          "tableTo": "labs",
+          "columnsFrom": [
+            "lab_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "sales_reps": {
+      "name": "sales_reps",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ref_id": {
+          "name": "ref_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "default": null
+        },
+        "mgh_ref_id": {
+          "name": "mgh_ref_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "default": null
+        },
+        "reporting_to": {
+          "name": "reporting_to",
+          "type": "serial",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "role_id": {
+          "name": "role_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "email": {
+          "name": "email",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false,
+          "default": null
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "CURRENT_TIMESTAMP"
+        }
+      },
+      "indexes": {
+        "sales_rep_mgh_ref_id_idx": {
+          "name": "sales_rep_mgh_ref_id_idx",
+          "columns": [
+            "mgh_ref_id"
+          ],
+          "isUnique": false
+        },
+        "sales_rep_ref_id_idx": {
+          "name": "sales_rep_ref_id_idx",
+          "columns": [
+            "ref_id"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "sales_reps_role_id_user_role_id_fk": {
+          "name": "sales_reps_role_id_user_role_id_fk",
+          "tableFrom": "sales_reps",
+          "tableTo": "user_role",
+          "columnsFrom": [
+            "role_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "sales_reps_monthly_achieves": {
+      "name": "sales_reps_monthly_achieves",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "sales_rep_id": {
+          "name": "sales_rep_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "start_date": {
+          "name": "start_date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "end_date": {
+          "name": "end_date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "month": {
+          "name": "month",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "covid_a": {
+          "name": "covid_a",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "covid_flu_a": {
+          "name": "covid_flu_a",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "clinical_a": {
+          "name": "clinical_a",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "gastro_a": {
+          "name": "gastro_a",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "nail_a": {
+          "name": "nail_a",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "pgx_a": {
+          "name": "pgx_a",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "rpp_a": {
+          "name": "rpp_a",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "tox_a": {
+          "name": "tox_a",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "ua_a": {
+          "name": "ua_a",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "uti_a": {
+          "name": "uti_a",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "wound_a": {
+          "name": "wound_a",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "card_a": {
+          "name": "card_a",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "cgx_a": {
+          "name": "cgx_a",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "diabetes_a": {
+          "name": "diabetes_a",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "pad_a": {
+          "name": "pad_a",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "pul_a": {
+          "name": "pul_a",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "total_a": {
+          "name": "total_a",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "new_facilities_a": {
+          "name": "new_facilities_a",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        }
+      },
+      "indexes": {
+        "sales_reps_monthly_achieves_sales_rep_id": {
+          "name": "sales_reps_monthly_achieves_sales_rep_id",
+          "columns": [
+            "sales_rep_id"
+          ],
+          "isUnique": false
+        },
+        "sales_reps_monthly_achieves_month_idx": {
+          "name": "sales_reps_monthly_achieves_month_idx",
+          "columns": [
+            "month"
+          ],
+          "isUnique": false
+        },
+        "sales_reps_monthly_achieves_start_date_idx": {
+          "name": "sales_reps_monthly_achieves_start_date_idx",
+          "columns": [
+            "start_date"
+          ],
+          "isUnique": false
+        },
+        "sales_reps_monthly_achieves_end_date_idx": {
+          "name": "sales_reps_monthly_achieves_end_date_idx",
+          "columns": [
+            "end_date"
+          ],
+          "isUnique": false
+        },
+        "sales_reps_monthly_achieves_total_idx": {
+          "name": "sales_reps_monthly_achieves_total_idx",
+          "columns": [
+            "total_a"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "sales_reps_monthly_achieves_sales_rep_id_sales_reps_id_fk": {
+          "name": "sales_reps_monthly_achieves_sales_rep_id_sales_reps_id_fk",
+          "tableFrom": "sales_reps_monthly_achieves",
+          "tableTo": "sales_reps",
+          "columnsFrom": [
+            "sales_rep_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "sales_reps_monthly_targets": {
+      "name": "sales_reps_monthly_targets",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "sales_rep_id": {
+          "name": "sales_rep_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "start_date": {
+          "name": "start_date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "end_date": {
+          "name": "end_date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "month": {
+          "name": "month",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "covid": {
+          "name": "covid",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "covid_flu": {
+          "name": "covid_flu",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "clinical": {
+          "name": "clinical",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "gastro": {
+          "name": "gastro",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "nail": {
+          "name": "nail",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "pgx": {
+          "name": "pgx",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "rpp": {
+          "name": "rpp",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "tox": {
+          "name": "tox",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "ua": {
+          "name": "ua",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "uti": {
+          "name": "uti",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "wound": {
+          "name": "wound",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "card": {
+          "name": "card",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "cgx": {
+          "name": "cgx",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "diabetes": {
+          "name": "diabetes",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "pad": {
+          "name": "pad",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "pul": {
+          "name": "pul",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "total": {
+          "name": "total",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "new_facilities": {
+          "name": "new_facilities",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "sales_reps_monthly_targets_sales_rep_id": {
+          "name": "sales_reps_monthly_targets_sales_rep_id",
+          "columns": [
+            "sales_rep_id"
+          ],
+          "isUnique": false
+        },
+        "sales_reps_monthly_targets_month_idx": {
+          "name": "sales_reps_monthly_targets_month_idx",
+          "columns": [
+            "month"
+          ],
+          "isUnique": false
+        },
+        "sales_reps_monthly_targets_start_date_idx": {
+          "name": "sales_reps_monthly_targets_start_date_idx",
+          "columns": [
+            "start_date"
+          ],
+          "isUnique": false
+        },
+        "sales_reps_monthly_targets_end_date_idx": {
+          "name": "sales_reps_monthly_targets_end_date_idx",
+          "columns": [
+            "end_date"
+          ],
+          "isUnique": false
+        },
+        "sales_reps_monthly_targets_total_idx": {
+          "name": "sales_reps_monthly_targets_total_idx",
+          "columns": [
+            "total"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "sales_reps_monthly_targets_sales_rep_id_sales_reps_id_fk": {
+          "name": "sales_reps_monthly_targets_sales_rep_id_sales_reps_id_fk",
+          "tableFrom": "sales_reps_monthly_targets",
+          "tableTo": "sales_reps",
+          "columnsFrom": [
+            "sales_rep_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "sales_reps_targets": {
+      "name": "sales_reps_targets",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "sales_rep_id": {
+          "name": "sales_rep_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "year": {
+          "name": "year",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "jan": {
+          "name": "jan",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'[0,0,0,0]'::jsonb"
+        },
+        "feb": {
+          "name": "feb",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'[0,0,0,0]'::jsonb"
+        },
+        "mar": {
+          "name": "mar",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'[0,0,0,0]'::jsonb"
+        },
+        "apr": {
+          "name": "apr",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'[0,0,0,0]'::jsonb"
+        },
+        "may": {
+          "name": "may",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'[0,0,0,0]'::jsonb"
+        },
+        "jun": {
+          "name": "jun",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'[0,0,0,0]'::jsonb"
+        },
+        "jul": {
+          "name": "jul",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'[0,0,0,0]'::jsonb"
+        },
+        "aug": {
+          "name": "aug",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'[0,0,0,0]'::jsonb"
+        },
+        "sept": {
+          "name": "sept",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'[0,0,0,0]'::jsonb"
+        },
+        "oct": {
+          "name": "oct",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'[0,0,0,0]'::jsonb"
+        },
+        "nov": {
+          "name": "nov",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'[0,0,0,0]'::jsonb"
+        },
+        "dec": {
+          "name": "dec",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'[0,0,0,0]'::jsonb"
+        }
+      },
+      "indexes": {
+        "sales_reps_targets_sales_rep_id": {
+          "name": "sales_reps_targets_sales_rep_id",
+          "columns": [
+            "sales_rep_id"
+          ],
+          "isUnique": false
+        },
+        "sales_reps_targets_year_idx": {
+          "name": "sales_reps_targets_year_idx",
+          "columns": [
+            "year"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "sales_reps_targets_sales_rep_id_sales_reps_id_fk": {
+          "name": "sales_reps_targets_sales_rep_id_sales_reps_id_fk",
+          "tableFrom": "sales_reps_targets",
+          "tableTo": "sales_reps",
+          "columnsFrom": [
+            "sales_rep_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "user_role": {
+      "name": "user_role",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    }
+  },
+  "enums": {},
+  "schemas": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

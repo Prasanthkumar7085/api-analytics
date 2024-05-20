@@ -1,0 +1,1 @@
+ALTER TABLE "sales_reps" ALTER COLUMN "status" SET DEFAULT 'ACTIVE';
