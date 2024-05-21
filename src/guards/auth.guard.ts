@@ -129,9 +129,18 @@ export class AuthGuard implements CanActivate {
 
   async addQueryBySalesRep(userDetails, query) {
     try {
-      const refId = userDetails._id.toString();
+      let salesRepData;
+      if (userDetails.ref_id) {
+        const queryString = `ref_id = '${userDetails.ref_id}'`;
 
-      let salesRepData = await this.salesRepService.findOneSalesRep(refId);
+        salesRepData = await this.salesRepService.findOneSalesRep(queryString);
+      }
+
+      if (userDetails.mgh_ref_id) {
+        const queryString = `mgh_ref_id = '${userDetails.mgh_ref_id}'`;
+
+        salesRepData = await this.salesRepService.findOneSalesRep(queryString);
+      }
 
       let ids = [];
 

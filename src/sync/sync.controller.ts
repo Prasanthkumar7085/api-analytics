@@ -53,10 +53,12 @@ export class SyncController {
 	async addPatientClaims(@Res() res: any) {
 		try {
 
-			const datesObj = this.syncHelpers.getFromAndToDates(1);
+			const datesObj = this.syncHelpers.getFromAndToDatesInEST(1);
 
 			const fromDate = datesObj.fromDate;
 			const toDate = datesObj.toDate;
+
+			console.log({fromDate, toDate})
 
 			const facilitiesArray = await this.facilitiesService.getAllFacilitiesData();
 
@@ -72,6 +74,7 @@ export class SyncController {
 					message: PATIENT_CLAIMS_NOT_FOUND
 				});
 			}
+
 			console.log({ cases: cases.length });
 
 			this.syncHelpers.insertPatientClaims(cases);
@@ -325,29 +328,22 @@ export class SyncController {
 
 			const datesFilter = this.syncHelpers.getFromAndToDates(7);
 
+			const salesRepsData = await this.salesRepService.getSalesReps("");
+			const salesReps = salesRepsData.map((e) => e.ref_id).filter((ref_id) => ref_id !== null);
+
 			const query = {
 				_id: {
-					$in: [
-						"6611a080dc8a118df7420284",
-						"65c1589c40f38b52d862b809",
-						"65cf5a20cd2c7ce54e7177a5",
-						"65cfa4c6a2c4dce5a0007592",
-						"65cfa5f1b92184e515ffbc86",
-						"65cfa081112d60e565b73da3",
-						"65cfa19966fab7e5b9f45a47",
-						"65cfa6b1b92184e515ffbcce",
-						"65cfab8744ae7ae53bda0d5c",
-						"6611a25bed767c8e58870f78"
-					]
-				}
+					$in: salesReps
+				},
+				status: "ACTIVE"
 			};
 
 			const select = {
 				_id: 1, hospitals: 1
 			};
-			const salesReps = await this.lisService.getUsers(query, select);
+			const salesRepsDataFromLis = await this.lisService.getUsers(query, select);
 
-			const hospitalsArray = salesReps.map(e => e.hospitals).flat();
+			const hospitalsArray = salesRepsDataFromLis.map(e => e.hospitals).flat();
 
 			const hospitals = [...new Set(hospitalsArray)];
 
@@ -372,27 +368,14 @@ export class SyncController {
 				return res.status(200).json({ success: true, message: LIS_FACILITIES_NOT_FOUND });
 			}
 
-			const unMatchedFacilities: any = await this.syncHelpers.getFacilitiesNotExisting(facilitiesData);
+			const { notExistedFacilities, existedFacilities } = await this.syncHelpers.getFacilitiesNotExisting(facilitiesData);
 
-			if (unMatchedFacilities.length === 0) {
-				return res.status(200).json({ success: true, message: FACILITIES_NOT_FOUND });
-			}
-
-			const unMatchedFacilitiesIds = unMatchedFacilities.map((e) => e._id);
-
-			const salesRepsData = await this.syncHelpers.getSalesRepsByFacilites(unMatchedFacilitiesIds);
-
-			// Assign names to transformedArray based on facilitiesMap
-			let transformedArray = this.syncHelpers.transformFacilities(salesRepsData, unMatchedFacilities);
-
-			const updatedFacilities = await this.syncHelpers.modifyFacilitiesData(transformedArray);
-
-			this.facilitiesService.insertfacilities(updatedFacilities);
+			this.syncHelpers.insertOrUpdatedFacilities(notExistedFacilities, existedFacilities);
 
 			return res.status(200).json({
 				success: true,
 				message: SUCCESS_INSERTED_FACILICES,
-				updatedFacilities
+				notExistedFacilities, existedFacilities
 			});
 		}
 		catch (error) {

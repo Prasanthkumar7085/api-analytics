@@ -1,0 +1,1 @@
+ALTER TABLE "patient_claims" ALTER COLUMN "insurance_payer_id" SET DEFAULT null;

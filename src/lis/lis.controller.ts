@@ -7,7 +7,7 @@ import { SigninDto } from './dto/signin.dto';
 import { LisService } from './lis.service';
 import { Configuration } from 'src/config/config.service';
 import * as jwt from 'jsonwebtoken';
-import { HOSPITAL_MARKETING_MANAGER, LAB_ADMIN, MARKETER, SALES_DIRECTOR } from 'src/constants/lisConstants';
+import { HOSPITAL_MARKETING_MANAGER, LAB_ADMIN, LAB_SUPER_ADMIN, MARKETER, SALES_DIRECTOR } from 'src/constants/lisConstants';
 
 @Controller({
   version: '1.0',
@@ -126,7 +126,7 @@ export class LisController {
       });
     }
 
-    if (userType !== LAB_ADMIN && userType !== SALES_DIRECTOR && userType !== HOSPITAL_MARKETING_MANAGER && userType !== MARKETER) {
+    if (userType !== LAB_ADMIN && userType !== SALES_DIRECTOR && userType !== HOSPITAL_MARKETING_MANAGER && userType !== MARKETER && userType !== LAB_SUPER_ADMIN) {
       return res.status(401).json({
         success: false,
         message: USER_NOT_ALLOWED

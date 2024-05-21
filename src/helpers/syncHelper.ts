@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { CaseTypesService } from "src/case-types/case-types.service";
-import { ARCHIVED, CASE_TYPE_MAPPING, keyMapping } from "src/constants/lisConstants";
+import { ARCHIVED, CASE_TYPE_MAPPING, MARKETER, keyMapping } from "src/constants/lisConstants";
 import { FacilitiesService } from "src/facilities/facilities.service";
 import { InsurancesService } from "src/insurances/insurances.service";
 import { LabsService } from "src/labs/labs.service";
@@ -9,7 +9,8 @@ import { MghSyncService } from "src/mgh-sync/mgh-sync.service";
 import { SalesRepService } from "src/sales-rep/sales-rep.service";
 import { SyncService } from "src/sync/sync.service";
 import { SalesRepsTargetsAchivedService } from 'src/sales-reps-targets-achived/sales-reps-targets-achived.service';
-
+import * as moment from 'moment-timezone';
+import { Configuration } from "src/config/config.service";
 
 @Injectable()
 export class SyncHelpers {
@@ -23,7 +24,8 @@ export class SyncHelpers {
         private readonly salesRepsService: SalesRepService,
         private readonly labsService: LabsService,
         private readonly mghLisService: MghSyncService,
-        private readonly salesRepsTargetsAchivedService: SalesRepsTargetsAchivedService
+        private readonly salesRepsTargetsAchivedService: SalesRepsTargetsAchivedService,
+        private readonly configuration: Configuration,
 
     ) { }
 
@@ -44,6 +46,70 @@ export class SyncHelpers {
             fromDate: previousDate,
             toDate: toDate
         };
+    }
+
+
+    getFromAndToDatesInEST(days: number) {
+        const currentDate = new Date();
+        const previousDate = new Date(currentDate);
+
+        previousDate.setDate(currentDate.getDate() - days);
+
+        previousDate.setUTCHours(0, 0, 0, 0);
+
+        const fromDateString = new Date(previousDate);
+        const toDateString = new Date(previousDate);
+
+        const labTimezone = 'America/New_York';
+
+
+
+        let toDateTime = moment.utc(toDateString);
+
+        let th = toDateTime.hour();
+        let tmn = toDateTime.minutes();
+        let ts = toDateTime.seconds();
+        let ty = toDateTime.year();
+        let td = toDateTime.date();
+        let tm = toDateTime.month();
+        const toDate = moment()
+            .tz(labTimezone)
+            .set({
+                hours: th,
+                minutes: tmn,
+                year: ty,
+                seconds: ts,
+                date: td,
+                month: tm,
+            })
+            .endOf("day")
+            .utc()
+            .format();
+        let fromDateTime = moment.utc(fromDateString);
+
+        let h = fromDateTime.hour();
+        let mn = fromDateTime.minutes();
+        let s = fromDateTime.seconds();
+
+        let y = fromDateTime.year();
+        let d = fromDateTime.date();
+        let m = fromDateTime.month();
+
+        const fromDate = moment()
+            .tz(labTimezone)
+            .set({
+                hours: h,
+                minutes: mn,
+                year: y,
+                seconds: s,
+                date: d,
+                month: m,
+            })
+            .utc()
+            .format();
+
+        return { fromDate, toDate };
+
     }
 
 
@@ -302,7 +368,7 @@ export class SyncHelpers {
 
 
     async insertOrUpdateModifiedClaims(seperatedArray) {
-        const batchSize = 2000;
+        const batchSize = 100;
 
         const existedData = seperatedArray.existedArray;
         const notExistedData = seperatedArray.notExistedArray;
@@ -324,7 +390,7 @@ export class SyncHelpers {
                     const physicianId = entry.physicianId ? entry.physicianId : null;
                     const facilityId = entry.facilityId ? entry.facilityId : null;
                     const salesRepId = entry.salesRepId ? entry.salesRepId : null;
-                    const insurancePayerId = entry.insurancePayerId ? entry.insurancePayerId : null;
+                    const insurancePayerId = entry.insurancePayerId ? entry.insurancePayerId : this.configuration.getConfig().static_ids.insurance_id;
                     const labId = entry.labId ? entry.labId : null;
 
                     const formattedQueryEntry = `('${entry.accessionId}', '${serviceDate}'::timestamp, '${collectionDate}'::timestamp, ${caseTypeId}, '${patientId}', ${reportsFinalized}, '${physicianId}', ${facilityId}, ${salesRepId}, ${insurancePayerId}, ${labId})`;
@@ -344,6 +410,7 @@ export class SyncHelpers {
             for (let i = 0; i < notExistedData.length; i += batchSize) {
                 console.log({ Inserted: i });
                 const batch = notExistedData.slice(i, i + batchSize);
+
                 this.SyncService.insertPatientClaims(batch);
             }
         }
@@ -580,23 +647,83 @@ export class SyncHelpers {
 
 
     async getFacilitiesNotExisting(facilitiesData) {
+        if (facilitiesData.length) {
+            facilitiesData.forEach(rep => {
+                rep._id = rep._id.toString();
+                rep.name = rep.name.replace(/\s+/g, ' ').trim();
+            });
+        }
+
 
         const hospitalIds = facilitiesData.map((item) => item._id);
 
-        const matchedFacilitiesIds = await this.facilitiesService.getFacilitiesRefIds(hospitalIds); // fetching matched facilities id from analytics db
+        const matchedFacilitiesData = await this.facilitiesService.getFacilitiesRefIds(hospitalIds); // fetching matched facilities id from analytics db
 
-        const refIdValues = matchedFacilitiesIds.rows.map((obj) => obj.ref_id);
+        let existedFacilities = [];
+        let notExistedFacilities = [];
 
-        const unMatchedFacilities = facilitiesData.filter((id) => !refIdValues.includes(id)); // fetching un-matched id of facilities
+        existedFacilities = matchedFacilitiesData.rows.map((matchedFacility: any) => {
+            const facility = facilitiesData.find(facility =>
+                facility.name.toUpperCase() === matchedFacility.name.toUpperCase() ||
+                facility._id === matchedFacility.ref_id
+            );
 
-        if (unMatchedFacilities.length) {
-            unMatchedFacilities.forEach(rep => {
-                rep._id = rep._id.toString();
+            if (facility) {
+                return {
+                    ref_id: facility._id,
+                    name: facility.name,
+                    id: matchedFacility.id
+                };
+            }
+        });
+
+
+        notExistedFacilities = facilitiesData.filter(facility => {
+            return !matchedFacilitiesData.rows.some((matchedFacility: any) => {
+                return facility.name.toUpperCase() === matchedFacility.name.toUpperCase() || facility._id === matchedFacility.ref_id;
             });
-        }
-        return unMatchedFacilities;
+        });
+
+
+        return { notExistedFacilities, existedFacilities };
     }
 
+
+    async insertOrUpdatedFacilities(NotExistedFacilities, existedFacilities) {
+        let insertFacilities = [];
+        if (NotExistedFacilities.length) {
+            const unMatchedFacilitiesIds = NotExistedFacilities.map((e) => e._id);
+
+            const finalSalesRepsData = await this.getSalesRepsByFacilites(unMatchedFacilitiesIds);
+
+            // Assign names to transformedArray based on facilitiesMap
+            let transformedArray = this.transformFacilities(finalSalesRepsData, NotExistedFacilities);
+
+            insertFacilities = await this.modifyFacilitiesData(transformedArray);
+
+            this.facilitiesService.insertfacilities(insertFacilities);
+        }
+
+
+        if (existedFacilities.length) {
+
+            const convertedData = existedFacilities.map(entry => {
+
+                const refId = entry.ref_id;
+                const id = entry.id;
+                const name = entry.name.replace(/'/g, "''");
+
+                const formattedQueryEntry = `(${id}, '${name}', '${refId}')`;
+                return formattedQueryEntry;
+            });
+
+            const finalString = convertedData.join(', ');
+            this.facilitiesService.updateDlwFacilities(finalString);
+        }
+
+
+        return { insertFacilities };
+    }
 
     async getSalesRepsIdsandRefIds(salesRepsData) {
 
@@ -665,7 +792,8 @@ export class SyncHelpers {
 
         const select = {
             _id: 1,
-            hospitals: 1
+            hospitals: 1,
+            user_type: 1
         };
 
         const salesRepsData = await this.lisService.getUsers(query, select);
@@ -678,22 +806,64 @@ export class SyncHelpers {
 
         }
 
+        console.log("COMPLETED");
+
         return salesRepsData;
     }
 
 
+    async getMghSalesRepsByFacilites(facilities) {
+        const query = {
+            user_type: { $in: ["MARKETER", "HOSPITAL_MARKETING_MANAGER"] },
+            status: "ACTIVE",
+            hospitals: {
+                $in: facilities
+            }
+        };
+
+
+        const select = {
+            _id: 1,
+            hospitals: 1
+        };
+
+        const salesRepsData = await this.mghLisService.getUsers(query, select);
+
+        if (salesRepsData.length) {
+            salesRepsData.forEach(rep => {
+                rep._id = rep._id.toString();
+                rep.hospitals = rep.hospitals.map(hospitalId => hospitalId.toString());
+            });
+
+        }
+
+        return salesRepsData;
+    }
+
     transformFacilities(salesRepsData, unMatchedFacilities) {
+
         unMatchedFacilities.forEach(facility => {
             // Check if the facility _id is included in any hospital in salesRepsData
-            const matchedRep = salesRepsData.find(rep =>
+            const matchedReps = salesRepsData.filter(rep =>
                 rep.hospitals.includes(facility._id)
             );
+
+            const marketersData = matchedReps.filter(e => e.user_type === MARKETER);
+
+            let matchedRep: any = {};
+            if (marketersData.length) {
+                matchedRep = marketersData[0];
+            } else {
+                matchedRep = matchedReps[0];
+            }
 
             // If a match is found, add the _id from salesRepsData to the facility object
             if (matchedRep) {
                 facility.salesRepId = matchedRep._id;
             }
         });
+
+        console.log(1234567);
 
         return unMatchedFacilities;
     }
@@ -708,7 +878,7 @@ export class SyncHelpers {
             return {
                 name: facility.name,
                 refId: facility._id,
-                salesRepId: salesRep ? salesRep.id : 9
+                salesRepId: salesRep.id
             };
         });
 
@@ -719,15 +889,13 @@ export class SyncHelpers {
     async modifyMghFacilitiesData(transformedArray) {
 
         const salesRepsIdsAndRefIdsData = await this.getuniqueMghSalesReps(transformedArray);
-        console.log({ salesRepsIdsAndRefIdsData: salesRepsIdsAndRefIdsData[0] });
-        console.log({ transformedArray: transformedArray[0] });
 
         const updatedFacilities = transformedArray.map(facility => {
-            const salesRep = salesRepsIdsAndRefIdsData.find(rep => rep.ref_id.toString() === facility.salesRepId);
+            const salesRep = salesRepsIdsAndRefIdsData.find(rep => rep.mgh_ref_id.toString() === facility.salesRepId);
             return {
                 name: facility.name,
-                mghRefId: facility.mghRefId,
-                salesRepId: salesRep ? salesRep.id : 9
+                mghRefId: facility._id,
+                salesRepId: salesRep.id
             };
         });
 
@@ -741,8 +909,9 @@ export class SyncHelpers {
 
         const uniqueSalesRepsIds = [...new Set(salesRepsIds)];
 
-
         const salesRepsIdsAndRefIdsData = await this.salesRepsService.getSalesRepsIdsAndRefIds(uniqueSalesRepsIds);
+
+        console.log("------->");
         return salesRepsIdsAndRefIdsData;
     }
 
@@ -905,83 +1074,38 @@ export class SyncHelpers {
     }
 
 
-    async insertOrUpdateMghFacilities(modifiedData) {
-        const analyticsFacilities = await this.facilitiesService.getAllFacilitiesData();
-        const existed = [];
-        let notExisted = [];
+    async insertOrUpdateMghFacilities(notExistedFacilities, existedFacilities) {
+        let insertFacilities = [];
+        if (notExistedFacilities.length) {
+            const unMatchedFacilitiesIds = notExistedFacilities.map((e) => e._id);
 
-        modifiedData.forEach(modifiedRep => {
-            const existingRep = analyticsFacilities.find(rep => rep.name.toLowerCase() === modifiedRep.name.toLowerCase());
-            if (existingRep) {
-                existed.push({ mghRefId: modifiedRep.mghRefId.toString(), id: existingRep.id });
-            } else {
-                notExisted.push({ mghRefId: modifiedRep.mghRefId.toString(), name: modifiedRep.name });
-            }
-        });
+            const finalSalesRepsData = await this.getMghSalesRepsByFacilites(unMatchedFacilitiesIds);
 
-        if (existed) {
-            const convertedData = existed.map(entry => {
+            // Assign names to transformedArray based on facilitiesMap
+            let transformedArray = this.transformFacilities(finalSalesRepsData, notExistedFacilities);
 
-                const formattedQueryEntry = `(${entry.id}, '${entry.mghRefId}')`;
+            insertFacilities = await this.modifyMghFacilitiesData(transformedArray);
+
+            this.facilitiesService.insertfacilities(insertFacilities);
+        }
+
+
+        if (existedFacilities.length) {
+            const convertedData = existedFacilities.map(entry => {
+
+                const mghRefId = entry.mgh_ref_id;
+                const id = entry.id;
+
+                const formattedQueryEntry = `(${id}, '${mghRefId}')`;
                 return formattedQueryEntry;
             });
 
             const finalString = convertedData.join(', ');
-
-            // this.facilitiesService.updateMghFacilities(finalString);
-
+            this.facilitiesService.updateMghFacilities(finalString);
         }
 
-        if (notExisted.length) {
-            this.toInsertMghFacilities(notExisted);
-        }
+        return insertFacilities;
 
-        return { existed, notExisted };
-
-    }
-
-    async toInsertMghFacilities(notExisted) {
-        const notExistedFacilities = notExisted.map(e => e.mghRefId);
-
-        const query = {
-            status: "ACTIVE",
-            user_type: { $in: ["MARKETER", "HOSPITAL_MARKETING_MANAGER"] },
-            hospitals: {
-                $in: notExistedFacilities
-            }
-        };
-
-
-        const select = {
-            _id: 1,
-            hospitals: 1
-        };
-
-        const salesRepsData = await this.mghLisService.getUsers(query, select);
-
-
-        let finalSalesReps = salesRepsData.map(item => {
-            let newItem = { ...item }; // Create a copy of the object
-            newItem._id = item._id.toString();
-            newItem.hospitals = item.hospitals.map(objectId => objectId.toString());
-            return newItem;
-        });
-
-        const transformedData = this.transformMghFacilities(finalSalesReps, notExisted);
-
-        const salesReps = await this.getuniqueMghSalesReps(transformedData);
-
-        const updatedFacilities = transformedData.map(facility => {
-            const salesRep = salesReps.find(rep => rep.mgh_ref_id.toString() === facility.salesRepId);
-            return {
-                name: facility.name,
-                mghRefId: facility.mghRefId,
-                salesRepId: salesRep ? salesRep.id : null
-            };
-        });
-
-
-        this.facilitiesService.insertfacilities(updatedFacilities);
     }
 
 
@@ -1292,6 +1416,53 @@ export class SyncHelpers {
         const year = date.getFullYear();
         const month = String(date.getMonth() + 1).padStart(2, '0');
         return `${month}-${year}`;
+    }
+
+
+    async getMghFacilitiesNotExisting(facilitiesData) {
+        if (facilitiesData.length) {
+            facilitiesData.forEach(rep => {
+                rep._id = rep._id.toString();
+            });
+        }
+
+        const hospitalIds = facilitiesData.map((item) => item._id);
+
+        const matchedFacilitiesData = await this.facilitiesService.getMghFacilitiesRefIds(hospitalIds); // fetching matched facilities id from analytics db
+
+        let existedFacilities = [];
+        let notExistedFacilities = [];
+
+        if (matchedFacilitiesData.rows.length) {
+            existedFacilities = matchedFacilitiesData.rows.map((matchedFacility: any) => {
+                const facility = facilitiesData.find(facility =>
+                    facility.name.toUpperCase() === matchedFacility.name.toUpperCase() ||
+                    facility._id === matchedFacility.mgh_ref_id
+                );
+
+                if (facility) {
+                    return {
+                        mgh_ref_id: facility._id,
+                        name: facility.name,
+                        id: matchedFacility.id
+                    };
+                } else {
+                    return null;
+                }
+            }).filter(facility => facility !== null);
+
+
+
+            notExistedFacilities = facilitiesData.filter(facility => {
+                return !matchedFacilitiesData.rows.some((matchedFacility: any) => {
+                    return facility.name.toUpperCase() === matchedFacility.name.toUpperCase() || facility._id === matchedFacility.ref_id;
+                });
+            });
+        } else {
+            notExistedFacilities = facilitiesData;
+        }
+
+        return { notExistedFacilities, existedFacilities };
     }
 
 }
