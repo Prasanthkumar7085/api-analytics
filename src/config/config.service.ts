@@ -12,6 +12,7 @@ export class Configuration {
         const envFilePath = `.env`;
         const existsPath = fs.existsSync(envFilePath);
 
+
         if (existsPath) {
             dotenv.config({ path: envFilePath });
         }
@@ -23,6 +24,25 @@ export class Configuration {
 
     getConfig() {
 
+        const env = process.env.NODE_ENV;
+
+        let emailSending = null;
+
+        switch (env) {
+            case "dev":
+                emailSending = false;
+                break;
+
+            case "prod":
+                emailSending = true;
+                break;
+
+            case "staging":
+                emailSending = false;
+                break;
+        }
+
+        const bcc_emails = [" sundar@labsquire.com", "qc-team@labsquire.com", "sujatha.k@labsquire.com"];
         const lis_dlw_db_url = this.configService.get<string>('LIS_DLW_DB_URL');
         const lab_id = this.configService.get<string>('LAB_ID');
         const ls_api_key = this.configService.get<string>('LS_API_KEY');
@@ -45,10 +65,10 @@ export class Configuration {
 
         const static_ids = {
             insurance_id: this.configService.get<number>('NO_INSURANCE_ID')
-        }
+        };
 
 
-        return { lis_dlw_db_url, lab_id, ls_api_key, lis_mgh_db_url, jwt, kaka_email_service, api_url, static_ids };
+        return { lis_dlw_db_url, lab_id, ls_api_key, lis_mgh_db_url, jwt, kaka_email_service, api_url, static_ids, emailSending, bcc_emails };
     }
 
 }
