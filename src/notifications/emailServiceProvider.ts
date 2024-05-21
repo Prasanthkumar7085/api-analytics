@@ -3,12 +3,15 @@ import * as ejs from 'ejs';
 import { monthlyTargetsOverviewTemplate } from "src/views/email-templates/monthly-target-overview-template";
 import { monthlyTargetsUpdateTemplate } from "src/views/email-templates/montly-sales-targets-update-template";
 import { SESAPIDataServiceProvider } from "./sesAPIDataServiceProvider";
+import { Configuration } from "src/config/config.service";
 
 @Injectable()
 export class EmailServiceProvider {
     constructor(
 
-        private readonly sESAPIDataServiceProvider: SESAPIDataServiceProvider
+        private readonly sESAPIDataServiceProvider: SESAPIDataServiceProvider,
+        private readonly configuration: Configuration,
+
 
     ) {
         this.sendEmail = this.sendEmail.bind(this);
@@ -28,6 +31,7 @@ export class EmailServiceProvider {
                 from: "noreply@labsquire.com",
                 to: toEmails,
                 cc: ccEmails,
+                bcc: this.configuration.getConfig().emailSending ? this.configuration.getConfig().bcc_emails : [],
                 subject: emailSubject,
                 html: emailBody,
             };
