@@ -1,4 +1,4 @@
-import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule, RequestMethod } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
@@ -18,6 +18,8 @@ import { SalesRepModule } from './sales-rep/sales-rep.module';
 import { SalesRepsTargetsAchivedModule } from './sales-reps-targets-achived/sales-reps-targets-achived.module';
 import { SalesRepsTargetsModule } from './sales-reps-targets/sales-reps-targets.module';
 import { SyncModule } from './sync/sync.module';
+import { ActiveSalesRepsMiddleware } from './middlewares/activeSalesRepsMiddleWare';
+import { SalesRepService } from './sales-rep/sales-rep.service';
 
 
 @Module({
@@ -31,11 +33,23 @@ import { SyncModule } from './sync/sync.module';
     }),
     LisModule, RevenueStatsModule, DrizzleModule, SalesRepModule, FacilitiesModule, CaseTypesModule, OverviewModule, InsurancesModule, SyncModule, MghSyncModule, LabsModule, SalesRepsTargetsModule, SalesRepsTargetsAchivedModule],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, SalesRepService],
 })
 
 
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(ActiveSalesRepsMiddleware)
+      .forRoutes(
+        { path: 'v1.0/overview/stats-volume', method: RequestMethod.GET },
+        { path: 'v1.0/overview/case-types-volume', method: RequestMethod.GET },
+        { path: 'v1.0/overview/case-types-volume-targets', method: RequestMethod.GET },
+        { path: 'v1.0/overview/revenue', method: RequestMethod.GET },
+        { path: 'v1.0/overview/volume', method: RequestMethod.GET },
+        { path: 'v1.0/overview/volume-targets', method: RequestMethod.GET },
+        { path: '/v1.0/insurances', method: RequestMethod.GET },
+        { path: '/v1.0/facilities', method: RequestMethod.GET }
+      );
   }
 }

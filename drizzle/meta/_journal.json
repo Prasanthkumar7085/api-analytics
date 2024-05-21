@@ -43,6 +43,55 @@
       "when": 1713594653566,
       "tag": "0016_friendly_night_thrasher",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "5",
+      "when": 1715661378877,
+      "tag": "0017_bitter_liz_osborn",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "5",
+      "when": 1715661617069,
+      "tag": "0018_tan_psynapse",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "5",
+      "when": 1715661912687,
+      "tag": "0019_stormy_killmonger",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "5",
+      "when": 1716206651612,
+      "tag": "0020_rich_master_mold",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "5",
+      "when": 1716209777375,
+      "tag": "0021_white_peter_parker",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "5",
+      "when": 1716223606596,
+      "tag": "0022_lonely_sheva_callister",
+      "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "5",
+      "when": 1716225047217,
+      "tag": "0023_magenta_beyonder",
+      "breakpoints": true
     }
   ]
 }

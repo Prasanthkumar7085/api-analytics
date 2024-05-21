@@ -169,7 +169,8 @@ export class FilterHelper {
         const {
             from_date: fromDate,
             to_date: toDate,
-            sales_reps: salesReps
+            sales_reps: salesReps,
+            status: status
         } = query;
 
         if (fromDate && toDate) {
@@ -178,6 +179,12 @@ export class FilterHelper {
 
         if (salesReps) {
             filter.push(`sales_rep_id IN (${salesReps})`);
+        }
+
+        if (!status) {
+            filter.push(`status = 'ACTIVE'`);
+        } else {
+            filter.push(`status = ${status}`);
         }
 
         let queryString;
@@ -232,7 +239,8 @@ export class FilterHelper {
     facilitiesFilter(query) {
         let filter = [];
 
-        const { from_date, to_date, sales_reps } = query;
+        const { from_date, to_date, sales_reps, sales_rep_ids
+        } = query;
 
         if (from_date && to_date) {
             filter.push(`service_date BETWEEN '${from_date}' AND '${to_date}'`);
@@ -240,6 +248,10 @@ export class FilterHelper {
 
         if (sales_reps) {
             filter.push(`p.sales_rep_id IN (${sales_reps})`);
+        }
+
+        if (sales_rep_ids && !sales_reps) {
+            filter.push(`p.sales_rep_id IN (${sales_rep_ids})`);
         }
 
         let queryString;
@@ -273,7 +285,8 @@ export class FilterHelper {
         const {
             from_date: fromDate,
             to_date: toDate,
-            sales_reps: salesReps
+            sales_reps: salesReps,
+            sales_rep_ids: salesRepIds
         } = query;
 
         if (fromDate && toDate) {
@@ -282,6 +295,10 @@ export class FilterHelper {
 
         if (salesReps) {
             filter.push(`sales_rep_id IN (${salesReps})`);
+        }
+
+        if(salesRepIds && !salesReps){
+            filter.push(`sales_rep_id IN (${salesRepIds})`);
         }
 
         let queryString;
@@ -296,11 +313,18 @@ export class FilterHelper {
     salesRepsFilter(query) {
         let filter = [];
         const {
-            sales_reps: salesReps
+            sales_reps: salesReps,
+            status: status
         } = query;
 
         if (salesReps) {
             filter.push(`id IN (${salesReps})`);
+        }
+
+        if (!status) {
+            filter.push(`status = 'ACTIVE'`);
+        } else {
+            filter.push(`status = ${status}`);
         }
 
         let queryString;
@@ -379,7 +403,8 @@ export class FilterHelper {
             sales_rep: salesRep,
             sales_reps: salesReps,
             from_date: fromDate,
-            to_date: toDate
+            to_date: toDate,
+            sales_rep_ids: salesRepIds
         } = query;
 
         if (salesRep) {
@@ -388,6 +413,10 @@ export class FilterHelper {
 
         if (salesReps) {
             filter.push(`sales_rep_id IN (${salesReps})`);
+        }
+
+        if (salesRepIds && !salesRep && !salesReps) {
+            filter.push(`sales_rep_id IN (${salesRepIds})`);
         }
 
         if (fromDate && toDate) {

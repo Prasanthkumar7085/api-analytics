@@ -368,7 +368,12 @@ export class FacilitiesService {
 
     async getFacilitiesRefIds(hospitalIds) {
 
-        return await db.execute(sql`SELECT ref_id FROM facilities WHERE ref_id IN ${hospitalIds}`);
+        return await db.execute(sql`SELECT id, name, ref_id FROM facilities WHERE ref_id IN ${hospitalIds}`);
+    }
+
+    async getMghFacilitiesRefIds(hospitalIds) {
+
+        return await db.execute(sql`SELECT id, name, mgh_ref_id FROM facilities`);
     }
 
 
@@ -388,6 +393,23 @@ export class FacilitiesService {
 
         ${sql.raw(queryString)}
         ) as u(id, mghRefId)
+        WHERE t.id = u.id`;
+
+        return db.execute(rawQuery);
+    }
+
+    async updateDlwFacilities(queryString) {
+        const rawQuery = sql`
+        UPDATE facilities AS t
+        SET
+          id = u.id,
+          name = u.name,
+          ref_id = u.refId
+        FROM(
+          VALUES
+
+        ${sql.raw(queryString)}
+        ) as u(id, name, refId)
         WHERE t.id = u.id`;
 
         return db.execute(rawQuery);

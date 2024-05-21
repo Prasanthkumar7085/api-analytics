@@ -523,8 +523,9 @@ export class SalesRepService {
 		return await db.insert(sales_reps).values(finalData).returning();
 	}
 
-	async findOneSalesRep(refId) {
-		return await db.select().from(sales_reps).where(eq(sales_reps.refId, refId));
+	async findOneSalesRep(queryString) {
+		const data = await db.execute(sql`SELECT * from sales_reps WHERE ${sql.raw(queryString)};`);
+		return data.rows;
 	}
 
 	async getSalesRepsByManager(reportingTo) {
@@ -659,6 +660,10 @@ export class SalesRepService {
 		return data.rows;
 	}
 
+
+	async getActiveSalesReps() {
+		return db.select({ id: sales_reps.id }).from(sales_reps).where(eq(sales_reps.status, "ACTIVE"));
+	}
 
 }
 
