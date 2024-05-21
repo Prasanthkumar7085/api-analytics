@@ -157,6 +157,8 @@ export const MARKETER = "MARKETER";
 
 export const LAB_ADMIN = "LAB_ADMIN";
 
+export const LAB_SUPER_ADMIN = "LAB_SUPER_ADMIN";
+
 export const SALES_DIRECTOR = "SALES_DIRECTOR";
 
 export const CASE_TYPE_MAPPING = {

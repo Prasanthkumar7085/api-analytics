@@ -66,8 +66,6 @@ export class SalesRepController {
 
 			const queryString = this.filterHelper.salesRep(query);
 
-			console.log({ queryString });
-
 			let salesReps = await this.salesRepService.getAll(queryString);
 
 			let targets;
