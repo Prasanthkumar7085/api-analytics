@@ -30,6 +30,8 @@ export class SalesRepController {
 		private readonly salesRepsTargetsAchivedService: SalesRepsTargetsAchivedService,
 		private readonly salesRepsTargetsService: SalesRepsTargetsService,
 		private readonly caseTypesService: CaseTypesService,
+		private readonly syncHelpers: SyncHelpers,
+
 
 
 
@@ -826,43 +828,99 @@ export class SalesRepController {
 
 			let month;
 			let year;
+			let statsData;
+			let salesRepData;
+			let salesRepIds;
 
 			const queryString = this.filterHelper.salesRepFacilities(query);
 
-			const statsData = await this.salesRepService.getVolumeStats(sales_repid, queryString);
+			salesRepData = await this.salesRepService.getOneSalesRepBySalesRepId(sales_repid);
 
-			query.sales_reps = [sales_repid];
+			const salesRepName = salesRepData[0].name;
+
+			const salesRepEmail = salesRepData[0].email;
+
+			if (salesRepData[0].sales_rep_role_id === 2 || salesRepData[0].sales_rep_role_id === 3) {
+
+				const salesRep = await this.salesRepService.getOneSalesRepBySalesRepId(sales_repid);
+
+				salesRepData = await this.salesRepService.getSalesRepsByReportingTo(salesRepData[0].id);
+
+				salesRepData = salesRepData.concat(salesRep);
+
+				salesRepData = this.removeDuplicateSalesReps(salesRepData, 'id');
+
+				salesRepIds = salesRepData.map(e => e.id);
+
+			}
+			else {
+
+				salesRepIds = [sales_repid];
+			}
+
+			statsData = await this.salesRepService.getVolumeStatsOfSalesReps(salesRepIds, queryString);
+
+			query.sales_reps = [salesRepIds];
 
 			const salesRepTargetData = await this.salesRepHelper.getSalesRepsTargets(query);
 
-			const salesRepData = await this.salesRepService.getOne(sales_repid);
-
-			statsData[0].target_volume = salesRepTargetData[0].total_targets || 0;
-
 			if (query.from_date && query.to_date) {
-				const fromDate = new Date(query.from_date);
-				month = fromDate.toLocaleString('default', { month: 'long' });
-				year = fromDate.getFullYear();
-			} else {
-				const dateObject = new Date();
-				[month, year] = dateObject.toLocaleString('default', { month: 'long', year: 'numeric' }).split(' ');
+
+				if (query.to_date.split("-")[2] === '01') {
+
+					const fromDate = new Date(query.from_date);
+					month = fromDate.toLocaleString('default', { month: 'long' });
+					year = fromDate.getFullYear();
+
+				}
+				else {
+					const toDate = new Date(query.to_date);
+					month = toDate.toLocaleString('default', { month: 'long' });
+					year = toDate.getFullYear();
+				}
+
 			}
 
-			statsData[0].sales_rep_name = salesRepData[0].sales_rep;
-			statsData[0].sales_rep_email = salesRepData[0].sales_rep_email;
-			statsData[0].month = month;
-			statsData[0].year = year;
+			salesRepData.forEach(rep => {
+				// Find the corresponding entry in statsData
+				const matchingStat = statsData.find(stat => stat.sales_rep_id === rep.id);
 
-			// if (!statsData[0].sales_rep_email) {
-			// 	throw new Error("Sales rep email is empty");
-			// }
+				// If no matching stat entry is found, add a new entry with default values
+				if (!matchingStat) {
+					statsData.push({
+						sales_rep_id: rep.id,
+						total_cases: 0,
+						completed_cases: 0,
+						pending_cases: 0,
+						target_volume: 0,
+						sales_rep_name: rep.name,
+						sales_rep_email: rep.email
+					});
+				}
+			});
+
+			for (let i = 0; i < statsData.length; i++) {
+				const matchingRep = salesRepData.find(rep => rep.id === statsData[i].sales_rep_id);
+				if (matchingRep) {
+					statsData[i].target_volume = salesRepTargetData[i].total_targets || 0;
+					statsData[i].sales_rep_name = matchingRep.name;
+					statsData[i].sales_rep_email = matchingRep.email;
+				}
+			}
+
+			const emailBody = {
+				statsData,
+				salesRepName,
+				month,
+				year
+			};
 
 			let emailContent = {
-				email: statsData[0].sales_rep_email,
+				email: salesRepEmail,
 				subject: 'Remainder for your volume targets'
 			};
 
-			this.emailServiceProvider.sendSalesRepsTargetSummaryReport(emailContent, statsData[0]);
+			this.emailServiceProvider.sendSalesRepsTargetSummaryReport(emailContent, emailBody);
 
 			return res.status(200).json({
 				success: true,
@@ -886,14 +944,16 @@ export class SalesRepController {
 
 			const salesReps = await this.salesRepService.getAllSalesReps();
 
-			const currentDate = new Date();
+			const datesObj = this.syncHelpers.getFromAndToDates(10);
 
-			const from_date = new Date(currentDate);
-			const to_date = new Date(currentDate);
-			from_date.setDate(to_date.getDate() - 7);
+			const fromDate = datesObj.fromDate;
+
+			const toDate = new Date();
+			toDate.setHours(23, 59, 59, 999);
 
 			for (const salesRep of salesReps) {
-				const apiUrl = `${this.configuration.getConfig().api_url}/v1.0/sales-reps/target-summary/${salesRep.id}?from_date=${from_date.toISOString()}&to_date=${to_date.toISOString()}`;
+				const apiUrl = `${this.configuration.getConfig().api_url}/v1.0/sales-reps/target-summary/${salesRep.id}?from_date=${fromDate.toISOString()}&to_date=${toDate.toISOString()}`;
+
 				await axios.get(apiUrl);
 			}
 
@@ -938,4 +998,17 @@ export class SalesRepController {
 			});
 		}
 	}
+
+
+	removeDuplicateSalesReps(arr: any[], key: string): any[] {
+		const uniqueKeys = new Set();
+		return arr.filter(obj => {
+			if (!uniqueKeys.has(obj[key])) {
+				uniqueKeys.add(obj[key]);
+				return true;
+			}
+			return false;
+		});
+	}
+
 }

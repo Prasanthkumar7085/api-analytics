@@ -53,9 +53,9 @@ export const monthlyTargetsOverviewTemplate = `<!DOCTYPE html>
         display: block;
         margin: 0 auto !important;
         /* makes it centered */
-        max-width: 580px;
+        max-width: 768px;
         padding: 10px;
-        width: 580px;
+        width:768px;
       }
 
       /* This should also be a block element, so that it will fill 100% of the .container */
@@ -63,7 +63,7 @@ export const monthlyTargetsOverviewTemplate = `<!DOCTYPE html>
         box-sizing: border-box;
         display: block;
         margin: 0 auto;
-        max-width: 580px;
+        max-width: 768px;
         padding: 10px;
       }
 
@@ -510,33 +510,40 @@ export const monthlyTargetsOverviewTemplate = `<!DOCTYPE html>
                   </table>
                   <div class="section-heading">
                     <h3>Reminder for your volume targets</h3>
-                    <p class="person-name">Hi AFIZ HUDANI,</p>
+                    <p class="person-name">Hi <%= salesRepName %>,</p>
                     <p>
                       Following is the summary report for the month of
-                      <span class="spl-text-two">April, 2024.</span>
+                      <span class="spl-text-two"> <%= month %>, <%= year %>.</span>
                     </p>
                   </div>
                   <div class="data-table">
                     <table>
                       <thead>
                         <tr>
+                          <th>Name</th>
                           <th>Month</th>
                           <th>Target Volume</th>
                           <th>Target Volume Achieved</th>
                         </tr>
                       </thead>
                       <tbody>
+                       <% statsData.forEach((item)=> { %>
                         <tr>
+                        <td>
+                        <%= item.sales_rep_name %>
+                        </td>
                         <td>
                           <%= month %>-<%= year %>
                         </td>
                         <td>
-                          <%= target_volume %>
+                          <%= item.target_volume %>
                         </td>
                         <td>
-                          <%= total_cases %>
+                          <%= item.total_cases %>
                         </td>
                         </tr>
+                  <% }); %>
+                        
                       </tbody>
                     </table>
                   </div>

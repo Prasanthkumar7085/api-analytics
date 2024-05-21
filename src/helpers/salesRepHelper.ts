@@ -160,7 +160,7 @@ export class SalesRepHelper {
         // merge the salesRep with target
 
         const finalResponse = salesReps.map(salesRep => {
-            if (salesRep.total_cases >= salesRep.total_cases) {
+            if (salesRep.total_cases >= salesRep.total_targets) {
 
                 salesRep.target_reached = true;
             } else {
