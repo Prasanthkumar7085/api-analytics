@@ -6,7 +6,7 @@ import { INSURANCE_PAYORS_NOT_FOUND_IN_LIS_DATABASE, LABS_NOT_FOUND, LIS_FACILIT
 import { SyncHelpers } from 'src/helpers/syncHelper';
 import { MghSyncService } from './mgh-sync.service';
 import { FacilitiesService } from 'src/facilities/facilities.service';
-import { HOSPITAL_MARKETING_MANAGER, MARKETER } from 'src/constants/lisConstants';
+import { HOSPITAL_MARKETING_MANAGER, MARKETER, MGH_TIMEZONE } from 'src/constants/lisConstants';
 import { SalesRepService } from 'src/sales-rep/sales-rep.service';
 
 @Controller({
@@ -32,7 +32,7 @@ export class MghSyncController {
       await mongoose.connect(lis_mgh_db_url);
 
 
-      const datesObj = this.syncHelpers.getFromAndToDatesInEST(1);
+      const datesObj = this.syncHelpers.getFromAndToDatesInEST(1, MGH_TIMEZONE);
 
       const fromDate = datesObj.fromDate;
       const toDate = datesObj.toDate;

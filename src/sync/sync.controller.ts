@@ -2,7 +2,7 @@ import { Controller, Get, Res } from '@nestjs/common';
 import * as fs from 'fs';
 import { CaseTypesService } from 'src/case-types/case-types.service';
 import { Configuration } from 'src/config/config.service';
-import { HOSPITAL_MARKETING_MANAGER, MARKETER } from 'src/constants/lisConstants';
+import { DLW_TIMEZONE, HOSPITAL_MARKETING_MANAGER, MARKETER } from 'src/constants/lisConstants';
 import {
 	CASE_TYPES_NOT_FOUND,
 	CASE_TYPES_NOT_FOUND_IN_LIS_DATABASE,
@@ -53,7 +53,7 @@ export class SyncController {
 	async addPatientClaims(@Res() res: any) {
 		try {
 
-			const datesObj = this.syncHelpers.getFromAndToDatesInEST(1);
+			const datesObj = this.syncHelpers.getFromAndToDatesInEST(1, DLW_TIMEZONE);
 
 			const fromDate = datesObj.fromDate;
 			const toDate = datesObj.toDate;

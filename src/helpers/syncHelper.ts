@@ -49,7 +49,7 @@ export class SyncHelpers {
     }
 
 
-    getFromAndToDatesInEST(days: number) {
+    getFromAndToDatesInEST(days: number, labTimezone) {
         const currentDate = new Date();
         const previousDate = new Date(currentDate);
 
@@ -57,10 +57,10 @@ export class SyncHelpers {
 
         previousDate.setUTCHours(0, 0, 0, 0);
 
-        const fromDateString = new Date(previousDate);
-        const toDateString = new Date(previousDate);
+        const fromDateString = new Date("2024-05-01");
+        const toDateString = new Date("2024-05-20");
 
-        const labTimezone = 'America/New_York';
+        // const labTimezone = 'America/New_York';
 
 
 
@@ -125,6 +125,8 @@ export class SyncHelpers {
                     $in: facilities
                 }
             };
+
+            console.log(JSON.stringify(query));
 
             const select = {
                 accession_id: 1,
@@ -1179,6 +1181,7 @@ export class SyncHelpers {
                 }
             };
 
+            console.log(JSON.stringify(query));
             const select = {
                 accession_id: 1,
                 case_types: 1,
