@@ -400,7 +400,7 @@ export class SyncHelpers {
                 const finalString = convertedData.join(', ');
 
                 console.log({ Updated: i });
-                this.SyncService.updateManyPatientClaims(finalString);
+                await this.SyncService.updateManyPatientClaims(finalString);
             }
         }
 
@@ -411,7 +411,7 @@ export class SyncHelpers {
                 console.log({ Inserted: i });
                 const batch = notExistedData.slice(i, i + batchSize);
 
-                this.SyncService.insertPatientClaims(batch);
+                await this.SyncService.insertPatientClaims(batch);
             }
         }
 
@@ -1209,9 +1209,9 @@ export class SyncHelpers {
                     $gte: fromDate,
                     $lte: toDate
                 },
-                hospital: {
-                    $in: facilities
-                }
+                // hospital: {
+                //     $in: facilities
+                // }
             };
 
             console.log(JSON.stringify(query));
