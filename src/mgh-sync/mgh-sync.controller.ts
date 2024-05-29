@@ -8,6 +8,8 @@ import { MghSyncService } from './mgh-sync.service';
 import { FacilitiesService } from 'src/facilities/facilities.service';
 import { HOSPITAL_MARKETING_MANAGER, MARKETER, MGH_TIMEZONE } from 'src/constants/lisConstants';
 import { SalesRepService } from 'src/sales-rep/sales-rep.service';
+import { LisService } from 'src/lis/lis.service';
+import { CsvHelper } from 'src/helpers/csvHelper';
 
 @Controller({
   version: '1.0',
@@ -20,7 +22,9 @@ export class MghSyncController {
     private readonly mghSyncService: MghSyncService,
     private readonly facilitiesService: FacilitiesService,
     private readonly syncHelpers: SyncHelpers,
-    private readonly salesRepService: SalesRepService
+    private readonly salesRepService: SalesRepService,
+    private readonly lisService: LisService,
+    private readonly csvHelper: CsvHelper
   ) { }
 
 
@@ -320,6 +324,30 @@ export class MghSyncController {
         message: SUCCESS_SYNCED_INSURANCE_PAYORS,
         data
       });
+    } catch (err) {
+      console.log({ err });
+      return res.status(500).json({
+        success: false,
+        message: err || SOMETHING_WENT_WRONG
+      });
+    }
+  }
+
+
+  @Get("mgh-stats")
+  async mghStats(@Res() res: any) {
+    try {
+
+      const configuration = new Configuration(new ConfigService());
+      const { lis_mgh_db_url } = configuration.getConfig();
+      await mongoose.connect(lis_mgh_db_url);
+      
+      const casesStats = await this.mghSyncService.getCasesStats();
+
+      const csv = await this.csvHelper.convertToCsv(casesStats);
+      res.header('Content-Type', 'text/csv');
+      res.attachment('users.csv');
+      res.send(csv);
     } catch (err) {
       console.log({ err });
       return res.status(500).json({

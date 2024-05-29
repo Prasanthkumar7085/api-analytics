@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Param, Post, Res } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
-import { FORBIDDEN, INVALID_CREDENTIALS, SOMETHING_WENT_WRONG, SUCCESS_USERS, USER_DETAILES_FETCHED, USER_NOT_ALLOWED, USER_SIGNIN_SUCCESS, USER_STATUS_ERR_MESSAGE } from 'src/constants/messageConstants';
+import { FORBIDDEN, INVALID_CREDENTIALS, SOMETHING_WENT_WRONG, SUCCESS_FETCHED_STATS, SUCCESS_USERS, USER_DETAILES_FETCHED, USER_NOT_ALLOWED, USER_SIGNIN_SUCCESS, USER_STATUS_ERR_MESSAGE } from 'src/constants/messageConstants';
 import { MghDbConnections } from 'src/helpers/mghDbconnection';
 import { MghSyncService } from 'src/mgh-sync/mgh-sync.service';
 import { SigninDto } from './dto/signin.dto';
@@ -8,6 +8,7 @@ import { LisService } from './lis.service';
 import { Configuration } from 'src/config/config.service';
 import * as jwt from 'jsonwebtoken';
 import { HOSPITAL_MARKETING_MANAGER, LAB_ADMIN, LAB_SUPER_ADMIN, MARKETER, SALES_DIRECTOR } from 'src/constants/lisConstants';
+import { CsvHelper } from 'src/helpers/csvHelper';
 
 @Controller({
   version: '1.0',
@@ -19,7 +20,8 @@ export class LisController {
     private readonly lisService: LisService,
     private readonly mghDbConnections: MghDbConnections,
     private readonly mghSyncService: MghSyncService,
-    private readonly configuration: Configuration
+    private readonly configuration: Configuration,
+    private readonly csvHelper: CsvHelper
   ) { }
 
   @Get("manager/:manager_id")
@@ -114,6 +116,27 @@ export class LisController {
     }
   }
 
+
+  @Get("dlw-stats")
+  async dlwStats(@Res() res: any) {
+    try {
+
+      const casesStats = await this.lisService.getCasesStats("2023-10-01T05:00:00Z");
+
+      const csv = await this.csvHelper.convertToCsv(casesStats);
+      res.header('Content-Type', 'text/csv');
+      res.attachment('users.csv');
+      res.send(csv);
+    } catch (err) {
+      console.log({ err });
+      return res.status(500).json({
+        success: false,
+        message: err || SOMETHING_WENT_WRONG
+      });
+    }
+  }
+
+  // '2024-05-28T04:00:00Z'
 
   async checkUserDetails(userDetails, res, password) {
     const userType = userDetails.user_type;

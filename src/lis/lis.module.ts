@@ -13,10 +13,11 @@ import { MghDbConnections } from 'src/helpers/mghDbconnection';
 import { MghSyncService } from 'src/mgh-sync/mgh-sync.service';
 import { Configuration } from 'src/config/config.service';
 import { ConfigService } from '@nestjs/config';
+import { CsvHelper } from 'src/helpers/csvHelper';
 
 @Module({
   controllers: [LisController],
-  providers: [LisService, JwtService, MghDbConnections, MghSyncService, Configuration, ConfigService],
+  providers: [LisService, JwtService, MghDbConnections, MghSyncService, Configuration, ConfigService, CsvHelper],
   imports: [
     MongooseModule.forRoot(process.env.LIS_DLW_DB_URL + '&authSource=admin'),
     MongooseModule.forFeature([
