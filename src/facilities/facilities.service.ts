@@ -9,7 +9,7 @@ import { db } from 'src/seeders/db';
 export class FacilitiesService {
 
     async getAllFacilitiesData() {
-        return await db.select().from(facilities).where(eq(facilities.salesRepId, 17));
+        return await db.select().from(facilities);
     }
 
 

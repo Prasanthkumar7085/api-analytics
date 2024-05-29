@@ -77,11 +77,12 @@ export class SyncController {
 
 			console.log({ cases: cases.length });
 
-			this.syncHelpers.insertPatientClaims(cases);
+			const data = await this.syncHelpers.insertPatientClaims(cases);
 
 			return res.status(200).json({
 				success: true,
-				message: SUCCESS_SYNC_PATIENT_CLAIMS
+				message: SUCCESS_SYNC_PATIENT_CLAIMS,
+				data
 			});
 
 		} catch (err) {

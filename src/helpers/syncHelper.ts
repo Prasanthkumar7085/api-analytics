@@ -57,8 +57,8 @@ export class SyncHelpers {
 
         previousDate.setUTCHours(0, 0, 0, 0);
 
-        const fromDateString = new Date("2024-05-01");
-        const toDateString = new Date("2024-05-20");
+        const fromDateString = new Date(previousDate);
+        const toDateString = new Date(previousDate);
 
         // const labTimezone = 'America/New_York';
 
@@ -121,12 +121,10 @@ export class SyncHelpers {
                     $gte: fromDate,
                     $lte: toDate
                 },
-                hospital: {
-                    $in: facilities
-                }
+                // hospital: {
+                //     $in: facilities
+                // }
             };
-
-            console.log(JSON.stringify(query));
 
             const select = {
                 accession_id: 1,
