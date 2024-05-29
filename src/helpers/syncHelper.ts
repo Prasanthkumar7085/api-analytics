@@ -502,10 +502,10 @@ export class SyncHelpers {
         const query = {
             user_type: userType,
             status: "ACTIVE",
-            // updated_at: {
-            //     $gte: datesFilter.fromDate,
-            //     $lte: datesFilter.toDate,
-            // },
+            updated_at: {
+                $gte: datesFilter.fromDate,
+                $lte: datesFilter.toDate,
+            },
         };
 
 
@@ -593,7 +593,7 @@ export class SyncHelpers {
         const managersIdsAndRefIds = await this.salesRepsService.getSalesRepsIdsAndRefIds(managersIds);
 
         marketersData.map((marketer) => {
-            let reportingTo = 2;
+            let reportingTo = 20;
 
             // Check if hospital_marketing_manager exists
             if (marketer.reporting_to.length > 0) {
@@ -617,6 +617,38 @@ export class SyncHelpers {
         return finalArray;
     }
 
+
+    async containsMghReportingTo(marketersData) {
+        const finalArray = [];
+
+        const managersIds = marketersData.map((item) => item.reporting_to?.[0]?.toString() ?? '');
+
+        const managersIdsAndMghRefIds = await this.salesRepsService.getSalesRepsIdsAndMghRefIds(managersIds);
+
+        marketersData.map((marketer) => {
+            let reportingTo = 20;
+
+            // Check if hospital_marketing_manager exists
+            if (marketer.reporting_to?.length > 0) {
+                // Find corresponding manager data
+                const matchedObj = managersIdsAndMghRefIds.find((row) => row.mgh_ref_id === marketer.reporting_to[0].toString());
+
+                if (matchedObj) {
+                    reportingTo = matchedObj.id as number;
+                }
+            }
+
+            finalArray.push({
+                name: marketer.name,
+                mghRefId: marketer.mghRefId.toString(),
+                reportingTo: reportingTo,
+                roleId: marketer.roleId,
+            });
+        });
+
+
+        return finalArray;
+    }
 
     async getFacilitiesData(salesRepsData) {
 
@@ -1068,11 +1100,14 @@ export class SyncHelpers {
 
         }
 
+        let finalData = [];
         if (notExisted.length) {
-            this.salesRepsService.insertSalesReps(notExisted);
+
+            finalData = await this.containsMghReportingTo(notExisted);
+            const insertedData = await this.salesRepsService.insertSalesReps(finalData);
         }
 
-        return { existed, notExisted };
+        return { existed, finalData };
     }
 
 

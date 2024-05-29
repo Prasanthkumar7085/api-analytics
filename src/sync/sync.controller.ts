@@ -97,7 +97,7 @@ export class SyncController {
 	@Get("patient-claims-remove")
 	async removeArchivedClaims(@Res() res: any) {
 		try {
-			const datesObj = this.syncHelpers.getFromAndToDates(7);
+			const datesObj = this.syncHelpers.getFromAndToDatesInEST(7, DLW_TIMEZONE);
 
 			const fromDate = datesObj.fromDate;
 			const toDate = datesObj.toDate;
@@ -230,7 +230,7 @@ export class SyncController {
 	async syncSalesRepsManagers(@Res() res: any) {
 		try {
 
-			const datesFilter = this.syncHelpers.getFromAndToDates(7);
+			const datesFilter = this.syncHelpers.getFromAndToDatesInEST(1, DLW_TIMEZONE);
 
 			const salesRepsManagersData = await this.syncHelpers.getSalesRepsData(HOSPITAL_MARKETING_MANAGER, datesFilter);
 
@@ -240,9 +240,9 @@ export class SyncController {
 
 			const finalManagersData = await this.syncHelpers.getFinalManagersData(salesRepsManagersData);
 
-			// if (finalManagersData.length === 0) {
-			// 	return res.status(200).json({ success: true, message: SALES_REPS_NOT_FOUND });
-			// }
+			if (finalManagersData.length === 0) {
+				return res.status(200).json({ success: true, message: SALES_REPS_NOT_FOUND });
+			}
 
 			let insertedData = await this.salesRepService.insertSalesRepsManagers(finalManagersData);
 
@@ -250,7 +250,6 @@ export class SyncController {
 				const ids = insertedData.map((e) => e.id);
 				this.salesRepService.updateSalesRepsManagersData(ids);
 			}
-
 
 			return res.status(200).json({ success: true, message: SUCCUSS_INSERTED_MARKETING_MANAGERS });
 		}
@@ -266,7 +265,7 @@ export class SyncController {
 	async syncSalesRepsMarketers(@Res() res: any) {
 		try {
 
-			const datesFilter = this.syncHelpers.getFromAndToDates(7);
+			const datesFilter = this.syncHelpers.getFromAndToDatesInEST(1, DLW_TIMEZONE);
 
 			const salesRepsData = await this.syncHelpers.getSalesRepsData(MARKETER, datesFilter);
 
@@ -283,7 +282,6 @@ export class SyncController {
 			const salesRepsQuery = { _id: { $in: unMatchedSalesRepsIds } };
 
 			const salesRepsDataToInsert = await this.lisService.getUsers(salesRepsQuery);
-
 
 			this.syncHelpers.getFinalSalesRepsData(salesRepsDataToInsert);
 
@@ -326,7 +324,7 @@ export class SyncController {
 	async syncFacilities(@Res() res: any) {
 		try {
 
-			const datesFilter = this.syncHelpers.getFromAndToDates(7);
+			const datesFilter = this.syncHelpers.getFromAndToDatesInEST(7, DLW_TIMEZONE);
 
 			const salesRepsData = await this.salesRepService.getSalesReps("");
 			const salesReps = salesRepsData.map((e) => e.ref_id).filter((ref_id) => ref_id !== null);

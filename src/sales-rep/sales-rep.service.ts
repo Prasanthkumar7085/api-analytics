@@ -507,6 +507,14 @@ export class SalesRepService {
 	}
 
 
+	async getSalesRepsIdsAndMghRefIds(marketersIds) {
+
+		const data = await db.execute(sql`SELECT id, mgh_ref_id FROM sales_reps WHERE mgh_ref_id IN ${marketersIds}`);
+
+		return data.rows;
+	}
+
+
 	async insertSalesRepsManagers(data) {
 
 		return await db.insert(sales_reps).values(data).returning();
