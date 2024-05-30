@@ -1,4 +1,4 @@
-import { Controller, Get, Res } from '@nestjs/common';
+import { Controller, Get, Query, Res } from '@nestjs/common';
 import * as fs from 'fs';
 import { CaseTypesService } from 'src/case-types/case-types.service';
 import { Configuration } from 'src/config/config.service';
@@ -58,7 +58,7 @@ export class SyncController {
 			const fromDate = datesObj.fromDate;
 			const toDate = datesObj.toDate;
 
-			console.log({fromDate, toDate})
+			console.log({ fromDate, toDate });
 
 			const facilitiesArray = await this.facilitiesService.getAllFacilitiesData();
 
@@ -474,30 +474,49 @@ export class SyncController {
 	}
 
 	@Get("sales-reps-targets")
-	async syncSalesRepsTargets(@Res() res: any) {
+	async syncSalesRepsTargets(@Res() res: any, @Query('month') month?: string) {
 		try {
-
 			let modifiedData;
 
+			// Use the provided month or default to the current month
 			const currentDate = new Date();
+			const currentMonth = await formateMonth(currentDate);
+			const queryMonth = month || currentMonth;
 
-			let currentMonth = await formateMonth(currentDate);
+			// Construct the query to fetch data for the specified month
+			let query = `month='${queryMonth}'`;
 
-			const lastMonth = await getLastMonth(currentDate);
-
-			let query = `month='${currentMonth}'`;
-
+			// Fetch data for the specified month
 			let salesRepsTargetData = await this.salesrepTargetService.getAllSalesRepsTargets(query);
 
+			// If no data found for the provided month, fallback to the previous month
 			if (!salesRepsTargetData.length) {
-
+				const lastMonth = await getLastMonth(currentDate);
 				query = `month='${lastMonth}'`;
 
 				salesRepsTargetData = await this.salesrepTargetService.getAllSalesRepsTargets(query);
 
-				modifiedData = this.syncHelpers.modifySalesRepTargetData(salesRepsTargetData);
+				if (salesRepsTargetData.length) {
+					modifiedData = this.syncHelpers.modifySalesRepTargetData(salesRepsTargetData);
 
-				this.salesrepTargetService.insertSalesRepsTargets(modifiedData);
+					const newMonth = queryMonth; // Or specify the new month if different from queryMonth
+					
+					const [year, month] = newMonth.split('-').map(Number);
+					
+					const newStartDate = new Date(year, month - 1, 1); // Corrected month index (0-based)
+					const newEndDate = new Date(year, month, 0); // Corrected last day of the month
+
+					modifiedData = await Promise.all(modifiedData.map(async (item) => ({
+						...item,
+						startDate: await formatDate(newStartDate),
+						endDate: await formatDate(newEndDate),
+						month: await formateMonth(newStartDate),
+					})));
+					
+					console.log("modifiedData", modifiedData);
+
+					await this.salesrepTargetService.insertSalesRepsTargets(modifiedData);
+				}
 			}
 
 			return res.status(200).json({
@@ -510,11 +529,10 @@ export class SyncController {
 			console.log(err);
 			return res.status(500).json({
 				success: false,
-				message: err || SOMETHING_WENT_WRONG
+				message: err.message || SOMETHING_WENT_WRONG
 			});
 		}
 	}
-
 
 }
 
@@ -531,18 +549,18 @@ async function getLastMonth(date: Date) {
 
 	console.log(month);
 
-	let yearOffset = 0;
-
-	// If the current month is January, subtract one year and set the month to December
-	if (month === 1) {
-		month = 12;
-		yearOffset = -1;
-	} else {
-		month -= 1; // Subtract one from the current month
-	}
-
 	const formattedMonth = String(month).padStart(2, '0');
-	const lastMonth = `${formattedMonth}-${year + yearOffset}`;
+	const lastMonth = `${formattedMonth}-${year}`;
 
 	return lastMonth;
 }
+
+
+async function formatDate(date) {
+	const year = date.getFullYear();
+	const month = String(date.getMonth() + 1).padStart(2, '0');
+	const day = String(date.getDate()).padStart(2, '0');
+	return `${year}-${month}-${day}`;
+}
+
+
