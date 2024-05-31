@@ -1,8 +1,8 @@
-import { Controller, Get, Res } from '@nestjs/common';
+import { Controller, Get, Query, Res } from '@nestjs/common';
 import * as fs from 'fs';
 import { CaseTypesService } from 'src/case-types/case-types.service';
 import { Configuration } from 'src/config/config.service';
-import { HOSPITAL_MARKETING_MANAGER, MARKETER } from 'src/constants/lisConstants';
+import { DLW_TIMEZONE, HOSPITAL_MARKETING_MANAGER, MARKETER, SALES_DIRECTOR } from 'src/constants/lisConstants';
 import {
 	CASE_TYPES_NOT_FOUND,
 	CASE_TYPES_NOT_FOUND_IN_LIS_DATABASE,
@@ -15,6 +15,7 @@ import {
 	SALES_REPS_NOT_FOUND,
 	SOMETHING_WENT_WRONG,
 	SUCCESS_INSERTED_FACILICES,
+	SUCCESS_SALES_REPS_SYNC,
 	SUCCESS_SYNCED_CASE_TYPES, SUCCESS_SYNCED_INSURANCE_PAYORS,
 	SUCCESS_SYNC_LABS,
 	SUCCESS_SYNC_PATIENT_CLAIMS,
@@ -53,12 +54,12 @@ export class SyncController {
 	async addPatientClaims(@Res() res: any) {
 		try {
 
-			const datesObj = this.syncHelpers.getFromAndToDatesInEST(1);
+			const datesObj = this.syncHelpers.getFromAndToDatesInEST(1, DLW_TIMEZONE);
 
 			const fromDate = datesObj.fromDate;
 			const toDate = datesObj.toDate;
 
-			console.log({fromDate, toDate})
+			console.log({ fromDate, toDate });
 
 			const facilitiesArray = await this.facilitiesService.getAllFacilitiesData();
 
@@ -81,7 +82,7 @@ export class SyncController {
 
 			return res.status(200).json({
 				success: true,
-				message: SUCCESS_SYNC_PATIENT_CLAIMS
+				message: SUCCESS_SYNC_PATIENT_CLAIMS,
 			});
 
 		} catch (err) {
@@ -97,7 +98,7 @@ export class SyncController {
 	@Get("patient-claims-remove")
 	async removeArchivedClaims(@Res() res: any) {
 		try {
-			const datesObj = this.syncHelpers.getFromAndToDates(7);
+			const datesObj = this.syncHelpers.getFromAndToDatesInEST(7, DLW_TIMEZONE);
 
 			const fromDate = datesObj.fromDate;
 			const toDate = datesObj.toDate;
@@ -230,7 +231,7 @@ export class SyncController {
 	async syncSalesRepsManagers(@Res() res: any) {
 		try {
 
-			const datesFilter = this.syncHelpers.getFromAndToDates(7);
+			const datesFilter = this.syncHelpers.getFromAndToDatesInEST(1, DLW_TIMEZONE);
 
 			const salesRepsManagersData = await this.syncHelpers.getSalesRepsData(HOSPITAL_MARKETING_MANAGER, datesFilter);
 
@@ -240,17 +241,16 @@ export class SyncController {
 
 			const finalManagersData = await this.syncHelpers.getFinalManagersData(salesRepsManagersData);
 
-			// if (finalManagersData.length === 0) {
-			// 	return res.status(200).json({ success: true, message: SALES_REPS_NOT_FOUND });
-			// }
+			if (finalManagersData.length === 0) {
+				return res.status(200).json({ success: true, message: SALES_REPS_NOT_FOUND });
+			}
 
-			let insertedData = await this.salesRepService.insertSalesRepsManagers(finalManagersData);
+			let insertedData: any = await this.salesRepService.insertSalesRepsManagers(finalManagersData);
 
 			if (insertedData.length) {
 				const ids = insertedData.map((e) => e.id);
 				this.salesRepService.updateSalesRepsManagersData(ids);
 			}
-
 
 			return res.status(200).json({ success: true, message: SUCCUSS_INSERTED_MARKETING_MANAGERS });
 		}
@@ -266,7 +266,7 @@ export class SyncController {
 	async syncSalesRepsMarketers(@Res() res: any) {
 		try {
 
-			const datesFilter = this.syncHelpers.getFromAndToDates(7);
+			const datesFilter = this.syncHelpers.getFromAndToDatesInEST(1, DLW_TIMEZONE);
 
 			const salesRepsData = await this.syncHelpers.getSalesRepsData(MARKETER, datesFilter);
 
@@ -283,7 +283,6 @@ export class SyncController {
 			const salesRepsQuery = { _id: { $in: unMatchedSalesRepsIds } };
 
 			const salesRepsDataToInsert = await this.lisService.getUsers(salesRepsQuery);
-
 
 			this.syncHelpers.getFinalSalesRepsData(salesRepsDataToInsert);
 
@@ -326,7 +325,7 @@ export class SyncController {
 	async syncFacilities(@Res() res: any) {
 		try {
 
-			const datesFilter = this.syncHelpers.getFromAndToDates(7);
+			const datesFilter = this.syncHelpers.getFromAndToDatesInEST(7, DLW_TIMEZONE);
 
 			const salesRepsData = await this.salesRepService.getSalesReps("");
 			const salesReps = salesRepsData.map((e) => e.ref_id).filter((ref_id) => ref_id !== null);
@@ -476,30 +475,49 @@ export class SyncController {
 	}
 
 	@Get("sales-reps-targets")
-	async syncSalesRepsTargets(@Res() res: any) {
+	async syncSalesRepsTargets(@Res() res: any, @Query('month') month?: string) {
 		try {
-
 			let modifiedData;
 
+			// Use the provided month or default to the current month
 			const currentDate = new Date();
+			const currentMonth = await formateMonth(currentDate);
+			const queryMonth = month || currentMonth;
 
-			let currentMonth = await formateMonth(currentDate);
+			// Construct the query to fetch data for the specified month
+			let query = `month='${queryMonth}'`;
 
-			const lastMonth = await getLastMonth(currentDate);
-
-			let query = `month='${currentMonth}'`;
-
+			// Fetch data for the specified month
 			let salesRepsTargetData = await this.salesrepTargetService.getAllSalesRepsTargets(query);
 
+			// If no data found for the provided month, fallback to the previous month
 			if (!salesRepsTargetData.length) {
-
+				const lastMonth = await getLastMonth(currentDate);
 				query = `month='${lastMonth}'`;
 
 				salesRepsTargetData = await this.salesrepTargetService.getAllSalesRepsTargets(query);
 
-				modifiedData = this.syncHelpers.modifySalesRepTargetData(salesRepsTargetData);
+				if (salesRepsTargetData.length) {
+					modifiedData = this.syncHelpers.modifySalesRepTargetData(salesRepsTargetData);
 
-				this.salesrepTargetService.insertSalesRepsTargets(modifiedData);
+					const newMonth = queryMonth; // Or specify the new month if different from queryMonth
+
+					const [year, month] = newMonth.split('-').map(Number);
+
+					const newStartDate = new Date(year, month - 1, 1); // Corrected month index (0-based)
+					const newEndDate = new Date(year, month, 0); // Corrected last day of the month
+
+					modifiedData = await Promise.all(modifiedData.map(async (item) => ({
+						...item,
+						startDate: await formatDate(newStartDate),
+						endDate: await formatDate(newEndDate),
+						month: await formateMonth(newStartDate),
+					})));
+
+					console.log("modifiedData", modifiedData);
+
+					await this.salesrepTargetService.insertSalesRepsTargets(modifiedData);
+				}
 			}
 
 			return res.status(200).json({
@@ -512,11 +530,45 @@ export class SyncController {
 			console.log(err);
 			return res.status(500).json({
 				success: false,
-				message: err || SOMETHING_WENT_WRONG
+				message: err.message || SOMETHING_WENT_WRONG
 			});
 		}
 	}
 
+
+	@Get("sales-directors")
+	async syncSalesReps(@Res() res: any) {
+		try {
+
+			const select = {
+				user_type: 1,
+				first_name: 1,
+				last_name: 1,
+				email: 1
+			};
+
+			const directorsData = await this.syncHelpers.getRepsFromLis(SALES_DIRECTOR, select);
+
+			if (directorsData.length === 0) {
+				return res.status(200).json({ success: true, message: SALES_REPS_NOT_FOUND });
+			}
+
+			const { existedReps: existedDirectors, notExistedReps: notExistedDirectors } = await this.syncHelpers.seperateExistedAndNotExistedRepsByRefId(directorsData);
+
+			this.syncHelpers.insertOrUpdateSalesDirectors(existedDirectors, notExistedDirectors);
+
+			return res.status(200).json({
+				success: true,
+				message: SUCCESS_SALES_REPS_SYNC,
+				existedDirectors, notExistedDirectors
+			});
+		} catch (err) {
+			return res.status(500).json({
+				success: false,
+				message: err || SOMETHING_WENT_WRONG
+			});
+		}
+	}
 
 }
 
@@ -533,18 +585,18 @@ async function getLastMonth(date: Date) {
 
 	console.log(month);
 
-	let yearOffset = 0;
-
-	// If the current month is January, subtract one year and set the month to December
-	if (month === 1) {
-		month = 12;
-		yearOffset = -1;
-	} else {
-		month -= 1; // Subtract one from the current month
-	}
-
 	const formattedMonth = String(month).padStart(2, '0');
-	const lastMonth = `${formattedMonth}-${year + yearOffset}`;
+	const lastMonth = `${formattedMonth}-${year}`;
 
 	return lastMonth;
 }
+
+
+async function formatDate(date) {
+	const year = date.getFullYear();
+	const month = String(date.getMonth() + 1).padStart(2, '0');
+	const day = String(date.getDate()).padStart(2, '0');
+	return `${year}-${month}-${day}`;
+}
+
+

@@ -2,12 +2,14 @@ import { Controller, Get, Res } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import mongoose from 'mongoose';
 import { Configuration } from 'src/config/config.service';
-import { INSURANCE_PAYORS_NOT_FOUND_IN_LIS_DATABASE, LABS_NOT_FOUND, LIS_FACILITIES_NOT_FOUND, PATIENT_CLAIMS_NOT_FOUND, SOMETHING_WENT_WRONG, SUCCESS_INSERTED_FACILICES, SUCCESS_SYNCED_INSURANCE_PAYORS, SUCCESS_SYNC_LABS, SUCCESS_SYNC_PATIENT_CLAIMS, SUCCUSS_INSERTED_MARKETING_MANAGERS } from 'src/constants/messageConstants';
+import { INSURANCE_PAYORS_NOT_FOUND_IN_LIS_DATABASE, LABS_NOT_FOUND, LIS_FACILITIES_NOT_FOUND, PATIENT_CLAIMS_NOT_FOUND, SALES_REPS_NOT_FOUND, SOMETHING_WENT_WRONG, SUCCESS_INSERTED_FACILICES, SUCCESS_SYNCED_INSURANCE_PAYORS, SUCCESS_SYNC_LABS, SUCCESS_SYNC_PATIENT_CLAIMS, SUCCUSS_INSERTED_MARKETING_MANAGERS } from 'src/constants/messageConstants';
 import { SyncHelpers } from 'src/helpers/syncHelper';
 import { MghSyncService } from './mgh-sync.service';
 import { FacilitiesService } from 'src/facilities/facilities.service';
-import { HOSPITAL_MARKETING_MANAGER, MARKETER } from 'src/constants/lisConstants';
+import { HOSPITAL_MARKETING_MANAGER, MARKETER, MGH_TIMEZONE } from 'src/constants/lisConstants';
 import { SalesRepService } from 'src/sales-rep/sales-rep.service';
+import { LisService } from 'src/lis/lis.service';
+import { CsvHelper } from 'src/helpers/csvHelper';
 
 @Controller({
   version: '1.0',
@@ -20,7 +22,9 @@ export class MghSyncController {
     private readonly mghSyncService: MghSyncService,
     private readonly facilitiesService: FacilitiesService,
     private readonly syncHelpers: SyncHelpers,
-    private readonly salesRepService: SalesRepService
+    private readonly salesRepService: SalesRepService,
+    private readonly lisService: LisService,
+    private readonly csvHelper: CsvHelper
   ) { }
 
 
@@ -32,7 +36,7 @@ export class MghSyncController {
       await mongoose.connect(lis_mgh_db_url);
 
 
-      const datesObj = this.syncHelpers.getFromAndToDatesInEST(1);
+      const datesObj = this.syncHelpers.getFromAndToDatesInEST(1, MGH_TIMEZONE);
 
       const fromDate = datesObj.fromDate;
       const toDate = datesObj.toDate;
@@ -130,33 +134,38 @@ export class MghSyncController {
 
       await mongoose.connect(lis_mgh_db_url);
 
-      const datesFilter = this.syncHelpers.getFromAndToDates(7);
+      const datesFilter = this.syncHelpers.getFromAndToDatesInEST(1, MGH_TIMEZONE);
 
       const query = {
         status: "ACTIVE",
         user_type: { $in: [HOSPITAL_MARKETING_MANAGER] },
-        // updated_at: {
-        //     $gte: datesFilter.fromDate,
-        //     $lte: datesFilter.toDate,
-        // },
+        updated_at: {
+          $gte: datesFilter.fromDate,
+          $lte: datesFilter.toDate,
+        },
+        _id: { $nin: ["663b6ab71d5f1d9a28738acf"] }
       };
 
       const salesRepsData = await this.syncHelpers.getMghSalesReps(query);
 
+      if (salesRepsData.length === 0) {
+        return res.status(200).json({ success: true, message: SALES_REPS_NOT_FOUND });
+      }
+
       const modifiedSalesReps = salesRepsData.map(item => ({
         mghRefId: item._id.toString(),
         name: item.name,
-        roleId: item.user_type === "MARKETER" ? 1 : (item.user_type === "HOSPITAL_MARKETING_MANAGER" ? 2 : null)
+        roleId: item.user_type === "MARKETER" ? 1 : (item.user_type === "HOSPITAL_MARKETING_MANAGER" ? 2 : 2)
       }));
 
 
-      this.syncHelpers.getExistedAndNotExistedReps(modifiedSalesReps);
-
-
+      if (modifiedSalesReps.length) {
+        this.syncHelpers.getExistedAndNotExistedReps(modifiedSalesReps);
+      }
 
       return res.status(200).json({
         success: true,
-        message: SUCCUSS_INSERTED_MARKETING_MANAGERS
+        message: SUCCUSS_INSERTED_MARKETING_MANAGERS,
       });
     } catch (err) {
       console.log({ err });
@@ -177,29 +186,33 @@ export class MghSyncController {
 
       await mongoose.connect(lis_mgh_db_url);
 
-      const datesFilter = this.syncHelpers.getFromAndToDates(7);
+      const datesFilter = this.syncHelpers.getFromAndToDatesInEST(1, MGH_TIMEZONE);
 
       const query = {
         status: "ACTIVE",
         user_type: { $in: [MARKETER] },
-        // updated_at: {
-        //     $gte: datesFilter.fromDate,
-        //     $lte: datesFilter.toDate,
-        // },
+        updated_at: {
+          $gte: datesFilter.fromDate,
+          $lte: datesFilter.toDate,
+        },
       };
 
       const salesRepsData = await this.syncHelpers.getMghSalesReps(query);
 
+      if (salesRepsData.length === 0) {
+        return res.status(200).json({ success: true, message: SALES_REPS_NOT_FOUND });
+      }
+
       const modifiedSalesReps = salesRepsData.map(item => ({
         mghRefId: item._id.toString(),
         name: item.name,
-        roleId: item.user_type === "MARKETER" ? 1 : (item.user_type === "HOSPITAL_MARKETING_MANAGER" ? 2 : null)
+        roleId: item.user_type === "MARKETER" ? 1 : (item.user_type === "HOSPITAL_MARKETING_MANAGER" ? 2 : 1)
       }));
 
 
-      this.syncHelpers.getExistedAndNotExistedReps(modifiedSalesReps);
-
-
+      if (modifiedSalesReps.length) {
+        this.syncHelpers.getExistedAndNotExistedReps(modifiedSalesReps);
+      }
 
       return res.status(200).json({
         success: true,
@@ -225,7 +238,7 @@ export class MghSyncController {
 
       await mongoose.connect(lis_mgh_db_url);
 
-      const datesFilter = this.syncHelpers.getFromAndToDates(7);
+      const datesFilter = this.syncHelpers.getFromAndToDatesInEST(1, MGH_TIMEZONE);
 
       const salesRepsData = await this.salesRepService.getSalesReps("");
       const salesReps = salesRepsData.map((e) => e.mgh_ref_id).filter((mgh_ref_id) => mgh_ref_id !== null);
@@ -311,6 +324,30 @@ export class MghSyncController {
         message: SUCCESS_SYNCED_INSURANCE_PAYORS,
         data
       });
+    } catch (err) {
+      console.log({ err });
+      return res.status(500).json({
+        success: false,
+        message: err || SOMETHING_WENT_WRONG
+      });
+    }
+  }
+
+
+  @Get("mgh-stats")
+  async mghStats(@Res() res: any) {
+    try {
+
+      const configuration = new Configuration(new ConfigService());
+      const { lis_mgh_db_url } = configuration.getConfig();
+      await mongoose.connect(lis_mgh_db_url);
+      
+      const casesStats = await this.mghSyncService.getCasesStats();
+
+      const csv = await this.csvHelper.convertToCsv(casesStats);
+      res.header('Content-Type', 'text/csv');
+      res.attachment('users.csv');
+      res.send(csv);
     } catch (err) {
       console.log({ err });
       return res.status(500).json({

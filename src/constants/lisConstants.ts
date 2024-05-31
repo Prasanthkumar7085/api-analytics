@@ -225,4 +225,9 @@ export const labelNames = {
 };
 
 
+export const DLW_TIMEZONE = "America/Chicago";
+
+export const MGH_TIMEZONE = "America/New_York";
+
+
 
