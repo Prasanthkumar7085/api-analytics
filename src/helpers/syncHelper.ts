@@ -26,6 +26,7 @@ export class SyncHelpers {
         private readonly mghLisService: MghSyncService,
         private readonly salesRepsTargetsAchivedService: SalesRepsTargetsAchivedService,
         private readonly configuration: Configuration,
+        private readonly salesRepService: SalesRepService
 
     ) { }
 
@@ -522,7 +523,7 @@ export class SyncHelpers {
         const matchedIds = await this.salesRepsService.getMatchedSalesRepsIds(mappedSalesRepsIds);
 
         // Extracts the 'ref_id' values from the rows returned by the database query and stores them in the values in array
-        const refIdValues = matchedIds.rows.map((obj) => obj.ref_id);
+        const refIdValues = matchedIds.map((obj) => obj.ref_id);
 
         const unMatchedIds = mappedSalesRepsIds.filter((id) => !refIdValues.includes(id)); // finding unmatched IDs
 
@@ -1499,6 +1500,89 @@ export class SyncHelpers {
         }
 
         return { notExistedFacilities, existedFacilities };
+    }
+
+
+    async getRepsFromLis(userType, select = {}) {
+
+        const query = {
+            user_type: userType,
+            status: "ACTIVE"
+        };
+
+
+        const salesRepsData = await this.lisService.getUsers(query, select);
+
+        return salesRepsData;
+    }
+
+
+    async seperateExistedAndNotExistedRepsByRefId(repsData) {
+        try {
+            const salesRepIds = repsData.map(e => e._id.toString());
+
+            const matchedReps = await this.salesRepService.getMatchedSalesRepsIds(salesRepIds);
+
+            let existedReps = [];
+            let notExistedReps = [];
+            if (matchedReps.length) {
+                const matchedRefIds = matchedReps.map(rep => rep.ref_id);
+
+                // Filter matched and unmatched sales representatives
+                const matchedSalesReps = repsData.filter(rep => matchedRefIds.includes(rep._id.toString()));
+                const unmatchedSalesReps = repsData.filter(rep => !matchedRefIds.includes(rep._id.toString()));
+
+
+                existedReps = [...matchedSalesReps];
+                notExistedReps = [...unmatchedSalesReps];
+
+            } else {
+                notExistedReps = [...repsData];
+            }
+
+            return { existedReps, notExistedReps };
+        } catch (err) {
+            throw err;
+        }
+    }
+
+
+    async insertOrUpdateSalesDirectors(existedDirectors, notExistedDirectors) {
+        if (notExistedDirectors.length) {
+            const transformedArray = notExistedDirectors.map(e => ({
+                refId: e._id.toString(),
+                name: e.first_name + " " + e.last_name,
+                email: e.email,
+                roleId: 3
+            }));
+
+            const insertedDirectors: any = await this.salesRepService.insertSalesReps(transformedArray);
+
+            if (insertedDirectors.length) {
+                const ids = insertedDirectors.map((e) => e.id);
+                this.salesRepService.updateSalesRepsManagersData(ids);
+            }
+            console.log("INSERTED ---->");
+        }
+
+        if (existedDirectors.length) {
+
+            const convertedData = existedDirectors.map(entry => {
+
+                const refId = entry._id.toString();
+                const name = entry.first_name + " " + entry.last_name;
+                const email = entry.email;
+                const updatedAt = new Date().toISOString();
+
+                const formattedQueryEntry = `('${name}', '${refId}', '${email}', '${updatedAt}'::timestamp)`;
+                return formattedQueryEntry;
+            });
+
+            const finalString = convertedData.join(', ');
+
+            this.salesRepService.updateManySalesReps(finalString);
+            console.log("UPDATED ---->");
+        }
     }
 
 }
