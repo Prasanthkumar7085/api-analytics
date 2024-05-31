@@ -90,27 +90,22 @@ export class SalesRepsTargetsAchivedService {
 
   async getSingleSalesRepTargetVolume(id, queryString) {
     const rawQuery = sql`
-        SELECT 
-            CONCAT(
-                TO_CHAR(TO_DATE(month, 'MM-YYYY'), 'Mon'), 
-                ' ', 
-                TO_CHAR(TO_DATE(month, 'MM-YYYY'), 'YYYY')
-            ) AS month,
-            CAST(SUM(total_a) AS INTEGER) AS total_volume
-        FROM 
-            sales_reps_monthly_achieves
-        WHERE 
+        SELECT
+            TO_CHAR(service_date, 'Mon YYYY') AS month,
+            CAST(COUNT(*) AS INTEGER) AS total_volume
+        FROM
+            patient_claims
+        WHERE
             sales_rep_id = ${id}
             ${queryString ? sql`AND ${sql.raw(queryString)}` : sql``}
-        GROUP BY 
-            month
+        GROUP BY
+            TO_CHAR(service_date, 'Mon YYYY')
     `;
-
-
-
     const data = await db.execute(rawQuery);
     return data.rows;
   }
+
+
 
 
   async getTotalTargetAchievementsMonthWise(queryString) {

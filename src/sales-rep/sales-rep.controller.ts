@@ -739,11 +739,13 @@ export class SalesRepController {
 
 			const id = param.id;
 
-			const queryString = this.filterHelper.singleSalesRepMonthlyTargets(query);
+			const targetsQueryString = this.filterHelper.singleSalesRepMonthlyTargets(query);
+
+			const queryString = this.filterHelper.salesRepFacilities(query);
 
 			const [achivedData, targetedData] = await Promise.all([
 				this.salesRepsTargetsAchivedService.getSingleSalesRepTargetVolume(id, queryString),
-				this.salesRepsTargetsService.getSingleSalesRepTargetVolume(id, queryString)
+				this.salesRepsTargetsService.getSingleSalesRepTargetVolume(id, targetsQueryString)
 			]);
 
 			const achievedMap = new Map(achivedData.map(item => [item.month, item]));
