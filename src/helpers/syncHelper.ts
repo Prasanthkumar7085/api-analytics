@@ -26,6 +26,7 @@ export class SyncHelpers {
         private readonly mghLisService: MghSyncService,
         private readonly salesRepsTargetsAchivedService: SalesRepsTargetsAchivedService,
         private readonly configuration: Configuration,
+        private readonly salesRepService: SalesRepService
 
     ) { }
 
@@ -49,7 +50,7 @@ export class SyncHelpers {
     }
 
 
-    getFromAndToDatesInEST(days: number) {
+    getFromAndToDatesInEST(days: number, labTimezone) {
         const currentDate = new Date();
         const previousDate = new Date(currentDate);
 
@@ -60,7 +61,7 @@ export class SyncHelpers {
         const fromDateString = new Date(previousDate);
         const toDateString = new Date(previousDate);
 
-        const labTimezone = 'America/New_York';
+        // const labTimezone = 'America/New_York';
 
 
 
@@ -400,7 +401,7 @@ export class SyncHelpers {
                 const finalString = convertedData.join(', ');
 
                 console.log({ Updated: i });
-                this.SyncService.updateManyPatientClaims(finalString);
+                await this.SyncService.updateManyPatientClaims(finalString);
             }
         }
 
@@ -411,7 +412,7 @@ export class SyncHelpers {
                 console.log({ Inserted: i });
                 const batch = notExistedData.slice(i, i + batchSize);
 
-                this.SyncService.insertPatientClaims(batch);
+                await this.SyncService.insertPatientClaims(batch);
             }
         }
 
@@ -500,10 +501,10 @@ export class SyncHelpers {
         const query = {
             user_type: userType,
             status: "ACTIVE",
-            // updated_at: {
-            //     $gte: datesFilter.fromDate,
-            //     $lte: datesFilter.toDate,
-            // },
+            updated_at: {
+                $gte: datesFilter.fromDate,
+                $lte: datesFilter.toDate,
+            },
         };
 
 
@@ -522,7 +523,7 @@ export class SyncHelpers {
         const matchedIds = await this.salesRepsService.getMatchedSalesRepsIds(mappedSalesRepsIds);
 
         // Extracts the 'ref_id' values from the rows returned by the database query and stores them in the values in array
-        const refIdValues = matchedIds.rows.map((obj) => obj.ref_id);
+        const refIdValues = matchedIds.map((obj) => obj.ref_id);
 
         const unMatchedIds = mappedSalesRepsIds.filter((id) => !refIdValues.includes(id)); // finding unmatched IDs
 
@@ -591,7 +592,7 @@ export class SyncHelpers {
         const managersIdsAndRefIds = await this.salesRepsService.getSalesRepsIdsAndRefIds(managersIds);
 
         marketersData.map((marketer) => {
-            let reportingTo = 2;
+            let reportingTo = 20;
 
             // Check if hospital_marketing_manager exists
             if (marketer.reporting_to.length > 0) {
@@ -615,6 +616,38 @@ export class SyncHelpers {
         return finalArray;
     }
 
+
+    async containsMghReportingTo(marketersData) {
+        const finalArray = [];
+
+        const managersIds = marketersData.map((item) => item.reporting_to?.[0]?.toString() ?? '');
+
+        const managersIdsAndMghRefIds = await this.salesRepsService.getSalesRepsIdsAndMghRefIds(managersIds);
+
+        marketersData.map((marketer) => {
+            let reportingTo = 20;
+
+            // Check if hospital_marketing_manager exists
+            if (marketer.reporting_to?.length > 0) {
+                // Find corresponding manager data
+                const matchedObj = managersIdsAndMghRefIds.find((row) => row.mgh_ref_id === marketer.reporting_to[0].toString());
+
+                if (matchedObj) {
+                    reportingTo = matchedObj.id as number;
+                }
+            }
+
+            finalArray.push({
+                name: marketer.name,
+                mghRefId: marketer.mghRefId.toString(),
+                reportingTo: reportingTo,
+                roleId: marketer.roleId,
+            });
+        });
+
+
+        return finalArray;
+    }
 
     async getFacilitiesData(salesRepsData) {
 
@@ -1066,11 +1099,14 @@ export class SyncHelpers {
 
         }
 
+        let finalData = [];
         if (notExisted.length) {
-            this.salesRepsService.insertSalesReps(notExisted);
+
+            finalData = await this.containsMghReportingTo(notExisted);
+            const insertedData = await this.salesRepsService.insertSalesReps(finalData);
         }
 
-        return { existed, notExisted };
+        return { existed, finalData };
     }
 
 
@@ -1179,6 +1215,7 @@ export class SyncHelpers {
                 }
             };
 
+            console.log(JSON.stringify(query));
             const select = {
                 accession_id: 1,
                 case_types: 1,
@@ -1463,6 +1500,89 @@ export class SyncHelpers {
         }
 
         return { notExistedFacilities, existedFacilities };
+    }
+
+
+    async getRepsFromLis(userType, select = {}) {
+
+        const query = {
+            user_type: userType,
+            status: "ACTIVE"
+        };
+
+
+        const salesRepsData = await this.lisService.getUsers(query, select);
+
+        return salesRepsData;
+    }
+
+
+    async seperateExistedAndNotExistedRepsByRefId(repsData) {
+        try {
+            const salesRepIds = repsData.map(e => e._id.toString());
+
+            const matchedReps = await this.salesRepService.getMatchedSalesRepsIds(salesRepIds);
+
+            let existedReps = [];
+            let notExistedReps = [];
+            if (matchedReps.length) {
+                const matchedRefIds = matchedReps.map(rep => rep.ref_id);
+
+                // Filter matched and unmatched sales representatives
+                const matchedSalesReps = repsData.filter(rep => matchedRefIds.includes(rep._id.toString()));
+                const unmatchedSalesReps = repsData.filter(rep => !matchedRefIds.includes(rep._id.toString()));
+
+
+                existedReps = [...matchedSalesReps];
+                notExistedReps = [...unmatchedSalesReps];
+
+            } else {
+                notExistedReps = [...repsData];
+            }
+
+            return { existedReps, notExistedReps };
+        } catch (err) {
+            throw err;
+        }
+    }
+
+
+    async insertOrUpdateSalesDirectors(existedDirectors, notExistedDirectors) {
+        if (notExistedDirectors.length) {
+            const transformedArray = notExistedDirectors.map(e => ({
+                refId: e._id.toString(),
+                name: e.first_name + " " + e.last_name,
+                email: e.email,
+                roleId: 3
+            }));
+
+            const insertedDirectors: any = await this.salesRepService.insertSalesReps(transformedArray);
+
+            if (insertedDirectors.length) {
+                const ids = insertedDirectors.map((e) => e.id);
+                this.salesRepService.updateSalesRepsManagersData(ids);
+            }
+            console.log("INSERTED ---->");
+        }
+
+        if (existedDirectors.length) {
+
+            const convertedData = existedDirectors.map(entry => {
+
+                const refId = entry._id.toString();
+                const name = entry.first_name + " " + entry.last_name;
+                const email = entry.email;
+                const updatedAt = new Date().toISOString();
+
+                const formattedQueryEntry = `('${name}', '${refId}', '${email}', '${updatedAt}'::timestamp)`;
+                return formattedQueryEntry;
+            });
+
+            const finalString = convertedData.join(', ');
+
+            this.salesRepService.updateManySalesReps(finalString);
+            console.log("UPDATED ---->");
+        }
     }
 
 }

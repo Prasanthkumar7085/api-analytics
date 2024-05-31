@@ -19,11 +19,12 @@ import { labDataSchema } from 'src/schemas/lab';
 import { SalesRepsTargetsAchivedService } from 'src/sales-reps-targets-achived/sales-reps-targets-achived.service';
 import { Configuration } from 'src/config/config.service';
 import { ConfigService } from '@nestjs/config';
+import { CsvHelper } from 'src/helpers/csvHelper';
 
 @Module({
   controllers: [MghSyncController],
   providers: [MghSyncService, LabsService, SyncHelpers, LisService, CaseTypesService, FacilitiesService, InsurancesService, SyncService, 
-    SalesRepService, SalesRepsTargetsAchivedService, Configuration, ConfigService],
+    SalesRepService, SalesRepsTargetsAchivedService, Configuration, ConfigService, CsvHelper],
   imports: [
     MongooseModule.forFeature([
       { name: 'User', schema: UserSchema },
