@@ -495,7 +495,8 @@ export class SalesRepService {
 
 	async getMatchedSalesRepsIds(mappedSalesRepsIds) {
 
-		return await db.execute(sql`SELECT ref_id FROM sales_reps WHERE ref_id IN ${mappedSalesRepsIds}`);
+		const data = await db.execute(sql`SELECT ref_id FROM sales_reps WHERE ref_id IN ${mappedSalesRepsIds}`);
+		return data.rows;
 	}
 
 
@@ -672,6 +673,25 @@ export class SalesRepService {
 	async getActiveSalesReps() {
 		return db.select({ id: sales_reps.id }).from(sales_reps).where(eq(sales_reps.status, "ACTIVE"));
 	}
+
+
+	async updateManySalesReps(queryString){
+			const rawQuery = sql`
+			UPDATE sales_reps AS t
+			SET
+			  name = u.name,
+			  ref_id = u.refId,
+			  email = u.email,
+			  updated_at = u.updatedAt
+			FROM(
+			  VALUES
+	
+			${sql.raw(queryString)}
+			) as u(name, refId, email, updatedAt)
+			WHERE t.ref_id = u.refId`;
+	
+			return db.execute(rawQuery);
+		}
 
 }
 

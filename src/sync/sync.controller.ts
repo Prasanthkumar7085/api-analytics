@@ -2,7 +2,7 @@ import { Controller, Get, Query, Res } from '@nestjs/common';
 import * as fs from 'fs';
 import { CaseTypesService } from 'src/case-types/case-types.service';
 import { Configuration } from 'src/config/config.service';
-import { DLW_TIMEZONE, HOSPITAL_MARKETING_MANAGER, MARKETER } from 'src/constants/lisConstants';
+import { DLW_TIMEZONE, HOSPITAL_MARKETING_MANAGER, MARKETER, SALES_DIRECTOR } from 'src/constants/lisConstants';
 import {
 	CASE_TYPES_NOT_FOUND,
 	CASE_TYPES_NOT_FOUND_IN_LIS_DATABASE,
@@ -15,6 +15,7 @@ import {
 	SALES_REPS_NOT_FOUND,
 	SOMETHING_WENT_WRONG,
 	SUCCESS_INSERTED_FACILICES,
+	SUCCESS_SALES_REPS_SYNC,
 	SUCCESS_SYNCED_CASE_TYPES, SUCCESS_SYNCED_INSURANCE_PAYORS,
 	SUCCESS_SYNC_LABS,
 	SUCCESS_SYNC_PATIENT_CLAIMS,
@@ -244,7 +245,7 @@ export class SyncController {
 				return res.status(200).json({ success: true, message: SALES_REPS_NOT_FOUND });
 			}
 
-			let insertedData = await this.salesRepService.insertSalesRepsManagers(finalManagersData);
+			let insertedData: any = await this.salesRepService.insertSalesRepsManagers(finalManagersData);
 
 			if (insertedData.length) {
 				const ids = insertedData.map((e) => e.id);
@@ -500,9 +501,9 @@ export class SyncController {
 					modifiedData = this.syncHelpers.modifySalesRepTargetData(salesRepsTargetData);
 
 					const newMonth = queryMonth; // Or specify the new month if different from queryMonth
-					
+
 					const [year, month] = newMonth.split('-').map(Number);
-					
+
 					const newStartDate = new Date(year, month - 1, 1); // Corrected month index (0-based)
 					const newEndDate = new Date(year, month, 0); // Corrected last day of the month
 
@@ -512,7 +513,7 @@ export class SyncController {
 						endDate: await formatDate(newEndDate),
 						month: await formateMonth(newStartDate),
 					})));
-					
+
 					console.log("modifiedData", modifiedData);
 
 					await this.salesrepTargetService.insertSalesRepsTargets(modifiedData);
@@ -530,6 +531,41 @@ export class SyncController {
 			return res.status(500).json({
 				success: false,
 				message: err.message || SOMETHING_WENT_WRONG
+			});
+		}
+	}
+
+
+	@Get("sales-directors")
+	async syncSalesReps(@Res() res: any) {
+		try {
+
+			const select = {
+				user_type: 1,
+				first_name: 1,
+				last_name: 1,
+				email: 1
+			};
+
+			const directorsData = await this.syncHelpers.getRepsFromLis(SALES_DIRECTOR, select);
+
+			if (directorsData.length === 0) {
+				return res.status(200).json({ success: true, message: SALES_REPS_NOT_FOUND });
+			}
+
+			const { existedReps: existedDirectors, notExistedReps: notExistedDirectors } = await this.syncHelpers.seperateExistedAndNotExistedRepsByRefId(directorsData);
+
+			this.syncHelpers.insertOrUpdateSalesDirectors(existedDirectors, notExistedDirectors);
+
+			return res.status(200).json({
+				success: true,
+				message: SUCCESS_SALES_REPS_SYNC,
+				existedDirectors, notExistedDirectors
+			});
+		} catch (err) {
+			return res.status(500).json({
+				success: false,
+				message: err || SOMETHING_WENT_WRONG
 			});
 		}
 	}
