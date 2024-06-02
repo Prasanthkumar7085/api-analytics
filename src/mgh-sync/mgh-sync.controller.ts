@@ -340,7 +340,7 @@ export class MghSyncController {
       const configuration = new Configuration(new ConfigService());
       const { lis_mgh_db_url } = configuration.getConfig();
       await mongoose.connect(lis_mgh_db_url);
-      
+
       const casesStats = await this.mghSyncService.getCasesStats();
 
       const csv = await this.csvHelper.convertToCsv(casesStats);
@@ -358,41 +358,122 @@ export class MghSyncController {
 
 
   @Get("sales-directors")
-	async syncSalesReps(@Res() res: any) {
-		try {
+  async syncSalesReps(@Res() res: any) {
+    try {
       const configuration = new Configuration(new ConfigService());
       const { lis_mgh_db_url } = configuration.getConfig();
       await mongoose.connect(lis_mgh_db_url);
 
-			const select = {
-				user_type: 1,
-				first_name: 1,
-				last_name: 1,
-				email: 1
-			};
+      const select = {
+        user_type: 1,
+        first_name: 1,
+        last_name: 1,
+        email: 1
+      };
 
-			const directorsData = await this.syncHelpers.getRepsFromMghLis(SALES_DIRECTOR, select);
+      const directorsData = await this.syncHelpers.getRepsFromMghLis(SALES_DIRECTOR, select);
 
-			if (directorsData.length === 0) {
-				return res.status(200).json({ success: true, message: SALES_REPS_NOT_FOUND });
-			}
+      if (directorsData.length === 0) {
+        return res.status(200).json({ success: true, message: SALES_REPS_NOT_FOUND });
+      }
 
-			const { existedReps: existedDirectors, notExistedReps: notExistedDirectors } = await this.syncHelpers.seperateExistedAndNotExistedRepsByMghRefId(directorsData);
+      const { existedReps: existedDirectors, notExistedReps: notExistedDirectors } = await this.syncHelpers.seperateExistedAndNotExistedRepsByMghRefId(directorsData);
 
-			this.syncHelpers.insertOrUpdateMghSalesDirectors(existedDirectors, notExistedDirectors);
+      this.syncHelpers.insertOrUpdateMghSalesDirectors(existedDirectors, notExistedDirectors);
 
-			return res.status(200).json({
-				success: true,
-				message: SUCCESS_SALES_REPS_SYNC,
-				existedDirectors, notExistedDirectors
-			});
-		} catch (err) {
-			return res.status(500).json({
-				success: false,
-				message: err || SOMETHING_WENT_WRONG
-			});
-		}
-	}
+      return res.status(200).json({
+        success: true,
+        message: SUCCESS_SALES_REPS_SYNC,
+        existedDirectors, notExistedDirectors
+      });
+    } catch (err) {
+      return res.status(500).json({
+        success: false,
+        message: err || SOMETHING_WENT_WRONG
+      });
+    }
+  }
+
+
+
+  @Get("sales-managers")
+  async syncSalesManagers(@Res() res: any) {
+    try {
+      const configuration = new Configuration(new ConfigService());
+      const { lis_mgh_db_url } = configuration.getConfig();
+      await mongoose.connect(lis_mgh_db_url);
+
+      const select = {
+        user_type: 1,
+        first_name: 1,
+        last_name: 1,
+        email: 1,
+        reporting_to: 1
+      };
+
+      let managersData: any = await this.syncHelpers.getRepsFromMghLis(HOSPITAL_MARKETING_MANAGER, select);
+
+      if (managersData.length === 0) {
+        return res.status(200).json({ success: true, message: SALES_REPS_NOT_FOUND });
+      }
+
+      const { existedReps: existedManagers, notExistedReps: notExistedManagers } = await this.syncHelpers.seperateExistedAndNotExistedManagersByMghRefId(managersData);
+
+      this.syncHelpers.insertOrUpdateMghSalesManagers(existedManagers, notExistedManagers, 2);
+
+      return res.status(200).json({
+        success: true,
+        message: SUCCESS_SALES_REPS_SYNC,
+        existedManagers, notExistedManagers
+      });
+    } catch (err) {
+      console.log({ err });
+      return res.status(500).json({
+        success: false,
+        message: err || SOMETHING_WENT_WRONG
+      });
+    }
+  }
+
+
+  @Get("sales-marketers")
+  async syncSalesMarketers(@Res() res: any) {
+    try {
+      const configuration = new Configuration(new ConfigService());
+      const { lis_mgh_db_url } = configuration.getConfig();
+      await mongoose.connect(lis_mgh_db_url);
+
+      const select = {
+        user_type: 1,
+        first_name: 1,
+        last_name: 1,
+        email: 1,
+        reporting_to: 1
+      };
+
+      let marketersData: any = await this.syncHelpers.getRepsFromMghLis(MARKETER, select);
+
+      if (marketersData.length === 0) {
+        return res.status(200).json({ success: true, message: SALES_REPS_NOT_FOUND });
+      }
+
+      const { existedReps: existedMarketers, notExistedReps: notExistedMarketers } = await this.syncHelpers.seperateExistedAndNotExistedManagersByMghRefId(marketersData);
+
+      this.syncHelpers.insertOrUpdateMghSalesManagers(existedMarketers, notExistedMarketers, 1);
+
+      return res.status(200).json({
+        success: true,
+        message: SUCCESS_SALES_REPS_SYNC,
+        existedMarketers, notExistedMarketers
+      });
+    } catch (err) {
+      console.log({ err });
+      return res.status(500).json({
+        success: false,
+        message: err || SOMETHING_WENT_WRONG
+      });
+    }
+  }
 
 }
 

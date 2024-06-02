@@ -762,5 +762,24 @@ export class SalesRepService {
 		return db.execute(rawQuery);
 	}
 
+
+	async updateManyMghSalesManagers(queryString) {
+		const rawQuery = sql`
+			UPDATE sales_reps AS t
+			SET
+			  mgh_ref_id = u.mghRefId,
+			  role_id = u.roleId,
+			  reporting_to = u.reportingTo,
+			  updated_at = u.updatedAt
+			FROM(
+			  VALUES
+	
+			${sql.raw(queryString)}
+			) as u(id, mghRefId, roleId, reportingTo, updatedAt)
+			WHERE t.id = u.id`;
+
+		return db.execute(rawQuery);
+	}
+
 }
 

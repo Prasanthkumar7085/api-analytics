@@ -1591,7 +1591,7 @@ export class SyncHelpers {
         const query = {
             user_type: userType,
             status: "ACTIVE",
-            _id: { $ne: "663b6a7904db2e99a6a78344" }
+            _id: { $nin: ["663b6a7904db2e99a6a78344", "663b6ab71d5f1d9a28738acf", "663fc0559f11f9cda57e58b2"] }
         };
 
 
@@ -1736,25 +1736,25 @@ export class SyncHelpers {
     }
 
 
-    async insertOrUpdateSalesManagers(existedDirectors, notExistedDirectors) {
-        if (notExistedDirectors.length) {
-            notExistedDirectors = notExistedDirectors.map(e => ({
+    async insertOrUpdateSalesManagers(existedManagers, notExistedManagers, roleId) {
+        if (notExistedManagers.length) {
+            notExistedManagers = notExistedManagers.map(e => ({
                 refId: e._id.toString(),
                 name: e.first_name + " " + e.last_name,
                 email: e.email,
                 reportingTo: e.reporting_to[0].toString() || 1,
-                roleId: 2
+                roleId: roleId
             }));
 
-            const transformedArray = await this.modifyManagersData(notExistedDirectors);
+            const transformedArray = await this.modifyManagersData(notExistedManagers);
 
             this.salesRepService.insertSalesReps(transformedArray);
 
             console.log("INSERTED ---->");
         }
 
-        if (existedDirectors.length) {
-            existedDirectors = existedDirectors.map(e => ({
+        if (existedManagers.length) {
+            existedManagers = existedManagers.map(e => ({
                 refId: e._id.toString(),
                 name: e.first_name + " " + e.last_name,
                 email: e.email,
@@ -1763,7 +1763,7 @@ export class SyncHelpers {
                 id: e.id
             }));
 
-            const transformedArray = await this.modifyManagersData(existedDirectors);
+            const transformedArray = await this.modifyManagersData(existedManagers);
 
             const convertedData = transformedArray.map(entry => {
                 const updatedAt = new Date().toISOString();
@@ -1787,6 +1787,118 @@ export class SyncHelpers {
 
         const updatedManagersData = managersData.map(manager => {
             const director = salesDirectors.find(sd => sd.ref_id === manager.reportingTo);
+            return {
+                ...manager,
+                reportingTo: director ? director.id : 1
+            };
+        });
+
+        return updatedManagersData;
+
+    }
+
+
+    async seperateExistedAndNotExistedManagersByMghRefId(repsData) {
+        try {
+            const salesRepIds = repsData.map(e => e._id.toString());
+            const names = repsData.map(rep => `${rep.first_name} ${rep.last_name}`);
+
+
+            const matchedReps: any = await this.salesRepService.getSalesRepsByRefIdsAndNames(salesRepIds, names);
+
+            let existedReps = [];
+            let notExistedReps = [];
+            if (matchedReps.length) {
+                // Filter matched and unmatched sales representatives
+                const matchedSalesReps = repsData
+                    .map(rep => {
+                        const name = rep.first_name + " " + rep.last_name;
+                        const matchedRep = matchedReps.find(matchedRep =>
+                            matchedRep.name.toLowerCase() === name.toLowerCase() || matchedRep.ref_id === rep._id.toString()
+                        );
+
+                        if (matchedRep) {
+                            return { ...rep, id: matchedRep.id };
+                        }
+                        return null;
+                    }).filter(rep => rep !== null);
+
+                const unmatchedSalesReps = repsData.filter(rep => {
+                    const name = rep.first_name + " " + rep.last_name;
+                    const isMatched = matchedReps.some(matchedRep =>
+                        matchedRep.name.toLowerCase() === name.toLowerCase() || matchedRep.ref_id === rep._id.toString()
+                    );
+
+                    return !isMatched;
+                });
+
+
+                existedReps = [...matchedSalesReps];
+                notExistedReps = [...unmatchedSalesReps];
+
+            } else {
+                notExistedReps = [...repsData];
+            }
+
+            return { existedReps, notExistedReps };
+        } catch (err) {
+            throw err;
+        }
+    }
+
+
+    async insertOrUpdateMghSalesManagers(existedManagers, notExistedManagers, roleId) {
+        if (notExistedManagers.length) {
+            notExistedManagers = notExistedManagers.map(e => ({
+                mghRefId: e._id.toString(),
+                name: e.first_name + " " + e.last_name,
+                email: e.email,
+                reportingTo: e.reporting_to[0].toString() || 1,
+                roleId: roleId
+            }));
+
+            const transformedArray = await this.modifyMghManagersData(notExistedManagers);
+
+            this.salesRepService.insertSalesReps(transformedArray);
+
+            console.log("INSERTED ---->");
+        }
+
+        if (existedManagers.length) {
+            existedManagers = existedManagers.map(e => ({
+                mghRefId: e._id.toString(),
+                name: e.first_name + " " + e.last_name,
+                email: e.email,
+                reportingTo: e.reporting_to[0].toString() || 1,
+                roleId: 2,
+                id: e.id
+            }));
+
+            const transformedArray = await this.modifyMghManagersData(existedManagers);
+
+            const convertedData = transformedArray.map(entry => {
+                const updatedAt = new Date().toISOString();
+
+                const formattedQueryEntry = `(${entry.id}, '${entry.mghRefId}', ${entry.roleId}, ${entry.reportingTo}, '${updatedAt}'::timestamp)`;
+                return formattedQueryEntry;
+            });
+
+            const finalString = convertedData.join(', ');
+
+            this.salesRepService.updateManyMghSalesManagers(finalString);
+            console.log("UPDATED ---->");
+        }
+    }
+
+
+    async modifyMghManagersData(managersData) {
+
+        const reportingToArray = Array.from(new Set(managersData.map(e => e.reportingTo)));
+
+        const salesDirectors = await this.salesRepService.getSalesRepsIdsAndMghRefIds(reportingToArray);
+
+        const updatedManagersData = managersData.map(manager => {
+            const director = salesDirectors.find(sd => sd.mgh_ref_id === manager.reportingTo);
             return {
                 ...manager,
                 reportingTo: director ? director.id : 1
