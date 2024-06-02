@@ -527,6 +527,17 @@ export class SalesRepService {
 		return data.rows;
 	}
 
+	async getSalesRepsByRefIdsAndNames(ids, names) {
+		const data = await db.execute(sql`
+			SELECT id, name, ref_id
+			FROM sales_reps
+			WHERE ref_id IN (${sql.join(ids, sql`, `)})
+			OR LOWER(name) IN (${sql.join(names.map(name => name.toLowerCase()), sql`, `)})
+		`);
+		
+		return data.rows;
+	}
+
 
 	async getSalesRepsByMghRefIds(marketersIds) {
 
@@ -725,6 +736,27 @@ export class SalesRepService {
 	
 			${sql.raw(queryString)}
 			) as u(id, mghRefId, updatedAt)
+			WHERE t.id = u.id`;
+
+		return db.execute(rawQuery);
+	}
+
+
+	async updateManySalesManagers(queryString) {
+		const rawQuery = sql`
+			UPDATE sales_reps AS t
+			SET
+			  name = u.name,
+			  ref_id = u.refId,
+			  email = u.email,
+			  role_id = u.roleId,
+			  reporting_to = u.reportingTo,
+			  updated_at = u.updatedAt
+			FROM(
+			  VALUES
+	
+			${sql.raw(queryString)}
+			) as u(id, name, refId, email, roleId, reportingTo, updatedAt)
 			WHERE t.id = u.id`;
 
 		return db.execute(rawQuery);

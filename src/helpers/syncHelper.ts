@@ -11,6 +11,7 @@ import { SyncService } from "src/sync/sync.service";
 import { SalesRepsTargetsAchivedService } from 'src/sales-reps-targets-achived/sales-reps-targets-achived.service';
 import * as moment from 'moment-timezone';
 import { Configuration } from "src/config/config.service";
+import { set } from "mongoose";
 
 @Injectable()
 export class SyncHelpers {
@@ -896,7 +897,6 @@ export class SyncHelpers {
             }
         });
 
-        console.log(1234567);
 
         return unMatchedFacilities;
     }
@@ -1215,7 +1215,6 @@ export class SyncHelpers {
                 }
             };
 
-            console.log(JSON.stringify(query));
             const select = {
                 accession_id: 1,
                 case_types: 1,
@@ -1507,7 +1506,8 @@ export class SyncHelpers {
 
         const query = {
             user_type: userType,
-            status: "ACTIVE"
+            status: "ACTIVE",
+            _id: { $ne: "663fd6666a84f09353b5f203" }
         };
 
 
@@ -1684,6 +1684,117 @@ export class SyncHelpers {
             this.salesRepService.updateManyMghSalesReps(finalString);
             console.log("UPDATED ---->");
         }
+    }
+
+
+    async seperateExistedAndNotExistedManagersByRefId(repsData) {
+        try {
+            const salesRepIds = repsData.map(e => e._id.toString());
+            const names = repsData.map(rep => `${rep.first_name} ${rep.last_name}`);
+
+
+            const matchedReps: any = await this.salesRepService.getSalesRepsByRefIdsAndNames(salesRepIds, names);
+
+            let existedReps = [];
+            let notExistedReps = [];
+            if (matchedReps.length) {
+                // Filter matched and unmatched sales representatives
+                const matchedSalesReps = repsData
+                    .map(rep => {
+                        const name = rep.first_name + " " + rep.last_name;
+                        const matchedRep = matchedReps.find(matchedRep =>
+                            matchedRep.name.toLowerCase() === name.toLowerCase() || matchedRep.ref_id === rep._id.toString()
+                        );
+
+                        if (matchedRep) {
+                            return { ...rep, id: matchedRep.id };
+                        }
+                        return null;
+                    }).filter(rep => rep !== null);
+
+                const unmatchedSalesReps = repsData.filter(rep => {
+                    const name = rep.first_name + " " + rep.last_name;
+                    const isMatched = matchedReps.some(matchedRep =>
+                        matchedRep.name.toLowerCase() === name.toLowerCase() || matchedRep.ref_id === rep._id.toString()
+                    );
+
+                    return !isMatched;
+                });
+
+
+                existedReps = [...matchedSalesReps];
+                notExistedReps = [...unmatchedSalesReps];
+
+            } else {
+                notExistedReps = [...repsData];
+            }
+
+            return { existedReps, notExistedReps };
+        } catch (err) {
+            throw err;
+        }
+    }
+
+
+    async insertOrUpdateSalesManagers(existedDirectors, notExistedDirectors) {
+        if (notExistedDirectors.length) {
+            notExistedDirectors = notExistedDirectors.map(e => ({
+                refId: e._id.toString(),
+                name: e.first_name + " " + e.last_name,
+                email: e.email,
+                reportingTo: e.reporting_to[0].toString() || 1,
+                roleId: 2
+            }));
+
+            const transformedArray = await this.modifyManagersData(notExistedDirectors);
+
+            this.salesRepService.insertSalesReps(transformedArray);
+
+            console.log("INSERTED ---->");
+        }
+
+        if (existedDirectors.length) {
+            existedDirectors = existedDirectors.map(e => ({
+                refId: e._id.toString(),
+                name: e.first_name + " " + e.last_name,
+                email: e.email,
+                reportingTo: e.reporting_to[0].toString() || 1,
+                roleId: 2,
+                id: e.id
+            }));
+
+            const transformedArray = await this.modifyManagersData(existedDirectors);
+
+            const convertedData = transformedArray.map(entry => {
+                const updatedAt = new Date().toISOString();
+
+                const formattedQueryEntry = `(${entry.id}, '${entry.name}', '${entry.refId}', '${entry.email}', ${entry.roleId}, ${entry.reportingTo}, '${updatedAt}'::timestamp)`;
+                return formattedQueryEntry;
+            });
+
+            const finalString = convertedData.join(', ');
+
+            this.salesRepService.updateManySalesManagers(finalString);
+            console.log("UPDATED ---->");
+        }
+    }
+
+    async modifyManagersData(managersData) {
+
+        const reportingToArray = Array.from(new Set(managersData.map(e => e.reportingTo)));
+
+        const salesDirectors = await this.salesRepService.getSalesRepsIdsAndRefIds(reportingToArray);
+
+        const updatedManagersData = managersData.map(manager => {
+            const director = salesDirectors.find(sd => sd.ref_id === manager.reportingTo);
+            return {
+                ...manager,
+                reportingTo: director ? director.id : 1
+            };
+        });
+
+        return updatedManagersData;
+
     }
 
 }
