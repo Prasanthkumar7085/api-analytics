@@ -16,7 +16,7 @@ import {
 	SOMETHING_WENT_WRONG,
 	SUCCESS_INSERTED_FACILICES,
 	SUCCESS_SALES_REPS_SYNC,
-	SUCCESS_SYNCED_CASE_TYPES, SUCCESS_SYNCED_INSURANCE_PAYORS,
+	SUCCESS_SYNCED_CASE_TYPES, SUCCESS_SYNCED_FACILICES, SUCCESS_SYNCED_INSURANCE_PAYORS,
 	SUCCESS_SYNC_LABS,
 	SUCCESS_SYNC_PATIENT_CLAIMS,
 	SUCCESS_SYNC_SALES_REPS_MONTHLY_TARGETS,
@@ -634,6 +634,49 @@ export class SyncController {
 				success: true,
 				message: SUCCESS_SALES_REPS_SYNC,
 				existedMarketers, notExistedMarketers
+			});
+		} catch (err) {
+			console.log({ err });
+			return res.status(500).json({
+				success: false,
+				message: err || SOMETHING_WENT_WRONG
+			});
+		}
+	}
+
+
+	@Get("all-facilities")
+	async syncAllFacilties(@Res() res: any) {
+		try {
+
+			const hospitalQuery = {
+				status: 'ACTIVE',
+				// updated_at: {
+				// 	$gte: datesFilter.fromDate,
+				// 	$lte: datesFilter.toDate,
+				// }
+			};
+
+			const projection = { _id: 1, name: 1 };
+
+			const facilitiesData = await this.lisService.getFacilities(hospitalQuery, projection);
+
+
+			if (facilitiesData.length === 0) {
+				return res.status(200).json({ success: true, message: LIS_FACILITIES_NOT_FOUND });
+			}
+
+			console.log(facilitiesData.length);
+
+			const { notExistedFacilities, existedFacilities } = await this.syncHelpers.getFacilitiesNotExisting(facilitiesData);
+
+			console.log({ notExistedFacilities: notExistedFacilities.length, existedFacilities: existedFacilities.length });
+			this.syncHelpers.insertFacilities(existedFacilities, notExistedFacilities);
+
+			return res.status(200).json({
+				success: true,
+				message: SUCCESS_SYNCED_FACILICES,
+				existedFacilities, notExistedFacilities
 			});
 		} catch (err) {
 			console.log({ err });

@@ -2,7 +2,7 @@ import { Controller, Get, Res } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import mongoose from 'mongoose';
 import { Configuration } from 'src/config/config.service';
-import { INSURANCE_PAYORS_NOT_FOUND_IN_LIS_DATABASE, LABS_NOT_FOUND, LIS_FACILITIES_NOT_FOUND, PATIENT_CLAIMS_NOT_FOUND, SALES_REPS_NOT_FOUND, SOMETHING_WENT_WRONG, SUCCESS_INSERTED_FACILICES, SUCCESS_SALES_REPS_SYNC, SUCCESS_SYNCED_INSURANCE_PAYORS, SUCCESS_SYNC_LABS, SUCCESS_SYNC_PATIENT_CLAIMS, SUCCUSS_INSERTED_MARKETING_MANAGERS } from 'src/constants/messageConstants';
+import { INSURANCE_PAYORS_NOT_FOUND_IN_LIS_DATABASE, LABS_NOT_FOUND, LIS_FACILITIES_NOT_FOUND, PATIENT_CLAIMS_NOT_FOUND, SALES_REPS_NOT_FOUND, SOMETHING_WENT_WRONG, SUCCESS_INSERTED_FACILICES, SUCCESS_SALES_REPS_SYNC, SUCCESS_SYNCED_FACILICES, SUCCESS_SYNCED_INSURANCE_PAYORS, SUCCESS_SYNC_LABS, SUCCESS_SYNC_PATIENT_CLAIMS, SUCCUSS_INSERTED_MARKETING_MANAGERS } from 'src/constants/messageConstants';
 import { SyncHelpers } from 'src/helpers/syncHelper';
 import { MghSyncService } from './mgh-sync.service';
 import { FacilitiesService } from 'src/facilities/facilities.service';
@@ -465,6 +465,53 @@ export class MghSyncController {
         success: true,
         message: SUCCESS_SALES_REPS_SYNC,
         existedMarketers, notExistedMarketers
+      });
+    } catch (err) {
+      console.log({ err });
+      return res.status(500).json({
+        success: false,
+        message: err || SOMETHING_WENT_WRONG
+      });
+    }
+  }
+
+
+  @Get("all-facilities")
+  async syncAllFacilties(@Res() res: any) {
+    try {
+      const configuration = new Configuration(new ConfigService());
+      const { lis_mgh_db_url } = configuration.getConfig();
+      await mongoose.connect(lis_mgh_db_url);
+
+      const hospitalQuery = {
+        status: 'ACTIVE',
+        // updated_at: {
+        // 	$gte: datesFilter.fromDate,
+        // 	$lte: datesFilter.toDate,
+        // }
+      };
+
+      const projection = { _id: 1, name: 1 };
+
+      const facilitiesData = await this.mghSyncService.getFacilities(hospitalQuery, projection);
+
+
+      if (facilitiesData.length === 0) {
+        return res.status(200).json({ success: true, message: LIS_FACILITIES_NOT_FOUND });
+      }
+
+      console.log("facilitiesData:", facilitiesData.length);
+
+      const { notExistedFacilities, existedFacilities } = await this.syncHelpers.getMghFacilitiesNotExisting(facilitiesData);
+
+      console.log({ existedFacilities: existedFacilities.length, notExistedFacilities: notExistedFacilities.length });
+
+      this.syncHelpers.insertMghFacilities(existedFacilities, notExistedFacilities);
+
+      return res.status(200).json({
+        success: true,
+        message: SUCCESS_SYNCED_FACILICES,
+        existedFacilities, notExistedFacilities
       });
     } catch (err) {
       console.log({ err });

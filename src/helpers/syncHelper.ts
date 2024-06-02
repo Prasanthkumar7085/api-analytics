@@ -1459,6 +1459,7 @@ export class SyncHelpers {
         if (facilitiesData.length) {
             facilitiesData.forEach(rep => {
                 rep._id = rep._id.toString();
+                rep.name = rep.name.replace(/\s+/g, ' ').trim();
             });
         }
 
@@ -1907,6 +1908,72 @@ export class SyncHelpers {
 
         return updatedManagersData;
 
+    }
+
+
+    insertFacilities(existedFacilities, notExistedFacilities) {
+
+        let transformedFacilities;
+        if (notExistedFacilities.length) {
+            transformedFacilities = notExistedFacilities.map(e => ({
+                name: e.name,
+                refId: e._id.toString(),
+                salesRepId: 1
+            }));
+
+            this.facilitiesService.insertfacilities(transformedFacilities);
+
+            console.log("INSERTED --->")
+        }
+
+        if (existedFacilities.length) {
+            const convertedData = existedFacilities.map(entry => {
+                const updatedAt = new Date().toISOString();
+
+                const formattedQueryEntry = `(${entry.id}, '${entry.ref_id}', '${updatedAt}'::timestamp)`;
+                return formattedQueryEntry;
+            });
+
+            const finalString = convertedData.join(', ');
+
+            this.facilitiesService.updateDlwFacilitiesData(finalString);
+            console.log("UPDATED ---->")
+        }
+
+        return transformedFacilities;
+    }
+
+
+    insertMghFacilities(existedFacilities, notExistedFacilities) {
+
+        let transformedFacilities;
+        if (notExistedFacilities.length) {
+            transformedFacilities = notExistedFacilities.map(e => ({
+                name: e.name,
+                mghRefId: e._id.toString(),
+                salesRepId: 1
+            }));
+
+            this.facilitiesService.insertfacilities(transformedFacilities);
+
+            console.log("INSERTED --->")
+        }
+
+        if (existedFacilities.length) {
+            const convertedData = existedFacilities.map(entry => {
+                const updatedAt = new Date().toISOString();
+
+                const formattedQueryEntry = `(${entry.id}, '${entry.mgh_ref_id}', '${updatedAt}'::timestamp)`;
+                return formattedQueryEntry;
+            });
+
+            const finalString = convertedData.join(', ');
+
+            this.facilitiesService.updateMghFacilitiesData(finalString);
+            console.log("UPDATED ---->")
+        }
+
+        return transformedFacilities;
     }
 
 }
