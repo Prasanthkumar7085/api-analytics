@@ -2,11 +2,11 @@ import { Controller, Get, Res } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import mongoose from 'mongoose';
 import { Configuration } from 'src/config/config.service';
-import { INSURANCE_PAYORS_NOT_FOUND_IN_LIS_DATABASE, LABS_NOT_FOUND, LIS_FACILITIES_NOT_FOUND, PATIENT_CLAIMS_NOT_FOUND, SALES_REPS_NOT_FOUND, SOMETHING_WENT_WRONG, SUCCESS_INSERTED_FACILICES, SUCCESS_SYNCED_INSURANCE_PAYORS, SUCCESS_SYNC_LABS, SUCCESS_SYNC_PATIENT_CLAIMS, SUCCUSS_INSERTED_MARKETING_MANAGERS } from 'src/constants/messageConstants';
+import { INSURANCE_PAYORS_NOT_FOUND_IN_LIS_DATABASE, LABS_NOT_FOUND, LIS_FACILITIES_NOT_FOUND, PATIENT_CLAIMS_NOT_FOUND, SALES_REPS_NOT_FOUND, SOMETHING_WENT_WRONG, SUCCESS_INSERTED_FACILICES, SUCCESS_SALES_REPS_SYNC, SUCCESS_SYNCED_INSURANCE_PAYORS, SUCCESS_SYNC_LABS, SUCCESS_SYNC_PATIENT_CLAIMS, SUCCUSS_INSERTED_MARKETING_MANAGERS } from 'src/constants/messageConstants';
 import { SyncHelpers } from 'src/helpers/syncHelper';
 import { MghSyncService } from './mgh-sync.service';
 import { FacilitiesService } from 'src/facilities/facilities.service';
-import { HOSPITAL_MARKETING_MANAGER, MARKETER, MGH_TIMEZONE } from 'src/constants/lisConstants';
+import { HOSPITAL_MARKETING_MANAGER, MARKETER, MGH_TIMEZONE, SALES_DIRECTOR } from 'src/constants/lisConstants';
 import { SalesRepService } from 'src/sales-rep/sales-rep.service';
 import { LisService } from 'src/lis/lis.service';
 import { CsvHelper } from 'src/helpers/csvHelper';
@@ -23,7 +23,6 @@ export class MghSyncController {
     private readonly facilitiesService: FacilitiesService,
     private readonly syncHelpers: SyncHelpers,
     private readonly salesRepService: SalesRepService,
-    private readonly lisService: LisService,
     private readonly csvHelper: CsvHelper
   ) { }
 
@@ -356,6 +355,44 @@ export class MghSyncController {
       });
     }
   }
+
+
+  @Get("sales-directors")
+	async syncSalesReps(@Res() res: any) {
+		try {
+      const configuration = new Configuration(new ConfigService());
+      const { lis_mgh_db_url } = configuration.getConfig();
+      await mongoose.connect(lis_mgh_db_url);
+
+			const select = {
+				user_type: 1,
+				first_name: 1,
+				last_name: 1,
+				email: 1
+			};
+
+			const directorsData = await this.syncHelpers.getRepsFromMghLis(SALES_DIRECTOR, select);
+
+			if (directorsData.length === 0) {
+				return res.status(200).json({ success: true, message: SALES_REPS_NOT_FOUND });
+			}
+
+			const { existedReps: existedDirectors, notExistedReps: notExistedDirectors } = await this.syncHelpers.seperateExistedAndNotExistedRepsByMghRefId(directorsData);
+
+			this.syncHelpers.insertOrUpdateMghSalesDirectors(existedDirectors, notExistedDirectors);
+
+			return res.status(200).json({
+				success: true,
+				message: SUCCESS_SALES_REPS_SYNC,
+				existedDirectors, notExistedDirectors
+			});
+		} catch (err) {
+			return res.status(500).json({
+				success: false,
+				message: err || SOMETHING_WENT_WRONG
+			});
+		}
+	}
 
 }
 

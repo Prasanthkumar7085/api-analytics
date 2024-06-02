@@ -516,6 +516,26 @@ export class SalesRepService {
 	}
 
 
+	async getSalesRepsByMghRefIdsAndNames(ids, names) {
+		const data = await db.execute(sql`
+			SELECT id, name, mgh_ref_id
+			FROM sales_reps
+			WHERE mgh_ref_id IN (${sql.join(ids, sql`, `)})
+			OR LOWER(name) IN (${sql.join(names.map(name => name.toLowerCase()), sql`, `)})
+		`);
+		
+		return data.rows;
+	}
+
+
+	async getSalesRepsByMghRefIds(marketersIds) {
+
+		const data = await db.execute(sql`SELECT id, mgh_ref_id, name FROM sales_reps WHERE mgh_ref_id IN ${marketersIds}`);
+
+		return data.rows;
+	}
+
+
 	async insertSalesRepsManagers(data) {
 
 		return await db.insert(sales_reps).values(data).returning();
@@ -675,8 +695,8 @@ export class SalesRepService {
 	}
 
 
-	async updateManySalesReps(queryString){
-			const rawQuery = sql`
+	async updateManySalesReps(queryString) {
+		const rawQuery = sql`
 			UPDATE sales_reps AS t
 			SET
 			  name = u.name,
@@ -689,9 +709,26 @@ export class SalesRepService {
 			${sql.raw(queryString)}
 			) as u(name, refId, email, updatedAt)
 			WHERE t.ref_id = u.refId`;
+
+		return db.execute(rawQuery);
+	}
+
+
+	async updateManyMghSalesReps(queryString) {
+		const rawQuery = sql`
+			UPDATE sales_reps AS t
+			SET
+			  mgh_ref_id = u.mghRefId,
+			  updated_at = u.updatedAt
+			FROM(
+			  VALUES
 	
-			return db.execute(rawQuery);
-		}
+			${sql.raw(queryString)}
+			) as u(id, mghRefId, updatedAt)
+			WHERE t.id = u.id`;
+
+		return db.execute(rawQuery);
+	}
 
 }
 

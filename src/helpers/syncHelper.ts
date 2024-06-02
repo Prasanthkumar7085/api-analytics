@@ -1585,5 +1585,106 @@ export class SyncHelpers {
         }
     }
 
+
+    async getRepsFromMghLis(userType, select = {}) {
+
+        const query = {
+            user_type: userType,
+            status: "ACTIVE",
+            _id: { $ne: "663b6a7904db2e99a6a78344" }
+        };
+
+
+        const salesRepsData = await this.mghLisService.getUsers(query, select);
+
+        return salesRepsData;
+    }
+
+
+    async seperateExistedAndNotExistedRepsByMghRefId(repsData) {
+        try {
+            const salesRepIds = repsData.map(e => e._id.toString());
+            const names = repsData.map(rep => `${rep.first_name} ${rep.last_name}`);
+
+            const matchedReps: any = await this.salesRepService.getSalesRepsByMghRefIdsAndNames(salesRepIds, names);
+
+
+            repsData = repsData.map((e) => ({
+                mghRefId: e._id.toString(),
+                name: e.first_name + " " + e.last_name,
+                email: e.email
+            }));
+
+
+            let existedReps = [];
+            let notExistedReps = [];
+            if (matchedReps.length) {
+
+                const existed = repsData
+                    .map(rep => {
+                        const matchedRep = matchedReps.find(matchedRep =>
+                            matchedRep.name.toLowerCase() === rep.name.toLowerCase() || matchedRep.mgh_ref_id === rep.mghRefId
+                        );
+                        if (matchedRep) {
+                            return { ...rep, id: matchedRep.id };
+                        }
+                        return null;
+                    }).filter(rep => rep !== null);
+
+                const notExisted = repsData.filter(rep =>
+                    !matchedReps.some(matchedRep =>
+                        matchedRep.name.toLowerCase() === rep.name.toLowerCase() || matchedRep.mgh_ref_id === rep.mghRefId
+                    )
+                );
+
+                existedReps = [...existed];
+                notExistedReps = [...notExisted];
+
+            } else {
+                notExistedReps = [...repsData];
+            }
+
+            return { existedReps, notExistedReps };
+        } catch (err) {
+            throw err;
+        }
+    }
+
+
+    async insertOrUpdateMghSalesDirectors(existedDirectors, notExistedDirectors) {
+        if (notExistedDirectors.length) {
+            const transformedArray = notExistedDirectors.map(e => ({
+                mghRefId: e._id.toString(),
+                name: e.first_name + " " + e.last_name,
+                email: e.email,
+                roleId: 3
+            }));
+
+            const insertedDirectors: any = await this.salesRepService.insertSalesReps(transformedArray);
+
+            if (insertedDirectors.length) {
+                const ids = insertedDirectors.map((e) => e.id);
+                this.salesRepService.updateSalesRepsManagersData(ids);
+            }
+            console.log("INSERTED ---->");
+        }
+
+        if (existedDirectors.length) {
+
+            const convertedData = existedDirectors.map(entry => {
+
+                const updatedAt = new Date().toISOString();
+
+                const formattedQueryEntry = `(${entry.id}, '${entry.mghRefId}', '${updatedAt}'::timestamp)`;
+                return formattedQueryEntry;
+            });
+
+            const finalString = convertedData.join(', ');
+
+            this.salesRepService.updateManyMghSalesReps(finalString);
+            console.log("UPDATED ---->");
+        }
+    }
+
 }
 
