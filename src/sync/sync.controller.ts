@@ -687,6 +687,37 @@ export class SyncController {
 		}
 	}
 
+
+	@Get("facilities-mapping")
+	async syncFaciltiesMapping(@Res() res: any) {
+		try {
+
+			const select = {
+				hospitals: 1
+			};
+
+			let managersData: any = await this.syncHelpers.getRepsFromLis(HOSPITAL_MARKETING_MANAGER, select);
+
+			if (managersData.length === 0) {
+				return res.status(200).json({ success: true, message: SALES_REPS_NOT_FOUND });
+			}
+
+			this.syncHelpers.modifySalesRepsData(managersData);
+
+			return res.status(200).json({
+				success: true,
+				message: SUCCESS_SYNCED_FACILICES,
+				managersData
+			});
+		} catch (err) {
+			console.log({ err });
+			return res.status(500).json({
+				success: false,
+				message: err || SOMETHING_WENT_WRONG
+			});
+		}
+	}
+
 }
 
 async function formateMonth(date) {

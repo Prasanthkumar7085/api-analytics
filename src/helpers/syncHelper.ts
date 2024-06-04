@@ -1923,7 +1923,7 @@ export class SyncHelpers {
 
             this.facilitiesService.insertfacilities(transformedFacilities);
 
-            console.log("INSERTED --->")
+            console.log("INSERTED --->");
         }
 
         if (existedFacilities.length) {
@@ -1937,7 +1937,7 @@ export class SyncHelpers {
             const finalString = convertedData.join(', ');
 
             this.facilitiesService.updateDlwFacilitiesData(finalString);
-            console.log("UPDATED ---->")
+            console.log("UPDATED ---->");
         }
 
         return transformedFacilities;
@@ -1956,7 +1956,7 @@ export class SyncHelpers {
 
             this.facilitiesService.insertfacilities(transformedFacilities);
 
-            console.log("INSERTED --->")
+            console.log("INSERTED --->");
         }
 
         if (existedFacilities.length) {
@@ -1970,10 +1970,30 @@ export class SyncHelpers {
             const finalString = convertedData.join(', ');
 
             this.facilitiesService.updateMghFacilitiesData(finalString);
-            console.log("UPDATED ---->")
+            console.log("UPDATED ---->");
         }
 
         return transformedFacilities;
+    }
+
+
+    async modifySalesRepsData(repsData) {
+        console.log(134);
+        const repsIds = repsData.map(e => e._id.toString());
+
+        const salesRepsData = await this.salesRepService.getSalesRepsIdsAndRefIds(repsIds);
+
+        const updatedRepsData = repsData.map(rep => {
+            const matchedRep = salesRepsData.find(salesRep => salesRep.ref_id === rep._id.toString());
+            if (matchedRep) {
+                delete rep._id
+                return { ...rep, id: matchedRep.id };
+            } else {
+                return rep;
+            }
+        });
+
+        console.log({ updatedRepsData });
     }
 
 }
