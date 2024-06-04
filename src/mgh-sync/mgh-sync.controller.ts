@@ -522,5 +522,42 @@ export class MghSyncController {
     }
   }
 
+
+  @Get("facilities-mapping")
+  async syncFaciltiesMapping(@Res() res: any) {
+    try {
+
+      const configuration = new Configuration(new ConfigService());
+      const { lis_mgh_db_url } = configuration.getConfig();
+      await mongoose.connect(lis_mgh_db_url);
+
+      const select = {
+        hospitals: 1
+      };
+
+      let repsData: any = await this.syncHelpers.getAllMghRepsFromLis(select);
+
+      if (repsData.length === 0) {
+        return res.status(200).json({ success: true, message: SALES_REPS_NOT_FOUND });
+      }
+
+      const transformedData = await this.syncHelpers.modifySalesMghRepsData(repsData);
+
+      this.syncHelpers.updateMghFacilitiesMapping(transformedData);
+
+      return res.status(200).json({
+        success: true,
+        message: SUCCESS_SYNCED_FACILICES,
+        transformedData
+      });
+    } catch (err) {
+      console.log({ err });
+      return res.status(500).json({
+        success: false,
+        message: err || SOMETHING_WENT_WRONG
+      });
+    }
+  }
+
 }
 

@@ -696,7 +696,7 @@ export class SyncController {
 				hospitals: 1
 			};
 
-			let managersData: any = await this.syncHelpers.getRepsFromLis(HOSPITAL_MARKETING_MANAGER, select);
+			let managersData: any = await this.syncHelpers.getAllRepsFromLis(select);
 
 			if (managersData.length === 0) {
 				return res.status(200).json({ success: true, message: SALES_REPS_NOT_FOUND });

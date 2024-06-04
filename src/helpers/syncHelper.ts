@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { CaseTypesService } from "src/case-types/case-types.service";
-import { ARCHIVED, CASE_TYPE_MAPPING, MARKETER, keyMapping } from "src/constants/lisConstants";
+import { ARCHIVED, CASE_TYPE_MAPPING, HOSPITAL_MARKETING_MANAGER, MARKETER, SALES_DIRECTOR, keyMapping } from "src/constants/lisConstants";
 import { FacilitiesService } from "src/facilities/facilities.service";
 import { InsurancesService } from "src/insurances/insurances.service";
 import { LabsService } from "src/labs/labs.service";
@@ -1517,6 +1517,34 @@ export class SyncHelpers {
         return salesRepsData;
     }
 
+    async getAllRepsFromLis(select = {}) {
+
+        const query = {
+            user_type: { $in: [HOSPITAL_MARKETING_MANAGER, MARKETER, SALES_DIRECTOR] },
+            status: "ACTIVE",
+            _id: { $ne: "663fd6666a84f09353b5f203" }
+        };
+
+
+        const salesRepsData = await this.lisService.getUsers(query, select);
+
+        return salesRepsData;
+    }
+
+
+    async getAllMghRepsFromLis(select = {}) {
+
+        const query = {
+            user_type: { $in: [HOSPITAL_MARKETING_MANAGER, MARKETER, SALES_DIRECTOR] },
+            status: "ACTIVE",
+            _id: { $ne: "663fd6666a84f09353b5f203" }
+        };
+
+
+        const salesRepsData = await this.mghLisService.getUsers(query, select);
+
+        return salesRepsData;
+    }
 
     async seperateExistedAndNotExistedRepsByRefId(repsData) {
         try {
@@ -1978,10 +2006,13 @@ export class SyncHelpers {
 
 
     async modifySalesRepsData(repsData) {
-        console.log(134);
-        const repsIds = repsData.map(e => e._id.toString());
+        let filteredData = repsData.filter(obj => obj.hospitals.length > 0);
+
+        const repsIds = filteredData.map(e => e._id.toString());
 
         const salesRepsData = await this.salesRepService.getSalesRepsIdsAndRefIds(repsIds);
+
+        console.log({ salesRepsData });
 
         const updatedRepsData = repsData.map(rep => {
             const matchedRep = salesRepsData.find(salesRep => salesRep.ref_id === rep._id.toString());
@@ -1991,6 +2022,7 @@ export class SyncHelpers {
             }
         }).filter(Boolean);
 
+        console.log("MODIFIED");
         return updatedRepsData;
     }
 
@@ -2005,9 +2037,47 @@ export class SyncHelpers {
         });
 
         const finalString = convertedData.join(', ');
-        
+
         this.facilitiesService.updateDlwFacilitiesMapping(finalString);
 
+        console.log("UPDATED ----->");
+    }
+
+    async modifySalesMghRepsData(repsData) {
+        let filteredData = repsData.filter(obj => obj.hospitals.length > 0);
+
+        const repsIds = filteredData.map(e => e._id.toString());
+
+        const salesRepsData = await this.salesRepService.getSalesRepsIdsAndMghRefIds(repsIds);
+
+        const updatedRepsData = repsData.map(rep => {
+            const matchedRep = salesRepsData.find(salesRep => salesRep.mgh_ref_id === rep._id.toString());
+            if (matchedRep) {
+                delete rep._id;
+                return { ...rep, sales_rep_id: matchedRep.id };
+            }
+        }).filter(Boolean);
+
+        console.log("MODIFIED");
+        return updatedRepsData;
+    }
+
+
+    updateMghFacilitiesMapping(repsData) {
+        const convertedData = repsData.map(entry => {
+
+            const updatedAt = new Date().toISOString();
+            const formattedHospitals = entry.hospitals.map(hospital => `'${hospital}'`).join(', '); // Convert hospitals array to a comma-separated string of quoted values
+
+            const formattedQueryEntry = `(${entry.sales_rep_id}, ARRAY[${formattedHospitals}], '${updatedAt}'::timestamp)`;
+            return formattedQueryEntry;
+        });
+
+        const finalString = convertedData.join(', ');
+
+        this.facilitiesService.updateMghFacilitiesMapping(finalString);
+
+        console.log("UPDATED ----->");
     }
 
 }
