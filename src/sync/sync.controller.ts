@@ -702,12 +702,14 @@ export class SyncController {
 				return res.status(200).json({ success: true, message: SALES_REPS_NOT_FOUND });
 			}
 
-			this.syncHelpers.modifySalesRepsData(managersData);
+			const transformedData = await this.syncHelpers.modifySalesRepsData(managersData);
+
+			this.syncHelpers.updateFacilitiesMapping(transformedData);
 
 			return res.status(200).json({
 				success: true,
 				message: SUCCESS_SYNCED_FACILICES,
-				managersData
+				transformedData
 			});
 		} catch (err) {
 			console.log({ err });

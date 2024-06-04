@@ -1592,7 +1592,7 @@ export class SyncHelpers {
         const query = {
             user_type: userType,
             status: "ACTIVE",
-            _id: { $nin: ["663b6a7904db2e99a6a78344", "663b6ab71d5f1d9a28738acf", "663fc0559f11f9cda57e58b2"] }
+            _id: { $nin: ["663b6a7904db2e99a6a78344", "663b6ab71d5f1d9a28738acf", "663fc0559f11f9cda57e58b2", "66184bfce9a60521fb24270a"] }
         };
 
 
@@ -1986,14 +1986,28 @@ export class SyncHelpers {
         const updatedRepsData = repsData.map(rep => {
             const matchedRep = salesRepsData.find(salesRep => salesRep.ref_id === rep._id.toString());
             if (matchedRep) {
-                delete rep._id
-                return { ...rep, id: matchedRep.id };
-            } else {
-                return rep;
+                delete rep._id;
+                return { ...rep, sales_rep_id: matchedRep.id };
             }
+        }).filter(Boolean);
+
+        return updatedRepsData;
+    }
+
+    updateFacilitiesMapping(repsData) {
+        const convertedData = repsData.map(entry => {
+
+            const updatedAt = new Date().toISOString();
+            const formattedHospitals = entry.hospitals.map(hospital => `'${hospital}'`).join(', '); // Convert hospitals array to a comma-separated string of quoted values
+
+            const formattedQueryEntry = `(${entry.sales_rep_id}, ARRAY[${formattedHospitals}], '${updatedAt}'::timestamp)`;
+            return formattedQueryEntry;
         });
 
-        console.log({ updatedRepsData });
+        const finalString = convertedData.join(', ');
+        
+        this.facilitiesService.updateDlwFacilitiesMapping(finalString);
+
     }
 
 }

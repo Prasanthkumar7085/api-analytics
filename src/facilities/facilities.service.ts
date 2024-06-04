@@ -448,4 +448,21 @@ export class FacilitiesService {
 
         return db.execute(rawQuery);
     }
+
+
+    async updateDlwFacilitiesMapping(queryString){
+        const rawQuery = sql`
+        UPDATE facilities AS t
+        SET
+            sales_rep_id = u.sales_rep_id,
+            updated_at = u.updatedAt
+        FROM (
+            VALUES
+            ${sql.raw(queryString)}
+        ) AS u(sales_rep_id, hospitals, updatedAt)
+        WHERE 
+            t.ref_id = ANY(u.hospitals);`;
+
+        return db.execute(rawQuery);
+    }
 }
