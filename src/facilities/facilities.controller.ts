@@ -28,11 +28,8 @@ export class FacilitiesController {
 			let data = await this.facilitiesService.getAllFacilities(queryString);
 
 			if (data.length) {
-				const queryString = await this.filterHelper.listFacilitis(query);	// date filter on service data in patient_claims table
 
-				const facilitiesData: any = await this.facilitiesService.getAllFacilitiesWithSalesRep(queryString);
-
-				facilitiesData.forEach(e => {
+				data.forEach(e => {
 					if (!this.facilityExists(data, e.facility_id)) {
 						data.push({
 							facility_id: e.facility_id,

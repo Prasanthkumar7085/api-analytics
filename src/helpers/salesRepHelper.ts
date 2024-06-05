@@ -341,6 +341,7 @@ export class SalesRepHelper {
         return transformedTargetData;
     }
 
+   
     async getSalesRepsTargets(query) {
         const queryString = this.filterHelper.salesRepsMonthlyTargets(query);
 

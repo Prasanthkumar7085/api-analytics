@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { CaseTypesService } from "src/case-types/case-types.service";
-import { ARCHIVED, CASE_TYPE_MAPPING, HOSPITAL_MARKETING_MANAGER, MARKETER, SALES_DIRECTOR, keyMapping } from "src/constants/lisConstants";
+import { ARCHIVED, CASE_TYPE_MAPPING, DLW_TIMEZONE, HOSPITAL_MARKETING_MANAGER, MARKETER, MGH_TIMEZONE, SALES_DIRECTOR, keyMapping } from "src/constants/lisConstants";
 import { FacilitiesService } from "src/facilities/facilities.service";
 import { InsurancesService } from "src/insurances/insurances.service";
 import { LabsService } from "src/labs/labs.service";
@@ -178,8 +178,8 @@ export class SyncHelpers {
 
 
             claimData.accessionId = cases[i].accession_id;
-            claimData.serviceDate = cases[i].received_date;
-            claimData.collectionDate = cases[i].collection_date;
+            claimData.serviceDate = moment(cases[i].received_date).tz(DLW_TIMEZONE).format('YYYY-MM-DD');
+            claimData.collectionDate = moment(cases[i].collection_date).tz(DLW_TIMEZONE).format('YYYY-MM-DD');
             claimData.patientId = cases[i].patient_info._id.toString();
 
             if (cases[i].status == "COMPLETE" || cases[i].status == "COMPLETED") claimData.reportsFinalized = true;
@@ -216,8 +216,8 @@ export class SyncHelpers {
 
 
             claimData.accessionId = cases[i].accession_id;
-            claimData.serviceDate = cases[i].received_date;
-            claimData.collectionDate = cases[i].collection_date;
+            claimData.serviceDate = moment(cases[i].received_date).tz(MGH_TIMEZONE).format('YYYY-MM-DD');
+            claimData.collectionDate = moment(cases[i].collection_date).tz(MGH_TIMEZONE).format('YYYY-MM-DD');
             claimData.patientId = cases[i].patient_info._id.toString();
 
             if (cases[i].status == "COMPLETE" || cases[i].status == "COMPLETED") claimData.reportsFinalized = true;

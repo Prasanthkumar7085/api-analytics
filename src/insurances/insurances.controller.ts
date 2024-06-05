@@ -28,22 +28,6 @@ export class InsurancesController {
 			let data = await this.insurancesService.getAllInsurancesData(queryString);
 
 			if (data.length) {
-				const insurances = await this.insurancesService.getAllInsurances();
-
-
-				insurances.forEach(insurance => {
-					if (!this.insuranceExists(data, insurance.id)) {
-						data.push({
-							insurance_payor_id: insurance.id,
-							insurance_payor_name: insurance.name,
-							no_of_facilities: 0,
-							total_cases: 0,
-							generated_amount: 0,
-							paid_amount: 0,
-							pending_amount: 0
-						});
-					}
-				});
 
 				data = this.sortHelper.sort(data, "insurance_payor_name");
 			}

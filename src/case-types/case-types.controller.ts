@@ -50,6 +50,7 @@ export class CaseTypesController {
 
 			const data = await this.caseTypesService.getCaseTypeStatsData(queryString);
 
+			console.log(data.length);
 			return res.status(200).json({
 				success: true,
 				message: SUCCESS_FETCHED_CASE_TYPES_STATS,

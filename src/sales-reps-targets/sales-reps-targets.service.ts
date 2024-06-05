@@ -1,9 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { sales_reps_targets } from 'src/drizzle/schemas/salesRepsTargets';
+import { eq, sql } from 'drizzle-orm';
 import { sales_reps_monthly_targets } from 'src/drizzle/schemas/salesRepsMonthlyTargets';
+import { sales_reps_targets } from 'src/drizzle/schemas/salesRepsTargets';
 import { db } from '../seeders/db';
-import { patient_claims } from 'src/drizzle/schemas/patientClaims';
-import { sql, eq } from 'drizzle-orm';
 import { UpdateSalesRepTargetsDto } from './dto/update-sales-reps-target.dto';
 
 @Injectable()
