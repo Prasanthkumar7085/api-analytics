@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { CaseTypesService } from "src/case-types/case-types.service";
-import { ARCHIVED, CASE_TYPE_MAPPING, DLW_TIMEZONE, MARKETER, keyMapping } from "src/constants/lisConstants";
+import { ARCHIVED, CASE_TYPE_MAPPING, DLW_TIMEZONE, MARKETER, MGH_TIMEZONE, keyMapping } from "src/constants/lisConstants";
 import { FacilitiesService } from "src/facilities/facilities.service";
 import { InsurancesService } from "src/insurances/insurances.service";
 import { LabsService } from "src/labs/labs.service";
@@ -119,8 +119,8 @@ export class SyncHelpers {
             let query = {
                 status: { $nin: ["ARCHIVE", "ARCHIVED"] },
                 received_date: {
-                    $gte: '2024-03-31T05:00:00Z',
-                    $lte: '2024-06-05T04:59:59Z'
+                    $gte: fromDate,
+                    $lte: toDate
                 },
                 hospital: {
                     $in: facilities
@@ -215,8 +215,8 @@ export class SyncHelpers {
 
 
             claimData.accessionId = cases[i].accession_id;
-            claimData.serviceDate = cases[i].received_date;
-            claimData.collectionDate = cases[i].collection_date;
+            claimData.serviceDate = moment(cases[i].received_date).tz(MGH_TIMEZONE).format('YYYY-MM-DD');
+            claimData.collectionDate = moment(cases[i].collection_date).tz(MGH_TIMEZONE).format('YYYY-MM-DD');
             claimData.patientId = cases[i].patient_info._id.toString();
 
             if (cases[i].status == "COMPLETE" || cases[i].status == "COMPLETED") claimData.reportsFinalized = true;
@@ -1215,7 +1215,6 @@ export class SyncHelpers {
                 }
             };
 
-            console.log(JSON.stringify(query));
             const select = {
                 accession_id: 1,
                 case_types: 1,
