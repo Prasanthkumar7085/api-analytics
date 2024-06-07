@@ -16,7 +16,7 @@ import {
 	SOMETHING_WENT_WRONG,
 	SUCCESS_INSERTED_FACILICES,
 	SUCCESS_SALES_REPS_SYNC,
-	SUCCESS_SYNCED_CASE_TYPES, SUCCESS_SYNCED_INSURANCE_PAYORS,
+	SUCCESS_SYNCED_CASE_TYPES, SUCCESS_SYNCED_FACILICES, SUCCESS_SYNCED_INSURANCE_PAYORS,
 	SUCCESS_SYNC_LABS,
 	SUCCESS_SYNC_PATIENT_CLAIMS,
 	SUCCESS_SYNC_SALES_REPS_MONTHLY_TARGETS,
@@ -537,7 +537,7 @@ export class SyncController {
 
 
 	@Get("sales-directors")
-	async syncSalesReps(@Res() res: any) {
+	async syncSalesDirectors(@Res() res: any) {
 		try {
 
 			const select = {
@@ -563,6 +563,156 @@ export class SyncController {
 				existedDirectors, notExistedDirectors
 			});
 		} catch (err) {
+			return res.status(500).json({
+				success: false,
+				message: err || SOMETHING_WENT_WRONG
+			});
+		}
+	}
+
+
+	@Get("sales-managers")
+	async syncSalesManagers(@Res() res: any) {
+		try {
+
+			const select = {
+				user_type: 1,
+				first_name: 1,
+				last_name: 1,
+				email: 1,
+				reporting_to: 1
+			};
+
+			let managersData: any = await this.syncHelpers.getRepsFromLis(HOSPITAL_MARKETING_MANAGER, select);
+
+			if (managersData.length === 0) {
+				return res.status(200).json({ success: true, message: SALES_REPS_NOT_FOUND });
+			}
+
+			const { existedReps: existedManagers, notExistedReps: notExistedManagers } = await this.syncHelpers.seperateExistedAndNotExistedManagersByRefId(managersData);
+
+			this.syncHelpers.insertOrUpdateSalesManagers(existedManagers, notExistedManagers, 2);
+
+			return res.status(200).json({
+				success: true,
+				message: SUCCESS_SALES_REPS_SYNC,
+				existedManagers, notExistedManagers
+			});
+		} catch (err) {
+			console.log({ err });
+			return res.status(500).json({
+				success: false,
+				message: err || SOMETHING_WENT_WRONG
+			});
+		}
+	}
+
+
+	@Get("sales-marketers")
+	async syncSalesMarketers(@Res() res: any) {
+		try {
+
+			const select = {
+				user_type: 1,
+				first_name: 1,
+				last_name: 1,
+				email: 1,
+				reporting_to: 1
+			};
+
+			let marketersData: any = await this.syncHelpers.getRepsFromLis(MARKETER, select);
+
+			if (marketersData.length === 0) {
+				return res.status(200).json({ success: true, message: SALES_REPS_NOT_FOUND });
+			}
+
+			const { existedReps: existedMarketers, notExistedReps: notExistedMarketers } = await this.syncHelpers.seperateExistedAndNotExistedManagersByRefId(marketersData);
+
+			this.syncHelpers.insertOrUpdateSalesManagers(existedMarketers, notExistedMarketers, 1);
+
+			return res.status(200).json({
+				success: true,
+				message: SUCCESS_SALES_REPS_SYNC,
+				existedMarketers, notExistedMarketers
+			});
+		} catch (err) {
+			console.log({ err });
+			return res.status(500).json({
+				success: false,
+				message: err || SOMETHING_WENT_WRONG
+			});
+		}
+	}
+
+
+	@Get("all-facilities")
+	async syncAllFacilties(@Res() res: any) {
+		try {
+
+			const hospitalQuery = {
+				status: 'ACTIVE',
+				// updated_at: {
+				// 	$gte: datesFilter.fromDate,
+				// 	$lte: datesFilter.toDate,
+				// }
+			};
+
+			const projection = { _id: 1, name: 1 };
+
+			const facilitiesData = await this.lisService.getFacilities(hospitalQuery, projection);
+
+
+			if (facilitiesData.length === 0) {
+				return res.status(200).json({ success: true, message: LIS_FACILITIES_NOT_FOUND });
+			}
+
+			console.log(facilitiesData.length);
+
+			const { notExistedFacilities, existedFacilities } = await this.syncHelpers.getFacilitiesNotExisting(facilitiesData);
+
+			console.log({ notExistedFacilities: notExistedFacilities.length, existedFacilities: existedFacilities.length });
+			this.syncHelpers.insertFacilities(existedFacilities, notExistedFacilities);
+
+			return res.status(200).json({
+				success: true,
+				message: SUCCESS_SYNCED_FACILICES,
+				existedFacilities, notExistedFacilities
+			});
+		} catch (err) {
+			console.log({ err });
+			return res.status(500).json({
+				success: false,
+				message: err || SOMETHING_WENT_WRONG
+			});
+		}
+	}
+
+
+	@Get("facilities-mapping")
+	async syncFaciltiesMapping(@Res() res: any) {
+		try {
+
+			const select = {
+				hospitals: 1
+			};
+
+			let managersData: any = await this.syncHelpers.getAllRepsFromLis(select);
+
+			if (managersData.length === 0) {
+				return res.status(200).json({ success: true, message: SALES_REPS_NOT_FOUND });
+			}
+
+			const transformedData = await this.syncHelpers.modifySalesRepsData(managersData);
+
+			this.syncHelpers.updateFacilitiesMapping(transformedData);
+
+			return res.status(200).json({
+				success: true,
+				message: SUCCESS_SYNCED_FACILICES,
+				transformedData
+			});
+		} catch (err) {
+			console.log({ err });
 			return res.status(500).json({
 				success: false,
 				message: err || SOMETHING_WENT_WRONG

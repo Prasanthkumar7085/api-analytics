@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { CaseTypesService } from "src/case-types/case-types.service";
-import { ARCHIVED, CASE_TYPE_MAPPING, MARKETER, keyMapping } from "src/constants/lisConstants";
+import { ARCHIVED, CASE_TYPE_MAPPING, DLW_TIMEZONE, HOSPITAL_MARKETING_MANAGER, MARKETER, MGH_TIMEZONE, SALES_DIRECTOR, keyMapping } from "src/constants/lisConstants";
 import { FacilitiesService } from "src/facilities/facilities.service";
 import { InsurancesService } from "src/insurances/insurances.service";
 import { LabsService } from "src/labs/labs.service";
@@ -11,6 +11,7 @@ import { SyncService } from "src/sync/sync.service";
 import { SalesRepsTargetsAchivedService } from 'src/sales-reps-targets-achived/sales-reps-targets-achived.service';
 import * as moment from 'moment-timezone';
 import { Configuration } from "src/config/config.service";
+import { set } from "mongoose";
 
 @Injectable()
 export class SyncHelpers {
@@ -122,9 +123,9 @@ export class SyncHelpers {
                     $gte: fromDate,
                     $lte: toDate
                 },
-                hospital: {
-                    $in: facilities
-                }
+                // hospital: {
+                //     $in: facilities
+                // }
             };
 
             const select = {
@@ -177,8 +178,8 @@ export class SyncHelpers {
 
 
             claimData.accessionId = cases[i].accession_id;
-            claimData.serviceDate = cases[i].received_date;
-            claimData.collectionDate = cases[i].collection_date;
+            claimData.serviceDate = moment(cases[i].received_date).tz(DLW_TIMEZONE).format('YYYY-MM-DD');
+            claimData.collectionDate = moment(cases[i].collection_date).tz(DLW_TIMEZONE).format('YYYY-MM-DD');
             claimData.patientId = cases[i].patient_info._id.toString();
 
             if (cases[i].status == "COMPLETE" || cases[i].status == "COMPLETED") claimData.reportsFinalized = true;
@@ -215,8 +216,8 @@ export class SyncHelpers {
 
 
             claimData.accessionId = cases[i].accession_id;
-            claimData.serviceDate = cases[i].received_date;
-            claimData.collectionDate = cases[i].collection_date;
+            claimData.serviceDate = moment(cases[i].received_date).tz(MGH_TIMEZONE).format('YYYY-MM-DD');
+            claimData.collectionDate = moment(cases[i].collection_date).tz(MGH_TIMEZONE).format('YYYY-MM-DD');
             claimData.patientId = cases[i].patient_info._id.toString();
 
             if (cases[i].status == "COMPLETE" || cases[i].status == "COMPLETED") claimData.reportsFinalized = true;
@@ -896,7 +897,6 @@ export class SyncHelpers {
             }
         });
 
-        console.log(1234567);
 
         return unMatchedFacilities;
     }
@@ -1210,12 +1210,11 @@ export class SyncHelpers {
                     $gte: fromDate,
                     $lte: toDate
                 },
-                hospital: {
-                    $in: facilities
-                }
+                // hospital: {
+                //     $in: facilities
+                // }
             };
 
-            console.log(JSON.stringify(query));
             const select = {
                 accession_id: 1,
                 case_types: 1,
@@ -1460,6 +1459,7 @@ export class SyncHelpers {
         if (facilitiesData.length) {
             facilitiesData.forEach(rep => {
                 rep._id = rep._id.toString();
+                rep.name = rep.name.replace(/\s+/g, ' ').trim();
             });
         }
 
@@ -1507,7 +1507,8 @@ export class SyncHelpers {
 
         const query = {
             user_type: userType,
-            status: "ACTIVE"
+            status: "ACTIVE",
+            _id: { $ne: "663fd6666a84f09353b5f203" }
         };
 
 
@@ -1516,6 +1517,34 @@ export class SyncHelpers {
         return salesRepsData;
     }
 
+    async getAllRepsFromLis(select = {}) {
+
+        const query = {
+            user_type: { $in: [HOSPITAL_MARKETING_MANAGER, MARKETER, SALES_DIRECTOR] },
+            status: "ACTIVE",
+            _id: { $ne: "663fd6666a84f09353b5f203" }
+        };
+
+
+        const salesRepsData = await this.lisService.getUsers(query, select);
+
+        return salesRepsData;
+    }
+
+
+    async getAllMghRepsFromLis(select = {}) {
+
+        const query = {
+            user_type: { $in: [HOSPITAL_MARKETING_MANAGER, MARKETER, SALES_DIRECTOR] },
+            status: "ACTIVE",
+            _id: { $ne: "663fd6666a84f09353b5f203" }
+        };
+
+
+        const salesRepsData = await this.mghLisService.getUsers(query, select);
+
+        return salesRepsData;
+    }
 
     async seperateExistedAndNotExistedRepsByRefId(repsData) {
         try {
@@ -1583,6 +1612,472 @@ export class SyncHelpers {
             this.salesRepService.updateManySalesReps(finalString);
             console.log("UPDATED ---->");
         }
+    }
+
+
+    async getRepsFromMghLis(userType, select = {}) {
+
+        const query = {
+            user_type: userType,
+            status: "ACTIVE",
+            _id: { $nin: ["663b6a7904db2e99a6a78344", "663b6ab71d5f1d9a28738acf", "663fc0559f11f9cda57e58b2", "66184bfce9a60521fb24270a"] }
+        };
+
+
+        const salesRepsData = await this.mghLisService.getUsers(query, select);
+
+        return salesRepsData;
+    }
+
+
+    async seperateExistedAndNotExistedRepsByMghRefId(repsData) {
+        try {
+            const salesRepIds = repsData.map(e => e._id.toString());
+            const names = repsData.map(rep => `${rep.first_name} ${rep.last_name}`);
+
+            const matchedReps: any = await this.salesRepService.getSalesRepsByMghRefIdsAndNames(salesRepIds, names);
+
+
+            repsData = repsData.map((e) => ({
+                mghRefId: e._id.toString(),
+                name: e.first_name + " " + e.last_name,
+                email: e.email
+            }));
+
+
+            let existedReps = [];
+            let notExistedReps = [];
+            if (matchedReps.length) {
+
+                const existed = repsData
+                    .map(rep => {
+                        const matchedRep = matchedReps.find(matchedRep =>
+                            matchedRep.name.toLowerCase() === rep.name.toLowerCase() || matchedRep.mgh_ref_id === rep.mghRefId
+                        );
+                        if (matchedRep) {
+                            return { ...rep, id: matchedRep.id };
+                        }
+                        return null;
+                    }).filter(rep => rep !== null);
+
+                const notExisted = repsData.filter(rep =>
+                    !matchedReps.some(matchedRep =>
+                        matchedRep.name.toLowerCase() === rep.name.toLowerCase() || matchedRep.mgh_ref_id === rep.mghRefId
+                    )
+                );
+
+                existedReps = [...existed];
+                notExistedReps = [...notExisted];
+
+            } else {
+                notExistedReps = [...repsData];
+            }
+
+            return { existedReps, notExistedReps };
+        } catch (err) {
+            throw err;
+        }
+    }
+
+
+    async insertOrUpdateMghSalesDirectors(existedDirectors, notExistedDirectors) {
+        if (notExistedDirectors.length) {
+            const transformedArray = notExistedDirectors.map(e => ({
+                mghRefId: e._id.toString(),
+                name: e.first_name + " " + e.last_name,
+                email: e.email,
+                roleId: 3
+            }));
+
+            const insertedDirectors: any = await this.salesRepService.insertSalesReps(transformedArray);
+
+            if (insertedDirectors.length) {
+                const ids = insertedDirectors.map((e) => e.id);
+                this.salesRepService.updateSalesRepsManagersData(ids);
+            }
+            console.log("INSERTED ---->");
+        }
+
+        if (existedDirectors.length) {
+
+            const convertedData = existedDirectors.map(entry => {
+
+                const updatedAt = new Date().toISOString();
+
+                const formattedQueryEntry = `(${entry.id}, '${entry.mghRefId}', '${updatedAt}'::timestamp)`;
+                return formattedQueryEntry;
+            });
+
+            const finalString = convertedData.join(', ');
+
+            this.salesRepService.updateManyMghSalesReps(finalString);
+            console.log("UPDATED ---->");
+        }
+    }
+
+
+    async seperateExistedAndNotExistedManagersByRefId(repsData) {
+        try {
+            const salesRepIds = repsData.map(e => e._id.toString());
+            const names = repsData.map(rep => `${rep.first_name} ${rep.last_name}`);
+
+
+            const matchedReps: any = await this.salesRepService.getSalesRepsByRefIdsAndNames(salesRepIds, names);
+
+            let existedReps = [];
+            let notExistedReps = [];
+            if (matchedReps.length) {
+                // Filter matched and unmatched sales representatives
+                const matchedSalesReps = repsData
+                    .map(rep => {
+                        const name = rep.first_name + " " + rep.last_name;
+                        const matchedRep = matchedReps.find(matchedRep =>
+                            matchedRep.name.toLowerCase() === name.toLowerCase() || matchedRep.ref_id === rep._id.toString()
+                        );
+
+                        if (matchedRep) {
+                            return { ...rep, id: matchedRep.id };
+                        }
+                        return null;
+                    }).filter(rep => rep !== null);
+
+                const unmatchedSalesReps = repsData.filter(rep => {
+                    const name = rep.first_name + " " + rep.last_name;
+                    const isMatched = matchedReps.some(matchedRep =>
+                        matchedRep.name.toLowerCase() === name.toLowerCase() || matchedRep.ref_id === rep._id.toString()
+                    );
+
+                    return !isMatched;
+                });
+
+
+                existedReps = [...matchedSalesReps];
+                notExistedReps = [...unmatchedSalesReps];
+
+            } else {
+                notExistedReps = [...repsData];
+            }
+
+            return { existedReps, notExistedReps };
+        } catch (err) {
+            throw err;
+        }
+    }
+
+
+    async insertOrUpdateSalesManagers(existedManagers, notExistedManagers, roleId) {
+        if (notExistedManagers.length) {
+            notExistedManagers = notExistedManagers.map(e => ({
+                refId: e._id.toString(),
+                name: e.first_name + " " + e.last_name,
+                email: e.email,
+                reportingTo: e.reporting_to[0].toString() || 1,
+                roleId: roleId
+            }));
+
+            const transformedArray = await this.modifyManagersData(notExistedManagers);
+
+            this.salesRepService.insertSalesReps(transformedArray);
+
+            console.log("INSERTED ---->");
+        }
+
+        if (existedManagers.length) {
+            existedManagers = existedManagers.map(e => ({
+                refId: e._id.toString(),
+                name: e.first_name + " " + e.last_name,
+                email: e.email,
+                reportingTo: e.reporting_to[0].toString() || 1,
+                roleId: 2,
+                id: e.id
+            }));
+
+            const transformedArray = await this.modifyManagersData(existedManagers);
+
+            const convertedData = transformedArray.map(entry => {
+                const updatedAt = new Date().toISOString();
+
+                const formattedQueryEntry = `(${entry.id}, '${entry.name}', '${entry.refId}', '${entry.email}', ${entry.roleId}, ${entry.reportingTo}, '${updatedAt}'::timestamp)`;
+                return formattedQueryEntry;
+            });
+
+            const finalString = convertedData.join(', ');
+
+            this.salesRepService.updateManySalesManagers(finalString);
+            console.log("UPDATED ---->");
+        }
+    }
+
+    async modifyManagersData(managersData) {
+
+        const reportingToArray = Array.from(new Set(managersData.map(e => e.reportingTo)));
+
+        const salesDirectors = await this.salesRepService.getSalesRepsIdsAndRefIds(reportingToArray);
+
+        const updatedManagersData = managersData.map(manager => {
+            const director = salesDirectors.find(sd => sd.ref_id === manager.reportingTo);
+            return {
+                ...manager,
+                reportingTo: director ? director.id : 1
+            };
+        });
+
+        return updatedManagersData;
+
+    }
+
+
+    async seperateExistedAndNotExistedManagersByMghRefId(repsData) {
+        try {
+            const salesRepIds = repsData.map(e => e._id.toString());
+            const names = repsData.map(rep => `${rep.first_name} ${rep.last_name}`);
+
+
+            const matchedReps: any = await this.salesRepService.getSalesRepsByRefIdsAndNames(salesRepIds, names);
+
+            let existedReps = [];
+            let notExistedReps = [];
+            if (matchedReps.length) {
+                // Filter matched and unmatched sales representatives
+                const matchedSalesReps = repsData
+                    .map(rep => {
+                        const name = rep.first_name + " " + rep.last_name;
+                        const matchedRep = matchedReps.find(matchedRep =>
+                            matchedRep.name.toLowerCase() === name.toLowerCase() || matchedRep.ref_id === rep._id.toString()
+                        );
+
+                        if (matchedRep) {
+                            return { ...rep, id: matchedRep.id };
+                        }
+                        return null;
+                    }).filter(rep => rep !== null);
+
+                const unmatchedSalesReps = repsData.filter(rep => {
+                    const name = rep.first_name + " " + rep.last_name;
+                    const isMatched = matchedReps.some(matchedRep =>
+                        matchedRep.name.toLowerCase() === name.toLowerCase() || matchedRep.ref_id === rep._id.toString()
+                    );
+
+                    return !isMatched;
+                });
+
+
+                existedReps = [...matchedSalesReps];
+                notExistedReps = [...unmatchedSalesReps];
+
+            } else {
+                notExistedReps = [...repsData];
+            }
+
+            return { existedReps, notExistedReps };
+        } catch (err) {
+            throw err;
+        }
+    }
+
+
+    async insertOrUpdateMghSalesManagers(existedManagers, notExistedManagers, roleId) {
+        if (notExistedManagers.length) {
+            notExistedManagers = notExistedManagers.map(e => ({
+                mghRefId: e._id.toString(),
+                name: e.first_name + " " + e.last_name,
+                email: e.email,
+                reportingTo: e.reporting_to[0].toString() || 1,
+                roleId: roleId
+            }));
+
+            const transformedArray = await this.modifyMghManagersData(notExistedManagers);
+
+            this.salesRepService.insertSalesReps(transformedArray);
+
+            console.log("INSERTED ---->");
+        }
+
+        if (existedManagers.length) {
+            existedManagers = existedManagers.map(e => ({
+                mghRefId: e._id.toString(),
+                name: e.first_name + " " + e.last_name,
+                email: e.email,
+                reportingTo: e.reporting_to[0].toString() || 1,
+                roleId: 2,
+                id: e.id
+            }));
+
+            const transformedArray = await this.modifyMghManagersData(existedManagers);
+
+            const convertedData = transformedArray.map(entry => {
+                const updatedAt = new Date().toISOString();
+
+                const formattedQueryEntry = `(${entry.id}, '${entry.mghRefId}', ${entry.roleId}, ${entry.reportingTo}, '${updatedAt}'::timestamp)`;
+                return formattedQueryEntry;
+            });
+
+            const finalString = convertedData.join(', ');
+
+            this.salesRepService.updateManyMghSalesManagers(finalString);
+            console.log("UPDATED ---->");
+        }
+    }
+
+
+    async modifyMghManagersData(managersData) {
+
+        const reportingToArray = Array.from(new Set(managersData.map(e => e.reportingTo)));
+
+        const salesDirectors = await this.salesRepService.getSalesRepsIdsAndMghRefIds(reportingToArray);
+
+        const updatedManagersData = managersData.map(manager => {
+            const director = salesDirectors.find(sd => sd.mgh_ref_id === manager.reportingTo);
+            return {
+                ...manager,
+                reportingTo: director ? director.id : 1
+            };
+        });
+
+        return updatedManagersData;
+
+    }
+
+
+    insertFacilities(existedFacilities, notExistedFacilities) {
+
+        let transformedFacilities;
+        if (notExistedFacilities.length) {
+            transformedFacilities = notExistedFacilities.map(e => ({
+                name: e.name,
+                refId: e._id.toString(),
+                salesRepId: 1
+            }));
+
+            this.facilitiesService.insertfacilities(transformedFacilities);
+
+            console.log("INSERTED --->");
+        }
+
+        if (existedFacilities.length) {
+            const convertedData = existedFacilities.map(entry => {
+                const updatedAt = new Date().toISOString();
+
+                const formattedQueryEntry = `(${entry.id}, '${entry.ref_id}', '${updatedAt}'::timestamp)`;
+                return formattedQueryEntry;
+            });
+
+            const finalString = convertedData.join(', ');
+
+            this.facilitiesService.updateDlwFacilitiesData(finalString);
+            console.log("UPDATED ---->");
+        }
+
+        return transformedFacilities;
+    }
+
+
+    insertMghFacilities(existedFacilities, notExistedFacilities) {
+
+        let transformedFacilities;
+        if (notExistedFacilities.length) {
+            transformedFacilities = notExistedFacilities.map(e => ({
+                name: e.name,
+                mghRefId: e._id.toString(),
+                salesRepId: 1
+            }));
+
+            this.facilitiesService.insertfacilities(transformedFacilities);
+
+            console.log("INSERTED --->");
+        }
+
+        if (existedFacilities.length) {
+            const convertedData = existedFacilities.map(entry => {
+                const updatedAt = new Date().toISOString();
+
+                const formattedQueryEntry = `(${entry.id}, '${entry.mgh_ref_id}', '${updatedAt}'::timestamp)`;
+                return formattedQueryEntry;
+            });
+
+            const finalString = convertedData.join(', ');
+
+            this.facilitiesService.updateMghFacilitiesData(finalString);
+            console.log("UPDATED ---->");
+        }
+
+        return transformedFacilities;
+    }
+
+
+    async modifySalesRepsData(repsData) {
+        let filteredData = repsData.filter(obj => obj.hospitals.length > 0);
+
+        const repsIds = filteredData.map(e => e._id.toString());
+
+        const salesRepsData = await this.salesRepService.getSalesRepsIdsAndRefIds(repsIds);
+
+        console.log({ salesRepsData });
+
+        const updatedRepsData = repsData.map(rep => {
+            const matchedRep = salesRepsData.find(salesRep => salesRep.ref_id === rep._id.toString());
+            if (matchedRep) {
+                delete rep._id;
+                return { ...rep, sales_rep_id: matchedRep.id };
+            }
+        }).filter(Boolean);
+
+        console.log("MODIFIED");
+        return updatedRepsData;
+    }
+
+    updateFacilitiesMapping(repsData) {
+        const convertedData = repsData.map(entry => {
+
+            const updatedAt = new Date().toISOString();
+            const formattedHospitals = entry.hospitals.map(hospital => `'${hospital}'`).join(', '); // Convert hospitals array to a comma-separated string of quoted values
+
+            const formattedQueryEntry = `(${entry.sales_rep_id}, ARRAY[${formattedHospitals}], '${updatedAt}'::timestamp)`;
+            return formattedQueryEntry;
+        });
+
+        const finalString = convertedData.join(', ');
+
+        this.facilitiesService.updateDlwFacilitiesMapping(finalString);
+
+        console.log("UPDATED ----->");
+    }
+
+    async modifySalesMghRepsData(repsData) {
+        let filteredData = repsData.filter(obj => obj.hospitals.length > 0);
+
+        const repsIds = filteredData.map(e => e._id.toString());
+
+        const salesRepsData = await this.salesRepService.getSalesRepsIdsAndMghRefIds(repsIds);
+
+        const updatedRepsData = repsData.map(rep => {
+            const matchedRep = salesRepsData.find(salesRep => salesRep.mgh_ref_id === rep._id.toString());
+            if (matchedRep) {
+                delete rep._id;
+                return { ...rep, sales_rep_id: matchedRep.id };
+            }
+        }).filter(Boolean);
+
+        console.log("MODIFIED");
+        return updatedRepsData;
+    }
+
+
+    updateMghFacilitiesMapping(repsData) {
+        const convertedData = repsData.map(entry => {
+
+            const updatedAt = new Date().toISOString();
+            const formattedHospitals = entry.hospitals.map(hospital => `'${hospital}'`).join(', '); // Convert hospitals array to a comma-separated string of quoted values
+
+            const formattedQueryEntry = `(${entry.sales_rep_id}, ARRAY[${formattedHospitals}], '${updatedAt}'::timestamp)`;
+            return formattedQueryEntry;
+        });
+
+        const finalString = convertedData.join(', ');
+
+        this.facilitiesService.updateMghFacilitiesMapping(finalString);
+
+        console.log("UPDATED ----->");
     }
 
 }

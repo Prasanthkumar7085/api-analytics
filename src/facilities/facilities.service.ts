@@ -414,4 +414,72 @@ export class FacilitiesService {
 
         return db.execute(rawQuery);
     }
+
+    async updateDlwFacilitiesData(queryString) {
+        const rawQuery = sql`
+        UPDATE facilities AS t
+        SET
+          id = u.id,
+          ref_id = u.refId,
+          updated_at = u.updatedAt
+        FROM(
+          VALUES
+
+        ${sql.raw(queryString)}
+        ) as u(id, refId, updatedAt)
+        WHERE t.id = u.id`;
+
+        return db.execute(rawQuery);
+    }
+
+    async updateMghFacilitiesData(queryString) {
+        const rawQuery = sql`
+        UPDATE facilities AS t
+        SET
+          id = u.id,
+          mgh_ref_id = u.mghRefId,
+          updated_at = u.updatedAt
+        FROM(
+          VALUES
+
+        ${sql.raw(queryString)}
+        ) as u(id, mghRefId, updatedAt)
+        WHERE t.id = u.id`;
+
+        return db.execute(rawQuery);
+    }
+
+
+    async updateDlwFacilitiesMapping(queryString){
+        const rawQuery = sql`
+        UPDATE facilities AS t
+        SET
+            sales_rep_id = u.sales_rep_id,
+            updated_at = u.updatedAt
+        FROM (
+            VALUES
+            ${sql.raw(queryString)}
+        ) AS u(sales_rep_id, hospitals, updatedAt)
+        WHERE 
+            t.ref_id = ANY(u.hospitals);`;
+
+        return db.execute(rawQuery);
+    }
+
+
+    async updateMghFacilitiesMapping(queryString){
+        const rawQuery = sql`
+        UPDATE facilities AS t
+        SET
+            sales_rep_id = u.sales_rep_id,
+            updated_at = u.updatedAt
+        FROM (
+            VALUES
+            ${sql.raw(queryString)}
+        ) AS u(sales_rep_id, hospitals, updatedAt)
+        WHERE 
+            t.mgh_ref_id = ANY(u.hospitals);`;
+
+        return db.execute(rawQuery);
+    }
 }
