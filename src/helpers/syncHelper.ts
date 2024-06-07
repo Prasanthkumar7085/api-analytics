@@ -123,9 +123,9 @@ export class SyncHelpers {
                     $gte: fromDate,
                     $lte: toDate
                 },
-                hospital: {
-                    $in: facilities
-                }
+                // hospital: {
+                //     $in: facilities
+                // }
             };
 
             const select = {
@@ -1210,9 +1210,9 @@ export class SyncHelpers {
                     $gte: fromDate,
                     $lte: toDate
                 },
-                hospital: {
-                    $in: facilities
-                }
+                // hospital: {
+                //     $in: facilities
+                // }
             };
 
             const select = {
