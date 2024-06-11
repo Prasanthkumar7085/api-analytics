@@ -23,12 +23,14 @@ import { MghDbConnections } from 'src/helpers/mghDbconnection';
 import { SalesRepsTargetsAchivedService } from 'src/sales-reps-targets-achived/sales-reps-targets-achived.service';
 import { Configuration } from 'src/config/config.service';
 import { ConfigService } from '@nestjs/config';
+import { SalesRepTargetsHelper } from 'src/helpers/salesRepTargetsHelper';
+import { SalesRepsTargetsService } from 'src/sales-reps-targets/sales-reps-targets.service';
 
 @Module({
   controllers: [FacilitiesController],
   providers: [FacilitiesService, FilterHelper, JwtService, LisService, SalesRepService, SyncHelpers,
     CaseTypesService, InsurancesService, SyncService, LabsService, MghSyncService, SortHelper, MghDbConnections,
-    SalesRepsTargetsAchivedService, Configuration, ConfigService],
+    SalesRepsTargetsAchivedService, Configuration, ConfigService, SalesRepTargetsHelper, SalesRepsTargetsService],
   imports: [
     MongooseModule.forRoot(process.env.LIS_DLW_DB_URL + '&authSource=admin'),
     MongooseModule.forFeature([

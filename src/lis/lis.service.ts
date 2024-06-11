@@ -81,7 +81,7 @@ export class LisService {
         }).lean();
     }
 
-    async getCasesStats(date) {
+    async getCasesStats() {
         return await this.userModel.aggregate([
             {
                 $match: {
@@ -112,7 +112,7 @@ export class LisService {
                                         { $eq: ['$hospital', '$$hospitalId'] },
                                         { $ne: ['$status', 'ARCHIVE'] },
                                         { $ne: ['$status', 'ARCHIVED'] },
-                                        { $gte: ['$received_date', date] }
+                                        { $gte: [{ $toDate: '$received_date' }, { $toDate: "2023-10-01T05:00:00Z" }] }
                                     ]
                                 }
                             }

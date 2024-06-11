@@ -23,8 +23,9 @@ export default {
 async function insertBatch(batchData) {
     try {
 
+
         await db.insert(sales_reps_monthly_targets).values(batchData).returning();
-        console.log("Batch inserted successfully");
+        console.log("Batch inserted successfully", batchData);
     } catch (error) {
         console.error("Error inserting batch:", error);
     }
@@ -33,38 +34,36 @@ async function insertBatch(batchData) {
 async function generateData() {
     const data = [];
 
-    const salesRepIds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15, 18, 19, 20, 21, 22];
-
-    const months = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sept", "oct", "nov", "dec"];
+    const salesRepIds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26]
 
 
     for (let i = 0; i < salesRepIds.length; i++) {
 
 
-        for (let j = 1; j < 5; j++) {
+        for (let j = 1; j < 7; j++) {
 
-            const startDate = new Date(2024, j - 1, 1); // Month is zero-indexed
-            const endDate = new Date(2024, j, 0); // Last day of the month
+            const startDate = new Date(2023, j - 1, 1); // Month is zero-indexed
+            const endDate = new Date(2023, j, 0); // Last day of the month
 
             const entry = {
                 salesRepId: salesRepIds[i],
                 startDate: await formatDate(startDate),
                 endDate: await formatDate(endDate),
                 month: await formateMonth(startDate),
-                covid: 100,
-                covidFlu: 100,
-                clinical: 100,
-                gastro: 100,
-                nail: 100,
-                pgx: 100,
-                rpp: 100,
-                tox: 100,
-                ua: 100,
-                uti: 100,
-                wound: 100,
-                card: 100,
-                total: 1200,
-                newFacilities: 2
+                covid: 0,
+                covidFlu: 0,
+                clinical: 0,
+                gastro: 0,
+                nail: 0,
+                pgx: 0,
+                rpp: 0,
+                tox: 0,
+                ua: 0,
+                uti: 0,
+                wound: 0,
+                card: 0,
+                total: 0,
+                newFacilities: 0
             };
 
             data.push(entry);

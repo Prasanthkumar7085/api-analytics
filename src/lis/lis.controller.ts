@@ -121,7 +121,7 @@ export class LisController {
   async dlwStats(@Res() res: any) {
     try {
 
-      const casesStats = await this.lisService.getCasesStats("2023-10-01T05:00:00Z");
+      const casesStats = await this.lisService.getCasesStats();
 
       const csv = await this.csvHelper.convertToCsv(casesStats);
       res.header('Content-Type', 'text/csv');
