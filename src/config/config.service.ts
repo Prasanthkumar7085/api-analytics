@@ -42,7 +42,7 @@ export class Configuration {
                 break;
         }
 
-        const bcc_emails = [" sundar@labsquire.com", "qc-team@labsquire.com", "sujatha.k@labsquire.com"];
+        const cc_emails = ["sundar@labsquire.com", "qc-team@labsquire.com", "sujatha.k@labsquire.com"];
         const lis_dlw_db_url = this.configService.get<string>('LIS_DLW_DB_URL');
         const lab_id = this.configService.get<string>('LAB_ID');
         const ls_api_key = this.configService.get<string>('LS_API_KEY');
@@ -68,7 +68,7 @@ export class Configuration {
         };
 
 
-        return { lis_dlw_db_url, lab_id, ls_api_key, lis_mgh_db_url, jwt, kaka_email_service, api_url, static_ids, emailSending, bcc_emails };
+        return { lis_dlw_db_url, lab_id, ls_api_key, lis_mgh_db_url, jwt, kaka_email_service, api_url, static_ids, emailSending, cc_emails };
     }
 
 }
