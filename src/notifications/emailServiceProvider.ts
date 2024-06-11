@@ -19,6 +19,7 @@ export class EmailServiceProvider {
 
     async sendEmail(emailData, emailContent, emailTemplate: any, ccList = []) {
         try {
+
             const emailRecepient = emailData.email;
             const emailSubject = emailData.subject;
 
@@ -31,7 +32,6 @@ export class EmailServiceProvider {
                 from: "noreply@labsquire.com",
                 to: toEmails,
                 cc: ccEmails,
-                bcc: this.configuration.getConfig().emailSending ? this.configuration.getConfig().bcc_emails : [],
                 subject: emailSubject,
                 html: emailBody,
             };
@@ -67,7 +67,9 @@ export class EmailServiceProvider {
 
     async sendSalesRepsTargetSummaryReport(emailData, emailContent) {
 
-        this.sendEmail(emailData, emailContent, monthlyTargetsOverviewTemplate);
+        let ccList = this.configuration.getConfig().emailSending ? this.configuration.getConfig().cc_emails : [];
+        
+        this.sendEmail(emailData, emailContent, monthlyTargetsOverviewTemplate, ccList);
     }
 
     async sendSalesRepsTargetVolumeUpdateNotification(emailData, emailContent) {
