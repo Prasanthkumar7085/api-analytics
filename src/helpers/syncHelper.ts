@@ -12,6 +12,7 @@ import { SalesRepsTargetsAchivedService } from 'src/sales-reps-targets-achived/s
 import * as moment from 'moment-timezone';
 import { Configuration } from "src/config/config.service";
 import { set } from "mongoose";
+import { SalesRepTargetsHelper } from "./salesRepTargetsHelper";
 
 @Injectable()
 export class SyncHelpers {
@@ -27,7 +28,8 @@ export class SyncHelpers {
         private readonly mghLisService: MghSyncService,
         private readonly salesRepsTargetsAchivedService: SalesRepsTargetsAchivedService,
         private readonly configuration: Configuration,
-        private readonly salesRepService: SalesRepService
+        private readonly salesRepService: SalesRepService,
+        private readonly salesRepTargetsHelper: SalesRepTargetsHelper
 
     ) { }
 
@@ -1577,6 +1579,7 @@ export class SyncHelpers {
 
 
     async insertOrUpdateSalesDirectors(existedDirectors, notExistedDirectors) {
+
         if (notExistedDirectors.length) {
             const transformedArray = notExistedDirectors.map(e => ({
                 refId: e._id.toString(),
@@ -1590,6 +1593,7 @@ export class SyncHelpers {
             if (insertedDirectors.length) {
                 const ids = insertedDirectors.map((e) => e.id);
                 this.salesRepService.updateSalesRepsManagersData(ids);
+                this.seedTargets(ids);
             }
             console.log("INSERTED ---->");
         }
@@ -1614,6 +1618,19 @@ export class SyncHelpers {
         }
     }
 
+
+    seedTargets(ids) {
+        const currentDate = new Date();
+
+        // Get the current month (0-11)
+        const currentMonth = currentDate.getMonth();
+
+        // If you want the month in human-readable format (1-12)
+        const humanReadableMonth = currentMonth + 1;
+        const currentYear = currentDate.getFullYear();
+
+        this.salesRepTargetsHelper.seedSalesRepTargets(2023, currentYear, 10, humanReadableMonth, ids);
+    }
 
     async getRepsFromMghLis(userType, select = {}) {
 
@@ -1694,6 +1711,7 @@ export class SyncHelpers {
             if (insertedDirectors.length) {
                 const ids = insertedDirectors.map((e) => e.id);
                 this.salesRepService.updateSalesRepsManagersData(ids);
+                this.seedTargets(ids);
             }
             console.log("INSERTED ---->");
         }
@@ -1777,7 +1795,12 @@ export class SyncHelpers {
 
             const transformedArray = await this.modifyManagersData(notExistedManagers);
 
-            this.salesRepService.insertSalesReps(transformedArray);
+            const insertedManagers = await this.salesRepService.insertSalesReps(transformedArray);
+
+            if (insertedManagers.length) {
+                const ids = insertedManagers.map((e) => e.id);
+                this.seedTargets(ids);
+            }
 
             console.log("INSERTED ---->");
         }
@@ -1888,7 +1911,12 @@ export class SyncHelpers {
 
             const transformedArray = await this.modifyMghManagersData(notExistedManagers);
 
-            this.salesRepService.insertSalesReps(transformedArray);
+            const insertedManagers = await this.salesRepService.insertSalesReps(transformedArray);
+
+            if (insertedManagers.length) {
+                const ids = insertedManagers.map((e) => e.id);
+                this.seedTargets(ids);
+            }
 
             console.log("INSERTED ---->");
         }

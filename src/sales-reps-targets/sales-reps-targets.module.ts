@@ -18,10 +18,11 @@ import { HospitalSchema } from 'src/schemas/hospitalSchema';
 import { labDataSchema } from 'src/schemas/lab';
 import { MghDbConnections } from 'src/helpers/mghDbconnection';
 import { MghSyncService } from 'src/mgh-sync/mgh-sync.service';
+import { SalesRepTargetsHelper } from 'src/helpers/salesRepTargetsHelper';
 
 @Module({
   controllers: [SalesRepsTargetsController],
-  providers: [SalesRepsTargetsService, SalesRepService, EmailServiceProvider, SESAPIDataServiceProvider, Configuration, ConfigService, FilterHelper, JwtService, LisService, MghDbConnections, MghSyncService],
+  providers: [SalesRepsTargetsService, SalesRepService, EmailServiceProvider, SESAPIDataServiceProvider, Configuration, ConfigService, FilterHelper, JwtService, LisService, MghDbConnections, MghSyncService, SalesRepTargetsHelper],
   imports: [
     MongooseModule.forRoot(process.env.LIS_DLW_DB_URL + '&authSource=admin'),
     MongooseModule.forFeature([

@@ -1,4 +1,5 @@
-import { Body, Controller, Get, Param, Patch, Query, Req, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Query, Req, Res, UseGuards } from '@nestjs/common';
+import { labelNames } from 'src/constants/lisConstants';
 import { SALES_REPS_TARGET_DATA_NOT_FOUND, SALES_REPS_TARGET_DATA_UPDATED_SUCCESS, SOMETHING_WENT_WRONG, SUCCESS_FETCHED_SALES_REPS_TARGET_DATA } from 'src/constants/messageConstants';
 import { AuthGuard } from 'src/guards/auth.guard';
 import { FilterHelper } from 'src/helpers/filterHelper';
@@ -6,12 +7,7 @@ import { EmailServiceProvider } from 'src/notifications/emailServiceProvider';
 import { SalesRepService } from 'src/sales-rep/sales-rep.service';
 import { UpdateSalesRepTargetsDto } from './dto/update-sales-reps-target.dto';
 import { SalesRepsTargetsService } from './sales-reps-targets.service';
-import * as ejs from 'ejs';
-import { salesRepsTargetsTemplate } from 'src/views/email-templates/sales-reps-targets';
-import { monthlyTargetsUpdateTemplate } from 'src/views/email-templates/montly-sales-targets-update-template';
-import { labelNames } from 'src/constants/lisConstants';
-import { date } from 'drizzle-orm/mysql-core';
-
+import { SalesRepTargetsHelper } from 'src/helpers/salesRepTargetsHelper';
 
 
 @Controller(
@@ -26,6 +22,7 @@ export class SalesRepsTargetsController {
     private readonly filterHelper: FilterHelper,
     private readonly salesRepService: SalesRepService,
     private readonly emailServiceProvider: EmailServiceProvider,
+    private readonly salesRepTargetHelper: SalesRepTargetsHelper
 
   ) { }
   @UseGuards(AuthGuard)
@@ -115,6 +112,31 @@ export class SalesRepsTargetsController {
     }
     catch (error) {
       console.log(error);
+
+      return res.status(500).json({
+        success: false,
+        message: error || SOMETHING_WENT_WRONG
+      });
+    }
+  }
+
+  @Post()
+  async sync(
+    @Res() res: any,
+    @Req() req: Request,
+    @Query() query: any) {
+    try {
+
+
+      await this.salesRepTargetHelper.seedSalesRepTargets(2023, 2024, 10, 6);
+
+      return res.status(200).json({
+        success: true,
+        message: "sync successfully",
+      });
+    }
+    catch (error) {
+      console.log({ error });
 
       return res.status(500).json({
         success: false,

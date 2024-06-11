@@ -22,11 +22,14 @@ import { MghSyncService } from 'src/mgh-sync/mgh-sync.service';
 import { SalesRepsTargetsAchivedService } from 'src/sales-reps-targets-achived/sales-reps-targets-achived.service';
 import { FilterHelper } from 'src/helpers/filterHelper';
 import { SalesRepsTargetsService } from 'src/sales-reps-targets/sales-reps-targets.service';
+import { SalesRepTargetsHelper } from 'src/helpers/salesRepTargetsHelper';
 
 @Module({
   controllers: [SyncController],
   providers: [SyncService, LisService, SyncHelpers, Configuration, ConfigService,
-    InsurancesService, FacilitiesService, CaseTypesService, SalesRepService, LabsService, MghSyncService, SalesRepsTargetsAchivedService, FilterHelper, SalesRepsTargetsService],
+    InsurancesService, FacilitiesService, CaseTypesService, SalesRepService, LabsService, MghSyncService, SalesRepsTargetsAchivedService, FilterHelper, 
+    SalesRepsTargetsService, SalesRepTargetsHelper
+  ],
   imports: [
     MongooseModule.forRoot(process.env.LIS_DLW_DB_URL + '&authSource=admin'),
     MongooseModule.forFeature([
