@@ -42,7 +42,7 @@ export class Configuration {
                 break;
         }
 
-        const cc_emails = [" sundar@labsquire.com", "qc-team@labsquire.com", "sujatha.k@labsquire.com"];
+        const cc_emails = ["sundar@labsquire.com", "qc-team@labsquire.com", "sujatha.k@labsquire.com"];
         const lis_dlw_db_url = this.configService.get<string>('LIS_DLW_DB_URL');
         const lab_id = this.configService.get<string>('LAB_ID');
         const ls_api_key = this.configService.get<string>('LS_API_KEY');
