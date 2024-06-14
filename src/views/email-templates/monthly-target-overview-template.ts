@@ -357,7 +357,8 @@ export const monthlyTargetsOverviewTemplate = `<!DOCTYPE html>
       .section-heading .person-name {
         padding: 5px 0;
         color: #000000;
-      }
+        text-transform: capitalize;
+        }
 
       .section-heading h3 {
         margin: 0;
@@ -449,6 +450,11 @@ export const monthlyTargetsOverviewTemplate = `<!DOCTYPE html>
       .footer-section .logo img {
         width: 50px;
       }
+
+      .sales-rep {
+
+        text-transform: capitalize;
+      }
     </style>
   </head>
   <body class="">
@@ -509,7 +515,7 @@ export const monthlyTargetsOverviewTemplate = `<!DOCTYPE html>
                     </tr>
                   </table>
                   <div class="section-heading">
-                    <h3>Reminder for your volume targets</h3>
+                    <h3>Remainder for your volume targets</h3>
                     <p class="person-name">Hi <%= salesRepName %>,</p>
                     <p>
                       Following is the summary report for the month of
@@ -522,14 +528,15 @@ export const monthlyTargetsOverviewTemplate = `<!DOCTYPE html>
                         <tr>
                           <th>Name</th>
                           <th>Month</th>
-                          <th>Target Volume</th>
-                          <th>Target Volume Achieved</th>
+                          <th>Month Target</th>
+                          <th>Target Till Date
+                          <th>Achievements</th>
                         </tr>
                       </thead>
                       <tbody>
                        <% statsData.forEach((item)=> { %>
                         <tr>
-                        <td>
+                        <td class="sales-rep">
                         <%= item.sales_rep_name %>
                         </td>
                         <td>
@@ -539,8 +546,17 @@ export const monthlyTargetsOverviewTemplate = `<!DOCTYPE html>
                           <%= item.target_volume %>
                         </td>
                         <td>
-                          <%= item.total_cases %>
+                          <%= item.day_target %>
                         </td>
+                        <% if (item.total_cases>= item.target_volume) { %>
+                          <td style="background-color: rgb(188, 255, 203);">
+                            <% } else if (item.total_cases>= item.target_volume / 2) { %>
+                          <td style="background-color: rgb(255, 255, 188);">
+                            <% } else { %>
+                          <td style="background-color: rgb(255, 188, 188);">
+                            <% } %>
+                              <%= item.total_cases %>
+                          </td>
                         </tr>
                   <% }); %>
                         

@@ -12,6 +12,7 @@ import { Configuration } from 'src/config/config.service';
 import { SalesRepsTargetsAchivedService } from 'src/sales-reps-targets-achived/sales-reps-targets-achived.service';
 import { SalesRepsTargetsService } from 'src/sales-reps-targets/sales-reps-targets.service';
 import { CaseTypesService } from 'src/case-types/case-types.service';
+import * as dayjs from 'dayjs';
 
 
 @Controller({
@@ -838,7 +839,7 @@ export class SalesRepController {
 
 			salesRepData = await this.salesRepService.getOneSalesRepBySalesRepId(sales_repid);
 
-			const salesRepName = salesRepData[0].name;
+			const salesRepName = salesRepData[0].name.toLowerCase();
 
 			const salesRepEmail = salesRepData[0].email;
 
@@ -895,20 +896,23 @@ export class SalesRepController {
 						completed_cases: 0,
 						pending_cases: 0,
 						target_volume: 0,
+						day_target: 0,
 						sales_rep_name: rep.name,
 						sales_rep_email: rep.email
 					});
 				}
 			});
 
-			for (let i = 0; i < statsData.length; i++) {
-				const matchingRep = salesRepData.find(rep => rep.id === statsData[i].sales_rep_id);
-				if (matchingRep) {
-					statsData[i].target_volume = salesRepTargetData[i].total_targets || 0;
-					statsData[i].sales_rep_name = matchingRep.name;
-					statsData[i].sales_rep_email = matchingRep.email;
+			statsData.forEach(stat => {
+				const matchingRep = salesRepData.find(rep => rep.id === stat.sales_rep_id);
+				const matchingTargetData = salesRepTargetData.find(target => target.sales_rep_id === stat.sales_rep_id);
+				if (matchingRep && matchingTargetData) {
+					stat.target_volume = matchingTargetData.total_targets || 0;
+					stat.day_target = this.averageUptoPreviousDateTargets(matchingTargetData.total_targets || 0, new Date(query.to_date));
+					stat.sales_rep_name = matchingRep.name.toLowerCase();
+					stat.sales_rep_email = matchingRep.email;
 				}
-			}
+			});
 
 			const emailBody = {
 				statsData,
@@ -946,12 +950,23 @@ export class SalesRepController {
 
 			const salesReps = await this.salesRepService.getAllSalesReps();
 
-			const datesObj = this.syncHelpers.getFromAndToDates(10);
+			const now = new Date();
+			let fromDate;
 
-			const fromDate = datesObj.fromDate;
+			// Check if today is the 1st of the month
+			if (now.getUTCDate() === 1) {
+				// Set fromDate to the 1st day of the previous month in UTC
+				const previousMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1));
+				fromDate = previousMonth;
+			} else {
+				// Set fromDate to the 1st day of the current month in UTC
+				const currentMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+				fromDate = currentMonth;
+			}
 
 			const toDate = new Date();
-			toDate.setHours(23, 59, 59, 999);
+			toDate.setDate(toDate.getDate() - 1);
+
 
 			for (const salesRep of salesReps) {
 				const apiUrl = `${this.configuration.getConfig().api_url}/v1.0/sales-reps/target-summary/${salesRep.id}?from_date=${fromDate.toISOString()}&to_date=${toDate.toISOString()}`;
@@ -1011,6 +1026,37 @@ export class SalesRepController {
 			}
 			return false;
 		});
+	}
+
+
+	averageUptoPreviousDateTargets(target_volume: any, toDate: any) {
+
+
+		let totalDaysInMonth = dayjs().daysInMonth();
+
+		let startOfMonth = dayjs().startOf('month');
+
+		const currentDate = dayjs(toDate);
+
+		let daysPassed = currentDate.diff(startOfMonth, 'day') + 1;
+
+		let targetVolume = target_volume;
+
+		if (dayjs(startOfMonth).format('YYYY-MM-DD') === dayjs().format('YYYY-MM-DD')) {
+
+			totalDaysInMonth = dayjs(toDate).endOf('month').date();
+
+			daysPassed = 10;
+
+		}
+
+		if (targetVolume) {
+			const averagePerDay = targetVolume / totalDaysInMonth;
+			return Math.ceil(averagePerDay * daysPassed);
+		}
+		else {
+			return 0;
+		}
 	}
 
 }
